@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="websharperstubs.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="settings.fs" />
+    <Compile Include="solver.fs" />
+    <Compile Include="solver1d.fs" />
+    <Compile Include="solver2d.fs" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

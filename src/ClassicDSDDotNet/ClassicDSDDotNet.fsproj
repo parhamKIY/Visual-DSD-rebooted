@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="logicDSD.fs" />
+    <Compile Include="types.fsi" />
+    <Compile Include="types.fs" />
+    <Compile Include="errors.fsi" />
+    <Compile Include="errors.fs" />
+    <Compile Include="value.fsi" />
+    <Compile Include="value.fs" />
+    <Compile Include="measures.fsi" />
+    <Compile Include="measures.fs" />
+    <Compile Include="defaultDatabase.fs" />
+    <Compile Include="options.fsi" />
+    <Compile Include="options.fs" />
+    <Compile Include="domain.fsi" />
+    <Compile Include="domain.fs" />
+    <Compile Include="strand.fsi" />
+    <Compile Include="strand.fs" />
+    <Compile Include="segment.fsi" />
+    <Compile Include="segment.fs" />
+    <Compile Include="gate.fsi" />
+    <Compile Include="gate.fs" />
+    <Compile Include="origami.fsi" />
+    <Compile Include="origami.fs" />
+    <Compile Include="species.fsi" />
+    <Compile Include="species.fs" />
+    <Compile Include="sequence.fsi" />
+    <Compile Include="sequence.fs" />
+    <Compile Include="sequenceCalc.fsi" />
+    <Compile Include="sequenceCalc.fs" />
+    <Compile Include="visualisation.fsi" />
+    <Compile Include="visualisation.fs" />
+    <Compile Include="svg.fsi" />
+    <Compile Include="svg.fs" />
+    <Compile Include="branchesrenderer.fsi" />
+    <Compile Include="branchesrenderer.fs" />
+    <Compile Include="circlesrenderer.fsi" />
+    <Compile Include="circlesrenderer.fs" />
+    <Compile Include="dsdreaction.fsi" />
+    <Compile Include="dsdreaction.fs" />
+    <Compile Include="pattern.fsi" />
+    <Compile Include="pattern.fs" />
+    <Compile Include="process.fsi" />
+    <Compile Include="process.fs" />
+    <Compile Include="syntax.fsi" />
+    <Compile Include="syntax.fs" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="DSDParser.fs" />
+    <Compile Include="SLConversion.fs" />
+    <Compile Include="dsd.fsi" />
+    <Compile Include="dsd.fs" />
+    <Compile Include="jsapi.fs" />
+    <ProjectReference Include="../ReactionDiffusion/ReactionDiffusion.fsproj" />
+    <ProjectReference Include="../RulesDSD/RulesDSD.fsproj" />
+    <ProjectReference Include="../CRNEngineDotNet/CRNEngineDotNet.fsproj" />
+    <ProjectReference Include="../Filzbach.FSharp.Portable/Filzbach.FSharp.Portable.fsproj" />
+    <ProjectReference Include="../ParserCombinators/ParserCombinators.fsproj" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

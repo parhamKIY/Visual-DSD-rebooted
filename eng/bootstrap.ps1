@@ -3,6 +3,10 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $sdkVersion = (Get-Content -LiteralPath (Join-Path $repoRoot 'global.json') -Raw | ConvertFrom-Json).sdk.version
 $installDir = Join-Path $repoRoot '.tooling/dotnet'
 $localDotnet = Join-Path $installDir 'dotnet.exe'
+if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+    $installedSdks = & dotnet --list-sdks
+    if ($installedSdks -match "^$([regex]::Escape($sdkVersion)) ") { return }
+}
 if (Test-Path -LiteralPath $localDotnet) {
     $installedVersion = & $localDotnet --version
     if ($LASTEXITCODE -eq 0 -and $installedVersion -eq $sdkVersion) { return }

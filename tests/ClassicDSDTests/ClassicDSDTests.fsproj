@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>true</GenerateProgramFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="TestUtils.fs" />
+    <Compile Include="DsdParserTests.fs" />
+    <Compile Include="RenderingTests.fs" />
+    <Compile Include="CalculusTests.fs" />
+    <Compile Include="DSDUnitTests.fs" />
+    <ProjectReference Include="../../src/ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="FsUnit.xUnit" Version="3.8.0" />
+    <PackageReference Include="FsCheck" Version="2.14.0" />
+    <Content Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/*.vdsd" Link="fixtures/legacy/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

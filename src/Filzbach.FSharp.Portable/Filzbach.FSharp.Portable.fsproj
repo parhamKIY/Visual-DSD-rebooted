@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="WebSharper.Stubs.fs" />
+    <Compile Include="Lib.fs" />
+    <Compile Include="DataStructures.fs" />
+    <Compile Include="Parameter.fs" />
+    <Compile Include="Filzbach.fs" />
+    <Compile Include="FilzbachMultiple.fs" />
+    <Compile Include="Filzbach.Js.fs" />
+    <Compile Include="Analysis.fs" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

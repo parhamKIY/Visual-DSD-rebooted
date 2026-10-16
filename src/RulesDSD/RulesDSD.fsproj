@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="syntax.fs" />
+    <Compile Include="concreteProcess.fs" />
+    <Compile Include="substitution.fs" />
+    <Compile Include="unification.fs" />
+    <Compile Include="processEquality.fs" />
+    <Compile Include="resolution.fs" />
+    <Compile Include="parser.fs" />
+    <ProjectReference Include="../CRNEngineDotNet/CRNEngineDotNet.fsproj" />
+    <ProjectReference Include="../ParserCombinators/ParserCombinators.fsproj" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+    <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
+  </ItemGroup>
+</Project>
