@@ -23,6 +23,8 @@
       <nav id="documents" class="document-list" aria-label="Open models"></nav>
       <button id="open-model" class="open-file"><span aria-hidden="true">↗</span> Open model file <kbd>Ctrl O</kbd></button>
       <input id="file-input" type="file" accept=".txt,.dsd,.vdsd,.dna" hidden multiple>
+      <button id="open-project" class="open-file"><span aria-hidden="true">▱</span> Open project</button>
+      <input id="project-input" type="file" accept=".json,.dsdproj" hidden>
       <div class="library-heading"><span class="eyebrow">EXAMPLE LIBRARY</span><span id="example-count" class="count"></span></div>
       <div id="examples" class="example-list"></div>
       <div class="sidebar-note"><span class="note-mark" aria-hidden="true">◎</span><p>Same language.<br>A fresh workspace.</p><small>Models stay on this computer.</small></div>
@@ -31,7 +33,7 @@
     <main class="main">
       <div class="model-heading">
         <div class="model-title"><label class="sr-only" for="model-name">Model name</label><input id="model-name" value="Untitled.dsd" maxlength="120" spellcheck="false"><div><span id="document-description">Write a model, inspect its network, explore its dynamics.</span><span id="save-status" class="save-status">Saved in browser</span></div></div>
-        <button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button>
+        <div class="model-actions"><button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button><button id="save-project" class="button secondary">Save project</button></div>
       </div>
       <div class="workbench">
         <section class="source-pane" aria-label="Model source and settings">
@@ -66,10 +68,18 @@
             <button id="tab-plot" type="button" role="tab" data-tab="plot" aria-controls="panel-plot" aria-selected="true">Simulation</button>
             <button id="tab-species" type="button" role="tab" data-tab="species" aria-controls="panel-species" aria-selected="false" tabindex="-1">Species <span id="species-count" class="count">0</span></button>
             <button id="tab-reactions" type="button" role="tab" data-tab="reactions" aria-controls="panel-reactions" aria-selected="false" tabindex="-1">Reactions <span id="reaction-count" class="count">0</span></button>
+            <button id="tab-network" type="button" role="tab" data-tab="network" aria-controls="panel-network" aria-selected="false" tabindex="-1">Network</button>
             <button id="tab-data" type="button" role="tab" data-tab="data" aria-controls="panel-data" aria-selected="false" tabindex="-1">Data</button>
           </div>
           <div id="empty-state" class="empty-state"><div class="empty-art" aria-hidden="true"><svg viewBox="0 0 240 130"><path class="empty-strand" d="M20 74h60l22-28h30l22 28h66M20 94h80l22-28h30l22 28h46"/><path class="empty-toehold" d="M80 74h22m30-28h22m-54 48h22m30-28h22"/><circle cx="32" cy="74" r="4"/><circle cx="208" cy="94" r="4"/><path class="empty-bond" d="M123 48v16m8-16v16m8-12v16"/></svg></div><span class="eyebrow">FROM STRANDS TO DYNAMICS</span><h2>Your model, brought to life.</h2><p>Check the syntax, expand the reaction network,<br>or simulate how your system changes over time.</p><button id="empty-simulate" class="button primary">Run first simulation <span aria-hidden="true">→</span></button><small>Use the example on the left, or open your own model.</small></div>
           <div id="results-content" hidden>
+            <section id="panel-network" class="result-panel" role="tabpanel" aria-labelledby="tab-network" hidden>
+              <div class="network-toolbar"><label>Focus<select id="network-focus" aria-label="Network focus"><option value="">Full network</option></select></label><div><button id="network-out" class="button compact secondary" aria-label="Zoom network out">−</button><button id="network-in" class="button compact secondary" aria-label="Zoom network in">+</button><button id="network-fit" class="button compact secondary">Fit</button><button id="network-export" class="button compact secondary">SVG ↓</button></div></div>
+              <p id="network-caption" class="network-caption"></p>
+              <svg id="network" class="network-canvas" viewBox="0 0 1000 640" aria-label="Reaction network" role="group"></svg>
+              <div class="network-key"><span>○ Species</span><span>□ Reactions</span><span>╌ Catalysts</span><span>⇌ Reversible</span></div>
+              <div id="network-details" class="network-details" aria-live="polite"></div>
+            </section>
             <section id="panel-plot" class="result-panel" role="tabpanel" aria-labelledby="tab-plot">
               <div class="plot-toolbar"><div><span class="eyebrow">CONCENTRATION OVER TIME</span><p id="plot-subtitle" class="muted"></p></div><div class="plot-actions"><label class="sr-only" for="run-select">Simulation run</label><select id="run-select" aria-label="Simulation run" hidden></select><button id="export-svg" class="button compact secondary">SVG</button><button id="export-csv" class="button compact secondary">CSV <span aria-hidden="true">↓</span></button></div></div>
               <div id="plot-empty" class="inline-empty" hidden><h3>No simulation data yet</h3><p>Choose Simulate to calculate the time course.</p></div>

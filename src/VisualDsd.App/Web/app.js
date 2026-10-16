@@ -1,11 +1,14 @@
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel } from './model.js';
 import { SimulationChart } from './chart.js';
+import { ReactionNetwork } from './network.js';
+import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
 
 const $ = id => document.getElementById(id);
 const editor = $('editor');
 const chart = new SimulationChart($('chart'), $('legend'), $('chart-tooltip'));
+const network = new ReactionNetwork($('network'), $('network-details'), $('network-caption'));
 const views = new Map();
-let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true;
+let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown';
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
@@ -32,6 +35,25 @@ function download(name, text, type = 'text/plain;charset=utf-8') {
 }
 function stem() { return current().name.replace(/\.[^.]+$/, '') || 'model'; }
 function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model download started.'); }
+function saveProject() {
+  if (activeJob) return toast('Wait for the calculation to finish before saving the project.');
+  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion), 'application/json'); toast('Project download started, including saved results.'); }
+  catch (error) { toast(error.message); }
+}
+async function openProject(file) {
+  if (!file) return;
+  try {
+    if (activeJob) throw new Error('Stop the running calculation before opening a project.');
+    if (file.size > MAX_PROJECT_BYTES) throw new Error('Project files must be no larger than 16 MiB.');
+    const imported = parseProject(await file.text());
+    if (activeJob) throw new Error('Stop the running calculation before opening a project.');
+    if (!confirm('Replace the open workspace with this project? Save your current project first if you want to keep it.')) return;
+    clearTimeout(persistTimer); documents = imported.documents; activeId = imported.activeId; views.clear();
+    for (const [id, restored] of imported.views) Object.assign(stateFor(id), restored, { status: `Restored result · engine ${restored.snapshot.engineVersion}` });
+    selectDocument(activeId); toast('Project opened. Saved results have been restored.');
+  } catch (error) { toast(error.message); }
+  finally { $('project-input').value = ''; }
+}
 
 async function api(path, options = {}) {
   let response;
@@ -136,6 +158,7 @@ function updateBusy() {
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
   for (const id of ['check', 'expand', 'simulate', 'empty-simulate']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
+  $('save-project').disabled = busy; $('open-project').disabled = busy;
   $('run-state').textContent = busy && activeJob.documentId === activeId ? activeJob.message : busy ? `Running ${documents.find(model => model.id === activeJob.documentId)?.name || 'another model'}…` : state().status;
 }
 async function run(operation) {
@@ -148,7 +171,7 @@ async function run(operation) {
   }
   catch (error) { showError(error); return; }
   state().diagnostics = []; renderDiagnostics(); renderEditor();
-  activeJob = { id: null, documentId, revision, operation, request, name: model.name, message: operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…', started: performance.now(), cancelling: false };
+  activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message: operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…', started: performance.now(), cancelling: false };
   const task = activeJob; updateBusy();
   try {
     const admitted = await api('/api/jobs', { method: 'POST', body: JSON.stringify(request) }); task.id = admitted.id; updateBusy();
@@ -174,7 +197,7 @@ function finishJob(job, task) {
   if (job.state === 'cancelled') { view.status = 'Calculation stopped.'; return; }
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
-    view.response = job.result; view.snapshot = { name: task.name, request: task.request }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
+    view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
     view.tab = task.operation === 'simulate' ? 'plot' : 'species';
     view.status = `${task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
@@ -195,12 +218,13 @@ function selectTab(tab, focus = false) {
 }
 function updateStamp() {
   const view = state(), response = view.response;
-  $('stale').hidden = !response || current().revision === view.revision;
+  const fresh = !response || resultIsCurrent(current(), view.snapshot);
+  $('stale').hidden = fresh;
   $('export-json').disabled = !response;
   if (!response) return;
   const model = response.model;
   $('result-summary').textContent = `${model.species.length} species · ${model.reactions.length} reactions`;
-  $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated during simulation' : 'Expanded network'} · ${model.compilation} semantics${current().revision === view.revision ? '' : ' · earlier source'}`;
+  $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated during simulation' : 'Expanded network'} · ${model.compilation} semantics${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
 }
 function renderResults() {
   const view = state(), response = view.response;
@@ -209,7 +233,15 @@ function renderResults() {
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = response.model;
   $('species-count').textContent = model.species.length; $('reaction-count').textContent = model.reactions.length;
-  renderRuns(); renderSpecies(); renderReactions(); renderData();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork();
+}
+function renderNetwork() {
+  const view = state(), model = view.response.model;
+  if (!model.species.some(item => item.id === view.networkFocus)) view.networkFocus = '';
+  $('network-focus').replaceChildren(element('option', '', 'Full network'), ...model.species.map(item => { const option = element('option', '', `${item.id} · ${item.structure || item.name}`); option.value = item.id; return option; }));
+  $('network-focus').firstElementChild.value = ''; $('network-focus').value = view.networkFocus;
+  try { network.render(model, view.networkFocus); $('network-export').disabled = false; }
+  catch (error) { $('network-caption').textContent = error.message; $('network').replaceChildren(); $('network-export').disabled = true; }
 }
 function selectedRun() { return state().response?.model.simulations[state().runIndex]; }
 function renderRuns() {
@@ -239,7 +271,7 @@ function renderSpecies() {
     heading.append(element('strong', '', species.name || species.id), element('span', 'muted', species.id));
     if (species.svg) { const image = svgImage(species.svg); image.alt = species.structure || species.name; drawing.append(image); } else drawing.textContent = species.structure;
     const structure = element('div', 'species-structure', species.structure); structure.title = species.structure;
-    footer.append(element('span', '', `Initial: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · at ${species.time}` : ''}`));
+    footer.append(element('span', '', `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`));
     if (species.svg) { const save = element('button', 'text-button', 'Save SVG'); save.type = 'button'; save.setAttribute('aria-label', `Save ${species.id} SVG`); save.addEventListener('click', () => download(`${stem()}-${species.id}.svg`, species.svg, 'image/svg+xml')); footer.append(save); }
     card.append(heading, drawing, structure, footer); return card;
   }));
@@ -288,11 +320,19 @@ $('new-model').addEventListener('click', () => { try { addDocument(createDocumen
 $('open-model').addEventListener('click', () => $('file-input').click());
 $('file-input').addEventListener('change', event => openFiles(event.target.files));
 $('save-model').addEventListener('click', saveModel);
+$('save-project').addEventListener('click', saveProject);
+$('open-project').addEventListener('click', () => $('project-input').click());
+$('project-input').addEventListener('change', event => openProject(event.target.files[0]));
+$('network-focus').addEventListener('change', () => { state().networkFocus = $('network-focus').value; renderNetwork(); });
+$('network-in').addEventListener('click', () => network.zoom(1 / 1.3));
+$('network-out').addEventListener('click', () => network.zoom(1.3));
+$('network-fit').addEventListener('click', () => network.fit());
+$('network-export').addEventListener('click', () => download(`${stem()}-network.svg`, network.exportSvg(), 'image/svg+xml'));
 for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
 $('cancel').addEventListener('click', cancelJob);
 for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
-  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'data'], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? 'data' : tabs[(index + (event.key === 'ArrowLeft' ? 3 : 1)) % 4], true); } });
+  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'network', 'data'], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? 'data' : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
 }
 $('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = 0; renderRuns(); renderData(); });
 $('species-search').addEventListener('input', () => { state().search = $('species-search').value; state().speciesPage = 0; renderSpecies(); });
@@ -314,11 +354,12 @@ async function initialize() {
   if (saved) { documents = saved.documents; activeId = saved.activeId; }
   else { const model = createDocument(); documents = [model]; activeId = model.id; }
   selectDocument(activeId);
+  const initialDocumentId = activeId;
   try {
     const [info, library] = await Promise.all([api('/api/info'), api('/api/examples')]);
-    examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
+    engineVersion = info.version; examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
-    if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
+    if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
   } catch (error) { connection(false); toast(error.message); }
 }
 initialize().catch(error => toast(error.message));
