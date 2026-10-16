@@ -10,6 +10,7 @@
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="Web/**/*" />
     <ProjectReference Include="../VisualDsd.Engine/VisualDsd.Engine.fsproj" />
     <EmbeddedResource Include="Web/*" LogicalName="VisualDsd.Web.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt" LogicalName="VisualDsd.Examples.catalytic" />

@@ -3,6 +3,8 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if ($Runtime -notin @('win-x64', 'linux-x64')) { throw 'Supported targets: win-x64, linux-x64.' }
 $name = if ($Runtime -eq 'win-x64') { 'VisualDsd.exe' } else { 'VisualDsd' }
+$publishItems = @(Get-ChildItem -LiteralPath (Join-Path $repoRoot "artifacts/publish/$Runtime"))
+if ($publishItems.Count -ne 1 -or $publishItems[0].Name -ne $name) { throw 'The standalone publish directory must contain only the application executable.' }
 $directory = Join-Path $repoRoot "artifacts/smoke/$([guid]::NewGuid())/standalone app"
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
 $executable = Join-Path $directory $name
