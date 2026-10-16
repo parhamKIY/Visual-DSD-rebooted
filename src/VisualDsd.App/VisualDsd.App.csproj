@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>VisualDsd</AssemblyName>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../VisualDsd.Engine/VisualDsd.Engine.fsproj" />

@@ -24,6 +24,15 @@ jobs:
       - name: Verify original reference and rebooted engine
         shell: pwsh
         run: ./eng/test.ps1 -Locked
+      - name: Publish and verify standalone application
+        shell: pwsh
+        run: |
+          $runtime = if ($IsWindows) { 'win-x64' } else { 'linux-x64' }
+          ./eng/publish.ps1 -Runtime $runtime
+          ./eng/smoke.ps1 -Runtime $runtime
+          git diff --exit-code
+          if ($LASTEXITCODE -ne 0) { throw 'Build or publish changed tracked files.' }
+          if (git ls-files --others --exclude-standard) { throw 'Build or publish created untracked files.' }
       - name: Save test evidence
         if: always()
         uses: actions/upload-artifact@v7.0.2

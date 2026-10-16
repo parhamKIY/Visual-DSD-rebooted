@@ -4,6 +4,7 @@
     <OtherFlags>$(OtherFlags) --strict-indentation-</OtherFlags>
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath Condition="'$(RebootPublish)' == 'true'">$(MSBuildThisFileDirectory)artifacts/publish-restore/$(RuntimeIdentifier)/$(MSBuildProjectName)/packages.lock.json</NuGetLockFilePath>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>
