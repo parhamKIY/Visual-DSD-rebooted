@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/websharperstubs.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/graph.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/stringbuilder.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/keywords.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/sbml.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/sbml.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/svg.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/svg.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/RngAdapter.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/Matrix.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/Matrix.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/hashtable.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/dictionary.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/queue.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/lib.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/statistics.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/operators.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/stringmap.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/pQueue.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/IPQ.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/errors.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/environment.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/mset.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/mset.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/lambda.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/expression.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/inlined.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/key.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/value.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/spatial_initial.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/population.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/populations.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/rate.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/units.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/target.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/event.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/species.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/functional.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/reaction.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/reactions.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/point.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/row.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/column.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/table.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/dataset.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/distribution.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/interval.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/variation.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/prior.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/assignment.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/sweep.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/sweeps.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/parameter.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/parameters.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/parametersummary.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/initial.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/initials.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/kinetics.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/simulation_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/noise_parameter.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/noise_model.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/inference_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/deterministic_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/spatial_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/stochastic_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/moment_closure_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/synthesis_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/plot_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/instance.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/result.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/simulator.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/directive.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/api.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/crn_settings.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/simulation.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/inference.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/inference.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/oslo_integrator.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/odeoslo.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/sundials.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/odesundials.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/ctmc.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/probabilities.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/cme.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/pde.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/ssa.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/lna.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/ode.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/attributes.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/instruction.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/adapter.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/calculus.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/crn.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/jit.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/jit.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/legacyParser.fsi" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/legacyParser.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/io.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/model.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/task.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/InferenceSiteGraph.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/gui.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/plotting.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/html.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/jsapi.fs" />
+    <Compile Include="../../upstream/crn-engine/CRNEngine/CRNEngineDotNet/fakeSlowTest.fs" />
+    <ProjectReference Include="../Filzbach.FSharp.Portable/Filzbach.FSharp.Portable.fsproj" />
+    <ProjectReference Include="../Oslo.FSharp/Oslo.FSharp.fsproj" />
+    <ProjectReference Include="../ParserCombinators/ParserCombinators.fsproj" />
+    <ProjectReference Include="../ReactionDiffusion/ReactionDiffusion.fsproj" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+    <PackageReference Include="FSharpIDD" Version="0.4.3" />
+    <PackageReference Include="FSharp.Collections.ParallelSeq" Version="1.1.2" />
+  </ItemGroup>
+</Project>

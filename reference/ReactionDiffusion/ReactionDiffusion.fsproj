@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/websharperstubs.fs" />
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/AssemblyInfo.fs" />
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/settings.fs" />
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/solver.fs" />
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/solver1d.fs" />
+    <Compile Include="../../upstream/crn-engine/PDESolvers/ReactionDiffusion/solver2d.fs" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

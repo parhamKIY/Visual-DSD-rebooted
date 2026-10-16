@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/WebSharper.Stubs.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/Lib.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/DataStructures.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/Parameter.fs" />
+    <Compile Include="../compatibility/Filzbach.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/FilzbachMultiple.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/Filzbach.Js.fs" />
+    <Compile Include="../../upstream/crn-engine/Filzbach.FSharp/Analysis.fs" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

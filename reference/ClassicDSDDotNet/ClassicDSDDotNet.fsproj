@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/logicDSD.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/types.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/types.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/errors.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/errors.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/value.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/value.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/measures.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/measures.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/defaultDatabase.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/options.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/options.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/domain.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/domain.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/strand.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/strand.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/segment.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/segment.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/gate.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/gate.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/origami.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/origami.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/species.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/species.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/sequence.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/sequence.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/sequenceCalc.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/sequenceCalc.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/visualisation.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/visualisation.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/svg.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/svg.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/branchesrenderer.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/branchesrenderer.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/circlesrenderer.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/circlesrenderer.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/dsdreaction.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/dsdreaction.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/pattern.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/pattern.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/process.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/process.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/syntax.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/syntax.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/AssemblyInfo.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/DSDParser.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/SLConversion.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/dsd.fsi" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/dsd.fs" />
+    <Compile Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDDotNet/jsapi.fs" />
+    <ProjectReference Include="../ReactionDiffusion/ReactionDiffusion.fsproj" />
+    <ProjectReference Include="../RulesDSD/RulesDSD.fsproj" />
+    <ProjectReference Include="../CRNEngineDotNet/CRNEngineDotNet.fsproj" />
+    <ProjectReference Include="../Filzbach.FSharp.Portable/Filzbach.FSharp.Portable.fsproj" />
+    <ProjectReference Include="../ParserCombinators/ParserCombinators.fsproj" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>

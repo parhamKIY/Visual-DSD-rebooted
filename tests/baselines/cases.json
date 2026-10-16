@@ -1,0 +1,2042 @@
+[
+  {
+    "id": "examples/2-domain, DCM - Two domain fork-join.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two domain fork-join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/2-domain, DCM - Two-domain transducer.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Buffered Fork.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Fork.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Buffered Join.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Buffered Transducer.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Transducer.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Oscillating.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Oscillating.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Transducer Composition.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer Composition.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Transducer.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/3-domain, DNA 2016 - Ultrasensitive.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Ultrasensitive.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Catalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/CatalyticSequenceRates.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/CatalyticSequenceRates.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Co-operative - Lotka.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Co-operative - Lotka.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Co-operative - Mapk.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Co-operative - Mapk.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - (localized Fanout) SQRT.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized Fanout) SQRT.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - (localized) Fanout.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) Fanout.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - (localized) SQRT.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) SQRT.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - And.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - And.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - Fanout.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - Fanout.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - Or.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - Or.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Formal Analysis - SQRT.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - SQRT.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Kim et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Kim et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., DNA 2014 - Remote transmission lines.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Remote transmission lines.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., DNA 2014 - Threshold spatial AND.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial AND.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., DNA 2014 - Transmission lines.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Transmission lines.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., Interface 2012 - Buffered oscillators.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Buffered oscillators.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., Interface 2012 - Join gates.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Join gates.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin et al., Interface 2012 - Unbuffered oscillators.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Unbuffered oscillators.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Lakin, Parker et al., Interface 2012 - Model-checking examples.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin, Parker et al., Interface 2012 - Model-checking examples.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - AND gate with nicks.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - AND gate with nicks.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - AND gate.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - AND gate.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - OR gate with nicks.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR gate with nicks.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - OR gate.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR gate.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - OR of ANDs.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR of ANDs.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - Square root.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - Square root.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Localization - Wires.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - Wires.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-CME.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-CME.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-CTMC.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-CTMC.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Inference-Samples.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Inference-Samples.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Inference.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Inference.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Initials.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Initials.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-JIT.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-JIT.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Leaks.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Leaks.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-LNA.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-LNA.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Localised.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Localised.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Nucleotides.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Nucleotides.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Reactions.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Spatial.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Spatial.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Stochastic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Stochastic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Subdomains.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Subdomains.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join-Unique.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Manual/Join.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Montagne et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Montagne et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Nature Nanotech 2013 - Consensus Modules.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Modules.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Nature Nanotech 2013 - Consensus Parameterized.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Parameterized.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/cargo_sorting_DNA_robot.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/cargo_sorting_DNA_robot.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/catalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/enzymes.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/enzymes.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/join_infinite.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_infinite.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/join_kinetic_rates.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_kinetic_rates.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/join_simple.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/localized_hcr.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/localized_hcr.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/oligator.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/oligator.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/oligator_nucleotides.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/oligator_nucleotides.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/ribocomputing_AND.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_AND.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/ribocomputing_OR.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_OR.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/RulesDSD/walker_enzymatic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/walker_enzymatic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Scienze 2007 - Catalytic Directives.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic Directives.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Scienze 2007 - Catalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Simple - AND Circuit.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - AND Circuit.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Simple - Hairpin-free HCR.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Hairpin-free HCR.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Simple - Migrations.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Simple - Monomers.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Monomers.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Square root - Qian and Winfree 4 bit square root circuit.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Square root - Qian and Winfree 4 bit square root circuit.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Stack Machine, DNA17 - Ripple carry adder.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Stack Machine, DNA17 - Ripple carry adder.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/TransmissionLines.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/TransmissionLines.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Tutorial - Join.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Tutorial - Join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/01 standard dsd.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/01 standard dsd.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/02 standard gates.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/02 standard gates.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/03 standard reaction.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/03 standard reaction.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/04 rxn basic.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/05 rxn rate.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/05 rxn rate.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/06 rxn Michaelis-Menten.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/06 rxn Michaelis-Menten.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/07 hairpins basic.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/07 hairpins basic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/08 hairpins open.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/08 hairpins open.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/09 hairpins close.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/09 hairpins close.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/10 tethers basic.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/10 tethers basic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/11 tethers untethered.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/11 tethers untethered.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/12 tethers free.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/12 tethers free.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/13 tethers free react.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/13 tethers free react.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/14 tethers tethered react.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/14 tethers tethered react.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/15 tethers react compete.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/15 tethers react compete.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/16 tethers react compete lc.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/16 tethers react compete lc.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/17 tethers tag intuition.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/17 tethers tag intuition.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/circular_walker.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/circular_walker.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/split_circular_walker.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/split_circular_walker.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/WalkerTalk/Walker.dna",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/Walker.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - And Gate.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - And Gate.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - Autocatalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Autocatalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - Cross Catalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Cross Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - Feed forward.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Feed forward.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - Fluorescent Catalytic.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Fluorescent Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "examples/Zhang, Science 2007 - Independent Input.txt",
+    "operation": "parse",
+    "dialect": "auto",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Independent Input.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/2-domain, DCM - Two domain fork-join.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/2-domain, DCM - Two domain fork-join.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/2-domain, DCM - Two-domain transducer.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/2-domain, DCM - Two-domain transducer.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Buffered Fork.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Fork.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Buffered Join.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Join.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Buffered Transducer.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Transducer.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Oscillating.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Oscillating.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Transducer Composition.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Transducer Composition.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Transducer.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Transducer.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/3-domain, DNA 2016 - Ultrasensitive.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Ultrasensitive.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Co-operative - Lotka.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Co-operative - Lotka.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Co-operative - Mapk.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Co-operative - Mapk.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Dalchau et al., DNA 2014 - Autocatalytic Spatial.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Autocatalytic Spatial.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Dalchau et al., DNA 2014 - Consensus Spatial.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Consensus Spatial.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Dalchau et al., DNA 2014 - Lotka Spatial.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Lotka Spatial.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - (buggy) 10 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 10 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - (buggy) 2 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 2 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - (buggy) 3 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 3 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - (localized Fanout) SQRT.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized Fanout) SQRT.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - (localized) Fanout.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized) Fanout.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - (localized) SQRT.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized) SQRT.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - 10 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 10 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - 2 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 2 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - 3 Transducers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 3 Transducers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Formal Analysis - And.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - And.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - Fanout.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - Fanout.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - Or.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - Or.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Formal Analysis - SQRT.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - SQRT.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Kim et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Kim et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., DNA 2014 - Remote transmission lines.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Remote transmission lines.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., DNA 2014 - Threshold spatial AND.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Threshold spatial AND.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., DNA 2014 - Transmission lines.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Transmission lines.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., Interface 2012 - Buffered oscillators.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Buffered oscillators.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., Interface 2012 - Join gates.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Join gates.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin et al., Interface 2012 - Unbuffered oscillators.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Unbuffered oscillators.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Lakin, Parker et al., Interface 2012 - Model-checking examples.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin, Parker et al., Interface 2012 - Model-checking examples.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - AND gate with nicks.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - AND gate with nicks.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - AND gate.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - AND gate.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - OR gate with nicks.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR gate with nicks.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - OR gate.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR gate.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - OR of ANDs.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR of ANDs.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - Square root.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - Square root.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Localization - Wires.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - Wires.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Montagne et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Montagne et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Nature Nanotech 2013 - Consensus Modules.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Nature Nanotech 2013 - Consensus Modules.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Nature Nanotech 2013 - Consensus Parameterized.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Nature Nanotech 2013 - Consensus Parameterized.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Parameter Inference - Join + Reporter.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Parameter Inference - Join + Reporter.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Parameter Inference - Reporter.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Parameter Inference - Reporter.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Scienze 2007 - Catalytic Directives.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Scienze 2007 - Catalytic Directives.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Scienze 2007 - Catalytic.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Scienze 2007 - Catalytic.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Simple - AND Circuit.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Simple - Hairpin-free HCR.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Hairpin-free HCR.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Simple - Migrations.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Migrations.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Simple - Monomers.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Monomers.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Square root - Qian and Winfree 4 bit square root circuit.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Square root - Qian and Winfree 4 bit square root circuit.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Stack Machine, DNA17 - Ripple carry adder.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Stack Machine, DNA17 - Ripple carry adder.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join Directives.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Directives.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join Events.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Events.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join Fit.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Fit.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join Reporter Z3.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Reporter Z3.vdsd",
+    "semantics": "source",
+    "expectedStatus": "fail"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join Reporter.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Reporter.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Tutorial, VEMDP 2014 - Join.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - And Gate.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - And Gate.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - Autocatalytic.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Autocatalytic.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - Cross Catalytic.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Cross Catalytic.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - Feed forward.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Feed forward.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - Fluorescent Catalytic.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Fluorescent Catalytic.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "legacy/Zhang, Science 2007 - Independent Input.vdsd",
+    "operation": "parse",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Independent Input.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/2-domain, DCM - Two domain fork-join.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/2-domain, DCM - Two domain fork-join.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/2-domain, DCM - Two-domain transducer.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/2-domain, DCM - Two-domain transducer.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Buffered Fork.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Fork.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Buffered Join.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Join.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Buffered Transducer.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Transducer.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Oscillating.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Oscillating.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Transducer Composition.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Transducer Composition.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Transducer.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Transducer.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/3-domain, DNA 2016 - Ultrasensitive.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Ultrasensitive.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Co-operative - Lotka.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Co-operative - Lotka.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Co-operative - Mapk.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Co-operative - Mapk.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - (localized Fanout) SQRT.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized Fanout) SQRT.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - (localized) Fanout.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized) Fanout.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - (localized) SQRT.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized) SQRT.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - And.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - And.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - Fanout.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - Fanout.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - Or.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - Or.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Formal Analysis - SQRT.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - SQRT.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Kim et al., Mol Syst Biol 2011 - Oscillator.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Kim et al., Mol Syst Biol 2011 - Oscillator.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., DNA 2014 - Remote transmission lines.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Remote transmission lines.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., DNA 2014 - Threshold spatial AND.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Threshold spatial AND.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., DNA 2014 - Transmission lines.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Transmission lines.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., Interface 2012 - Buffered oscillators.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Buffered oscillators.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., Interface 2012 - Join gates.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Join gates.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin et al., Interface 2012 - Unbuffered oscillators.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Unbuffered oscillators.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Lakin, Parker et al., Interface 2012 - Model-checking examples.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin, Parker et al., Interface 2012 - Model-checking examples.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - AND gate with nicks.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - AND gate with nicks.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - AND gate.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - AND gate.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - OR gate with nicks.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR gate with nicks.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - OR gate.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR gate.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - OR of ANDs.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR of ANDs.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - Square root.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - Square root.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Localization - Wires.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - Wires.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Montagne et al., Mol Syst Biol 2011 - Oscillator.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Montagne et al., Mol Syst Biol 2011 - Oscillator.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Nature Nanotech 2013 - Consensus Modules.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Nature Nanotech 2013 - Consensus Modules.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Nature Nanotech 2013 - Consensus Parameterized.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Nature Nanotech 2013 - Consensus Parameterized.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Scienze 2007 - Catalytic Directives.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Scienze 2007 - Catalytic Directives.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Scienze 2007 - Catalytic.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Scienze 2007 - Catalytic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Simple - AND Circuit.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - AND Circuit.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Simple - Hairpin-free HCR.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Hairpin-free HCR.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Simple - Migrations.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Migrations.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Simple - Monomers.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Monomers.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Square root - Qian and Winfree 4 bit square root circuit.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Square root - Qian and Winfree 4 bit square root circuit.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Stack Machine, DNA17 - Ripple carry adder.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Stack Machine, DNA17 - Ripple carry adder.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Tutorial, VEMDP 2014 - Join Directives.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Directives.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Tutorial, VEMDP 2014 - Join Events.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Events.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Tutorial, VEMDP 2014 - Join Reporter.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Reporter.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Tutorial, VEMDP 2014 - Join.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - And Gate.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - And Gate.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - Autocatalytic.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Autocatalytic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - Cross Catalytic.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Cross Catalytic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - Feed forward.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Feed forward.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - Fluorescent Catalytic.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Fluorescent Catalytic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "converted/Zhang, Science 2007 - Independent Input.dna",
+    "operation": "parse",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Independent Input.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/catalytic/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/catalytic/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/catalytic/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/catalytic/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/and/default",
+    "operation": "expand",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/and/detailed",
+    "operation": "expand",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/and/finite",
+    "operation": "expand",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/and/infinite",
+    "operation": "expand",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/transducer/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/transducer/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/transducer/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "network/transducer/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "numeric/catalytic/oslo",
+    "operation": "oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "numeric/catalytic/ssa",
+    "operation": "ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  }
+]

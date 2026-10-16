@@ -22,7 +22,8 @@ $archive = $sdk.files | Where-Object { $_.rid -eq 'win-x64' -and $_.url.EndsWith
 if ($null -eq $archive) { throw 'The official Windows x64 SDK archive was not found.' }
 New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 $archivePath = Join-Path $repoRoot ".tooling/dotnet-sdk-$sdkVersion-win-x64.zip"
-if (-not (Test-Path -LiteralPath $archivePath)) {
+$archiveValid = (Test-Path -LiteralPath $archivePath) -and ((Get-FileHash -LiteralPath $archivePath -Algorithm SHA512).Hash -eq $archive.hash)
+if (-not $archiveValid) {
     Invoke-WebRequest -Uri $archive.url -OutFile $archivePath -TimeoutSec 600 -UseBasicParsing
 }
 $actualHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA512).Hash

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../tools/Baselines/Snapshots.fs" Link="Snapshots.fs" />
+    <Compile Include="../../tools/Baselines/Program.fs" Link="Program.fs" />
+    <ProjectReference Include="../ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
+  </ItemGroup>
+</Project>

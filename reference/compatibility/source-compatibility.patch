@@ -1,0 +1,35 @@
+--- Filzbach.FSharp/Filzbach.fs
++++ Filzbach.FSharp/Filzbach.fs
+@@ -272,8 +272,8 @@
+             let newSigma =
+                 let proposedSigma =
+                     match accepted with
+-                    | c when c<5  ->  sigma*0.8
+-                    | c when c>5  ->  sigma*1.2
++                    | c when c < 5  ->  sigma*0.8
++                    | c when c > 5  ->  sigma*1.2
+                     | _   -> sigma
+                 match range.pType with
+                 | Real ->
+--- RulesDSD/RulesDSD/syntax.fs
++++ RulesDSD/RulesDSD/syntax.fs
+@@ -770,8 +770,8 @@
+     member this.String = Literal<'s>.ToString this
+ 
+     static member Map (f:Term<'s> -> Term<'s>) (l:Literal<'s>) = match l with   
+-                                                                 | Pos p -> Pos (p |> Predicate<'s>.Map f)
+-                                                                 | Neg p -> Neg (p |> Predicate<'s>.Map f)
++                                                                 | Pos p -> Pos (p |> Predicate.Map f)
++                                                                 | Neg p -> Neg (p |> Predicate.Map f)
+     static member Species (l:Literal<'s>) = 
+       match l with 
+       | Pos p 
+@@ -798,7 +798,7 @@
+                                     body: Literal<'s> list } with
+   static member Create(p:Predicate<'s>, bs:Literal<'s> list) = {head=p; body=bs}
+   static member Create(p:Predicate<'s>)                  = {head=p; body=[]}
+-  static member Map (f:Term<'s> -> Term<'s>) (c:Clause<'s>) = { head = c.head |> Predicate<'s>.Map f
++  static member Map (f:Term<'s> -> Term<'s>) (c:Clause<'s>) = { head = c.head |> Predicate.Map f
+                                                                 body = c.body |> List.map (Literal<'s>.Map f)}
+   static member Species (c:Clause<'s>) = Predicate.Species(c.head) @ (c.body |> List.collect Literal.Species) |> List.distinct
+ 

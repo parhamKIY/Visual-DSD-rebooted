@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Solution>
+  <Project Path="ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
+  <Project Path="ReactionDiffusion/ReactionDiffusion.fsproj" />
+  <Project Path="RulesDSD/RulesDSD.fsproj" />
+  <Project Path="CRNEngineDotNet/CRNEngineDotNet.fsproj" />
+  <Project Path="Filzbach.FSharp.Portable/Filzbach.FSharp.Portable.fsproj" />
+  <Project Path="Oslo.FSharp/Oslo.FSharp.fsproj" />
+  <Project Path="ParserCombinators/ParserCombinators.fsproj" />
+  <Project Path="ReferenceBaselines/ReferenceBaselines.fsproj" />
+</Solution>

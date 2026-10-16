@@ -12,6 +12,8 @@
     <Compile Include="RenderingTests.fs" />
     <Compile Include="CalculusTests.fs" />
     <Compile Include="DSDUnitTests.fs" />
+    <Compile Include="../../tools/Baselines/Snapshots.fs" Link="Snapshots.fs" />
+    <Compile Include="GoldenBaselineTests.fs" />
     <ProjectReference Include="../../src/ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.4.1" />

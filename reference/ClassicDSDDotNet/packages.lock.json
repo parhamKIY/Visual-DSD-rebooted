@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETStandard,Version=v2.0": {
+      "FSharp.Core": {
+        "type": "Direct",
+        "requested": "[10.1.402, )",
+        "resolved": "10.1.402",
+        "contentHash": "kfttzFL9uArPkhlhvoH99RZOOFpJnxOAZkGLqgfG+Wnc4FO2L+HnwradMgX1ubMjzhajuNzPTTcW1Yk8D1rGEg=="
+      },
+      "NETStandard.Library": {
+        "type": "Direct",
+        "requested": "[2.0.3, )",
+        "resolved": "2.0.3",
+        "contentHash": "st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "WebSharper.Core": {
+        "type": "Direct",
+        "requested": "[4.5.19.349, )",
+        "resolved": "4.5.19.349",
+        "contentHash": "80ndHSUD/D1N/pRJZTQB+EHkziQ2/wVQTkPPxC6yJx+ncZ//FknK6QmjI3k3zdp4oFhy049+qhmRC1NKN/OVjQ==",
+        "dependencies": {
+          "FSharp.Core": "4.2.3"
+        }
+      },
+      "FSharp.Collections.ParallelSeq": {
+        "type": "Transitive",
+        "resolved": "1.1.2",
+        "contentHash": "3POb1E45VH77Ny34rtC6REf3azO33aZuHTVsGEkfmGpTXcCbAPX2DWRZAIrEn9Biq/ciL2fongXQ27GSqrgKPQ==",
+        "dependencies": {
+          "FSharp.Core": "4.3.4"
+        }
+      },
+      "FSharpIDD": {
+        "type": "Transitive",
+        "resolved": "0.4.3",
+        "contentHash": "6IAvKbu+E1uDnxmvrPFOr6y7Gy7rC1yGKhXITnOJO86UuKGdAwLhPVeshaLffYFnOfhNcyNwc4HRHrKU4J2W0w==",
+        "dependencies": {
+          "FSharp.Core": "4.3.4"
+        }
+      },
+      "Microsoft.NETCore.Platforms": {
+        "type": "Transitive",
+        "resolved": "1.1.0",
+        "contentHash": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A=="
+      },
+      "QuickGraph": {
+        "type": "Transitive",
+        "resolved": "3.6.61119.7",
+        "contentHash": "crtYNiFcYFtYbmbEfdYsdGw5M3923OO5ZZD25K+WeLPgTp/q4oq3U/FVrbaOK5+Jg8UJDmoZ6sqAVion4RgXCA=="
+      },
+      "crnenginedotnet": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Collections.ParallelSeq": "[1.1.2, )",
+          "FSharp.Core": "[10.1.402, )",
+          "FSharpIDD": "[0.4.3, )",
+          "Filzbach.FSharp.Portable": "[1.0.0, )",
+          "Oslo.FSharp": "[1.0.0, )",
+          "ParserCombinators": "[1.0.0, )",
+          "ReactionDiffusion": "[1.0.0, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "filzbach.fsharp.portable": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.402, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "oslo.fsharp": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.402, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "parsercombinators": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.402, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "reactiondiffusion": {
+        "type": "Project",
+        "dependencies": {
+          "FSharp.Core": "[10.1.402, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "rulesdsd": {
+        "type": "Project",
+        "dependencies": {
+          "CRNEngineDotNet": "[1.0.0, )",
+          "FSharp.Core": "[10.1.402, )",
+          "ParserCombinators": "[1.0.0, )",
+          "QuickGraph": "[3.6.61119.7, )",
+          "WebSharper.Core": "[4.5.19.349, )"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/crn-engine/ParserCombinators/ParserCombinators/websharperstubs.fs" />
+    <Compile Include="../../upstream/crn-engine/ParserCombinators/ParserCombinators/ParserCombinators.fsi" />
+    <Compile Include="../../upstream/crn-engine/ParserCombinators/ParserCombinators/ParserCombinators.fs" />
+    <PackageReference Include="WebSharper.Core" Version="4.5.19.349" />
+  </ItemGroup>
+</Project>
