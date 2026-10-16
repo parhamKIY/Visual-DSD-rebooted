@@ -38,7 +38,8 @@ module private Conversion =
                 if values.Length <> times.Length || (values |> Array.exists (Double.IsFinite >> not)) then
                     failwith "Simulation returned invalid series data."
                 SeriesData(column.name, values)) |> List.toArray
-        SimulationData(instance.name, instance.sweep, instance.assignment, times, series)
+        SimulationData(instance.name, instance.sweep, instance.assignment, times, series,
+                       instance.settings.seed |> Option.map Nullable |> Option.defaultValue (Nullable()))
 
     let settings (crn: Crn) =
         let simulation = crn.settings.simulation
@@ -49,7 +50,7 @@ module private Conversion =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.2.0", [|"parse"; "expand"; "simulate"|],
+        EngineInfo("Visual DSD Rebooted", "0.3.0", [|"parse"; "expand"; "simulate"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -122,11 +123,11 @@ type Engine private () =
                                 | Choice1Of2 state ->
                                     let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus configured)
                                     let expanded = Jit.to_crn finalState initialCrn
-                                    expanded, [|Conversion.simulation Instance<Functional>.empty table|]
+                                    expanded, [|Conversion.simulation { Instance<Functional>.empty with settings = initialCrn.settings.simulation } table|]
                                 | Choice2Of2 state ->
                                     let finalState, table = Jit.simulate state (Dsd.to_rules_calculus configured)
                                     let expanded = Jit.to_crn finalState initialCrn
-                                    expanded, [|Conversion.simulation Instance<Functional>.empty table|]
+                                    expanded, [|Conversion.simulation { Instance<Functional>.empty with settings = initialCrn.settings.simulation } table|]
                             else
                                 let runs = initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation result.instance result.table) |> List.toArray
                                 initialCrn, runs

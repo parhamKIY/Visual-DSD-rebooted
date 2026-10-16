@@ -46,7 +46,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.2.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.3.0') { throw "Unexpected version: $version" }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
@@ -73,6 +73,13 @@ try {
     }
     if (!$address) { throw 'Standalone server did not start.' }
     $stdout = $server.StandardOutput.ReadToEndAsync()
+    $page = Invoke-WebRequest "$address/" -TimeoutSec 10
+    if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
+    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'app.css', 'icon.svg')) {
+        if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
+    }
+    $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
+    if ($examples.Count -lt 6 -or !(Invoke-RestMethod "$address/api/examples/catalytic" -TimeoutSec 10).code) { throw 'Embedded examples are missing.' }
     $body = @{ code = Get-Content -LiteralPath $catalytic -Raw; operation = 'expand' } | ConvertTo-Json
     $job = Invoke-RestMethod "$address/api/jobs" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 10
     do {
@@ -87,4 +94,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: version, current and legacy expansion, Oslo, SSA, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, parser diagnostics, local API."

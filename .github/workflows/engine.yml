@@ -24,6 +24,9 @@ jobs:
       - name: Verify original reference and rebooted engine
         shell: pwsh
         run: ./eng/test.ps1 -Locked
+      - name: Verify workspace data handling and plots
+        shell: pwsh
+        run: ./eng/test-ui.ps1
       - name: Publish and verify standalone application
         shell: pwsh
         run: |

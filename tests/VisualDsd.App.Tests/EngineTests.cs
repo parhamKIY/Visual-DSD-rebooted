@@ -144,4 +144,13 @@ public class EngineTests
         Assert.Null(diagnostic.Line);
         Assert.Null(diagnostic.Column);
     }
+
+    [Fact]
+    public void Named_runs_report_their_own_seed_instead_of_the_default_seed()
+    {
+        const string code = "directive simulator stochastic\ndirective simulations [a={final=1;points=2;seed=11};b={final=2;points=2;seed=22}]\n<a>";
+        EngineResponse response = CoreEngine.Execute(new() { Code = code, Operation = "simulate" });
+        Assert.True(response.Success, JsonSerializer.Serialize(response));
+        Assert.Equal(new int?[] { 11, 22 }, response.Model!.Simulations.Select(run => run.Seed).ToArray());
+    }
 }

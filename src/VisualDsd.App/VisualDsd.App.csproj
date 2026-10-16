@@ -11,5 +11,12 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../VisualDsd.Engine/VisualDsd.Engine.fsproj" />
+    <EmbeddedResource Include="Web/*" LogicalName="VisualDsd.Web.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt" LogicalName="VisualDsd.Examples.catalytic" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - AND Circuit.txt" LogicalName="VisualDsd.Examples.and-gate" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt" LogicalName="VisualDsd.Examples.transducer" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt" LogicalName="VisualDsd.Examples.join" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-JIT.txt" LogicalName="VisualDsd.Examples.jit" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd" LogicalName="VisualDsd.Examples.legacy-and" />
   </ItemGroup>
 </Project>

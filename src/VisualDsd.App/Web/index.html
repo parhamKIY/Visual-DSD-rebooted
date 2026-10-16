@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Visual DSD · Rebooted</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="Visual DSD workspace"><img src="/assets/icon.svg" width="34" height="34" alt=""><span>Visual DSD<small>REBOOTED</small></span></a>
+    <span class="header-divider"></span><span class="workspace-label">Strand displacement workspace</span>
+    <span id="connection" class="connection"><span class="status-dot"></span>Connecting</span>
+    <button id="toggle-models" class="icon-button mobile-models" title="Models and examples" aria-label="Models and examples" aria-expanded="false" aria-controls="model-sidebar">☷</button>
+    <button id="shortcuts" class="icon-button" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
+  </header>
+  <div class="workspace">
+    <aside id="model-sidebar" class="sidebar" aria-label="Models and examples">
+      <div class="section-heading"><h2>Your models</h2><button id="new-model" class="icon-button" title="New model" aria-label="New model">+</button></div>
+      <nav id="documents" class="document-list" aria-label="Open models"></nav>
+      <button id="open-model" class="open-file"><span aria-hidden="true">↗</span> Open model file <kbd>Ctrl O</kbd></button>
+      <input id="file-input" type="file" accept=".txt,.dsd,.vdsd,.dna" hidden multiple>
+      <div class="library-heading"><span class="eyebrow">EXAMPLE LIBRARY</span><span id="example-count" class="count"></span></div>
+      <div id="examples" class="example-list"></div>
+      <div class="sidebar-note"><span class="note-mark" aria-hidden="true">◎</span><p>Same language.<br>A fresh workspace.</p><small>Models stay on this computer.</small></div>
+      <div class="sidebar-footer"><span class="status-dot"></span><span id="version">Local workspace</span></div>
+    </aside>
+    <main class="main">
+      <div class="model-heading">
+        <div class="model-title"><label class="sr-only" for="model-name">Model name</label><input id="model-name" value="Untitled.dsd" maxlength="120" spellcheck="false"><div><span id="document-description">Write a model, inspect its network, explore its dynamics.</span><span id="save-status" class="save-status">Saved in browser</span></div></div>
+        <button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button>
+      </div>
+      <div class="workbench">
+        <section class="source-pane" aria-label="Model source and settings">
+          <div class="pane-heading"><h1><span class="code-icon" aria-hidden="true">〈/〉</span> Model source</h1><span id="dialect-badge" class="badge">Visual DSD</span></div>
+          <div class="editor-wrap">
+            <div id="line-numbers" class="line-numbers" aria-hidden="true">1</div>
+            <div class="code-surface"><pre id="highlight" class="code-layer" aria-hidden="true"></pre><textarea id="editor" class="code-layer" aria-label="Model source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea></div>
+          </div>
+          <div class="editor-status"><span id="cursor-position">Ln 1, Col 1</span><span><span id="line-count">0 lines</span><span class="status-separator">·</span>UTF-8</span></div>
+          <details id="settings-panel" class="settings-panel">
+            <summary><span>Model &amp; simulation settings</span><span class="summary-note">From source by default</span></summary>
+            <div class="settings-grid">
+              <label>Syntax<select id="dialect"><option value="auto">Auto-detect</option><option value="current">Current</option><option value="legacy">Legacy</option></select></label>
+              <label>Semantics<select id="compilation"><option value="source">From model</option><option value="default">Default</option><option value="detailed">Detailed</option><option value="finite">Finite</option><option value="infinite">Infinite</option></select></label>
+              <label>Simulator<select id="simulator"><option value="source">From model</option><option value="oslo">Deterministic · Oslo</option><option value="ssa">Stochastic · SSA</option></select></label>
+              <label>Time limit (s)<input id="timeoutSeconds" type="number" value="30" min="1" max="120" step="1"></label>
+              <label>Initial time<input id="initial" type="number" placeholder="From model" step="any"></label>
+              <label>Final time<input id="final" type="number" placeholder="From model" step="any"></label>
+              <label>Output points<input id="points" type="number" placeholder="From model" min="1" max="100000" step="1"></label>
+              <label>Random seed<input id="seed" type="number" placeholder="From model" step="1"></label>
+            </div>
+            <details class="sequence-settings"><summary>Sequence databases</summary><div class="database-inputs"><label>Toeholds<input id="toeholds-file" type="file" accept=".txt,.csv,.dat"><button id="clear-toeholds" class="text-button" type="button">Use default</button><small id="toeholds-name">Default database</small></label><label>Specificities<input id="specificities-file" type="file" accept=".txt,.csv,.dat"><button id="clear-specificities" class="text-button" type="button">Use default</button><small id="specificities-name">Default database</small></label></div></details>
+            <button id="reset-settings" class="text-button" type="button">Reset overrides</button>
+          </details>
+          <div class="run-toolbar"><button id="check" class="button secondary" title="Check model syntax">Check</button><button id="expand" class="button secondary">Expand network</button><button id="simulate" class="button primary"><span aria-hidden="true">▶</span> Simulate</button><button id="cancel" class="button danger" hidden>Stop</button></div>
+          <div class="source-hint"><span id="run-state" role="status" aria-live="polite">Ready when you are.</span><kbd>Ctrl ↵</kbd></div>
+        </section>
+        <section class="results-pane" aria-label="Model results">
+          <div class="pane-heading"><h2>Results</h2><div class="result-heading-meta"><span id="stale" class="badge warning" hidden>Source changed</span><span id="result-summary" class="muted">No run yet</span><button id="export-json" class="icon-button" title="Export result JSON" aria-label="Export result JSON" disabled>↓</button></div></div>
+          <div id="diagnostics" class="diagnostics" role="alert" hidden></div>
+          <div class="result-tabs" role="tablist" aria-label="Result views">
+            <button id="tab-plot" type="button" role="tab" data-tab="plot" aria-controls="panel-plot" aria-selected="true">Simulation</button>
+            <button id="tab-species" type="button" role="tab" data-tab="species" aria-controls="panel-species" aria-selected="false" tabindex="-1">Species <span id="species-count" class="count">0</span></button>
+            <button id="tab-reactions" type="button" role="tab" data-tab="reactions" aria-controls="panel-reactions" aria-selected="false" tabindex="-1">Reactions <span id="reaction-count" class="count">0</span></button>
+            <button id="tab-data" type="button" role="tab" data-tab="data" aria-controls="panel-data" aria-selected="false" tabindex="-1">Data</button>
+          </div>
+          <div id="empty-state" class="empty-state"><div class="empty-art" aria-hidden="true"><svg viewBox="0 0 240 130"><path class="empty-strand" d="M20 74h60l22-28h30l22 28h66M20 94h80l22-28h30l22 28h46"/><path class="empty-toehold" d="M80 74h22m30-28h22m-54 48h22m30-28h22"/><circle cx="32" cy="74" r="4"/><circle cx="208" cy="94" r="4"/><path class="empty-bond" d="M123 48v16m8-16v16m8-12v16"/></svg></div><span class="eyebrow">FROM STRANDS TO DYNAMICS</span><h2>Your model, brought to life.</h2><p>Check the syntax, expand the reaction network,<br>or simulate how your system changes over time.</p><button id="empty-simulate" class="button primary">Run first simulation <span aria-hidden="true">→</span></button><small>Use the example on the left, or open your own model.</small></div>
+          <div id="results-content" hidden>
+            <section id="panel-plot" class="result-panel" role="tabpanel" aria-labelledby="tab-plot">
+              <div class="plot-toolbar"><div><span class="eyebrow">CONCENTRATION OVER TIME</span><p id="plot-subtitle" class="muted"></p></div><div class="plot-actions"><label class="sr-only" for="run-select">Simulation run</label><select id="run-select" aria-label="Simulation run" hidden></select><button id="export-svg" class="button compact secondary">SVG</button><button id="export-csv" class="button compact secondary">CSV <span aria-hidden="true">↓</span></button></div></div>
+              <div id="plot-empty" class="inline-empty" hidden><h3>No simulation data yet</h3><p>Choose Simulate to calculate the time course.</p></div>
+              <div id="chart-container" class="chart-container"><svg id="chart" role="img" aria-label="Simulation chart. Use arrow keys to inspect time points." tabindex="0" viewBox="0 0 800 420"></svg><div id="chart-tooltip" class="chart-tooltip" hidden></div></div>
+              <div id="legend" class="legend" aria-label="Visible series"></div>
+              <div id="run-details" class="run-details"></div>
+            </section>
+            <section id="panel-species" class="result-panel" role="tabpanel" aria-labelledby="tab-species" hidden>
+              <div class="view-toolbar"><label class="sr-only" for="species-search">Find a species</label><input id="species-search" type="search" placeholder="Find a species…"><span id="species-page-label" class="muted"></span></div>
+              <div id="species-grid" class="species-grid"></div><div class="pagination"><button id="species-prev" class="button secondary compact">← Previous</button><button id="species-next" class="button secondary compact">Next →</button></div>
+            </section>
+            <section id="panel-reactions" class="result-panel" role="tabpanel" aria-labelledby="tab-reactions" hidden>
+              <div class="view-toolbar"><span class="eyebrow">REACTION NETWORK</span><span id="reaction-page-label" class="muted"></span></div><div id="reaction-list" class="reaction-list"></div><div class="pagination"><button id="reaction-prev" class="button secondary compact">← Previous</button><button id="reaction-next" class="button secondary compact">Next →</button></div>
+            </section>
+            <section id="panel-data" class="result-panel" role="tabpanel" aria-labelledby="tab-data" hidden>
+              <div class="view-toolbar"><span id="data-page-label" class="muted">Select a simulation to inspect its data.</span><button id="data-export-csv" class="button secondary compact">Export CSV ↓</button></div><div id="data-table" class="data-table"></div><div class="pagination"><button id="data-prev" class="button secondary compact">← Previous</button><button id="data-next" class="button secondary compact">Next →</button></div>
+            </section>
+          </div>
+          <div class="results-footer"><span id="result-note">Results will appear here after you run a model.</span><span class="muted">Visual DSD</span></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <dialog id="help-dialog"><button id="close-help" class="icon-button dialog-close" aria-label="Close shortcuts">×</button><span class="eyebrow">WORKSPACE SHORTCUTS</span><h2>A little less clicking.</h2><dl class="shortcuts"><dt>Run simulation</dt><dd><kbd>Ctrl / ⌘ Enter</kbd></dd><dt>Save model file</dt><dd><kbd>Ctrl / ⌘ S</kbd></dd><dt>Open model file</dt><dd><kbd>Ctrl / ⌘ O</kbd></dd><dt>Indent source</dt><dd><kbd>Tab</kbd></dd></dl><p>Your source is saved in this browser automatically.<br>Use Save model to keep a separate file.</p></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>This workspace needs JavaScript. The command-line engine is also available.</noscript>
+</body>
+</html>

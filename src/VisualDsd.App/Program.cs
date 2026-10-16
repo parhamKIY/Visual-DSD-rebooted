@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using VisualDsd.Contracts;
@@ -18,21 +19,23 @@ public static class Program
         if (args.SequenceEqual(["--version"])) { Console.WriteLine(CoreEngine.Info.Version); return 0; }
         if (args.SequenceEqual(["--help"]) || args.SequenceEqual(["help"]))
         {
-            Console.WriteLine("VisualDsd [serve [--port 5800] | parse|expand|simulate <file|-> [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N]]");
+            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate <file|-> [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N]]\nRun without arguments to open the local workspace in your browser.");
             return 0;
         }
         try
         {
             if (args.Length == 0 || args[0] == "serve")
             {
-                int port = args.Length switch
+                int port = 5800;
+                bool openBrowser = args.Length == 0;
+                for (int index = 1; index < args.Length; index++)
                 {
-                    0 or 1 => 5800,
-                    3 when args[1] == "--port" => int.Parse(args[2], CultureInfo.InvariantCulture),
-                    _ => throw new ArgumentException("Usage: VisualDsd serve [--port 5800]")
-                };
+                    if (args[index] == "--open") openBrowser = true;
+                    else if (args[index] == "--port" && index + 1 < args.Length) port = int.Parse(args[++index], CultureInfo.InvariantCulture);
+                    else throw new ArgumentException("Usage: VisualDsd serve [--port 5800] [--open]");
+                }
                 if (port is < 0 or > 65535) throw new ArgumentException("Port must be between 0 and 65535.");
-                await ServeAsync(port);
+                await ServeAsync(port, openBrowser);
                 return 0;
             }
             ModelRequest request = await ParseCommandAsync(args);
@@ -134,8 +137,19 @@ public static class Program
 
     private static Task WriteAsync(EngineResponse response) => Console.Out.WriteLineAsync(JsonSerializer.Serialize(response, ProcessEngineWorker.Json));
 
-    private static async Task ServeAsync(int port)
+    private static async Task ServeAsync(int port, bool openBrowser)
     {
+        if (openBrowser && port != 0)
+        {
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            try
+            {
+                EngineInfo? existing = await client.GetFromJsonAsync<EngineInfo>($"http://127.0.0.1:{port}/api/info");
+                if (existing?.Name == CoreEngine.Info.Name && existing.Version == CoreEngine.Info.Version)
+                { OpenBrowser($"http://127.0.0.1:{port}"); return; }
+            }
+            catch (Exception error) when (error is HttpRequestException or TaskCanceledException or JsonException) { }
+        }
         WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = [] });
         builder.WebHost.UseUrls($"http://127.0.0.1:{port}");
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 4 * 1024 * 1024);
@@ -143,6 +157,10 @@ public static class Program
         await using WebApplication app = builder.Build();
         app.Use(async (context, next) =>
         {
+            context.Response.Headers.ContentSecurityPolicy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
+            context.Response.Headers.XContentTypeOptions = "nosniff";
+            context.Response.Headers["Referrer-Policy"] = "no-referrer";
+            context.Response.Headers.CacheControl = "no-cache";
             string host = context.Request.Host.Host;
             if (host != "127.0.0.1" && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase)) { context.Response.StatusCode = 400; return; }
             string? origin = context.Request.Headers.Origin;
@@ -153,7 +171,7 @@ public static class Program
             }
             await next(context);
         });
-        app.MapGet("/", () => Results.Json(CoreEngine.Info));
+        WebAssets.Map(app);
         app.MapGet("/health", () => Results.Ok(new { status = "ok", version = CoreEngine.Info.Version }));
         app.MapGet("/api/info", () => Results.Json(CoreEngine.Info));
         app.MapGet("/api/jobs", () => Results.Json(jobs.List()));
@@ -166,6 +184,22 @@ public static class Program
                 : Results.Json(new { diagnostics = admission.Diagnostics }, statusCode: admission.Busy ? 429 : 400);
         });
         app.MapDelete("/api/jobs/{id}", (string id) => jobs.Cancel(id) is { } job ? Results.Json(job, statusCode: 202) : Results.NotFound());
+        if (openBrowser)
+        {
+            app.Lifetime.ApplicationStarted.Register(() =>
+            {
+                string? address = app.Urls.FirstOrDefault();
+                if (address is null) return;
+                OpenBrowser(address);
+            });
+        }
         await app.RunAsync();
+    }
+
+    private static void OpenBrowser(string address)
+    {
+        try { Process.Start(new ProcessStartInfo(address) { UseShellExecute = true }); }
+        catch (Exception error) when (error is System.ComponentModel.Win32Exception or InvalidOperationException)
+        { Console.WriteLine($"Open {address} in your browser to use the workspace."); }
     }
 }
