@@ -12,7 +12,7 @@ function fixture() {
     settings: { simulator: 'ssa', initial: 0, final: 100, points: 3, seed: 42, timeUnit: 's', concentrationUnit: 'nM' },
     species: [{ id: 'a', name: '<a>', structure: '<a>', svg: '<svg xmlns="http://www.w3.org/2000/svg"/>', initial: '1', constant: false, time: null, valueKind: 'initial' }], reactions: [],
     simulations: [{ name: 'run', sweep: 's', assignment: 'N=1', seed: 42, times: [0, .123456789012345, 100], series: [{ name: 'a', values: [1, -2.34567890123456, 1e-20] }] }] } };
-  const view = { snapshot: { name: document.name, request: requestFor(document, 'simulate'), engineVersion: '0.3.0' }, response, tab: 'network', runIndex: 0 };
+  const view = { snapshot: { name: document.name, request: requestFor(document, 'simulate'), engineVersion: '0.3.0' }, response, tab: 'network', runIndex: 0, networkFocus: 'a' };
   return { document, view, views: new Map([[document.id, view]]) };
 }
 
@@ -22,6 +22,7 @@ test('complete project round trip preserves exact results, source, databases and
   assert.deepEqual(restored.views.get(document.id).response, view.response);
   assert.equal(restored.views.get(document.id).snapshot.engineVersion, '0.3.0');
   assert.equal(restored.views.get(document.id).tab, 'network');
+  assert.equal(restored.views.get(document.id).networkFocus, 'a');
   assert.equal(restored.views.get(document.id).revision, 0);
   assert.equal(csvFor(restored.views.get(document.id).response.model.simulations[0]), csvFor(view.response.model.simulations[0]));
 });
@@ -43,7 +44,7 @@ test('old results remain marked stale after project import and become current on
 
 test('malformed files and unsupported versions are rejected without altering the current project', () => {
   const { document, views } = fixture(), json = serialiseProject([document], document.id, views, '0.4.0');
-  for (const mutate of [raw => { raw.version = 2; }, raw => { raw.activeId = 'missing'; }, raw => { raw.documents.push(raw.documents[0]); }, raw => { raw.documents[0].options.simulator = 'made-up'; }, raw => { raw.documents[0].result.request.operation = 'parse'; }, raw => { raw.documents[0].result.runIndex = 9; }]) {
+  for (const mutate of [raw => { raw.version = 2; }, raw => { raw.activeId = 'missing'; }, raw => { raw.documents.push(raw.documents[0]); }, raw => { raw.documents[0].databases = 42; }, raw => { raw.documents[0].options.simulator = 'made-up'; }, raw => { raw.documents[0].result.request.operation = 'parse'; }, raw => { raw.documents[0].result.runIndex = 9; }, raw => { raw.documents[0].result.networkFocus = 'missing'; }]) {
     const raw = JSON.parse(json); mutate(raw); assert.throws(() => parseProject(JSON.stringify(raw)), Error);
   }
   assert.throws(() => parseProject('{'), /JSON/); assert.throws(() => parseProject(' '.repeat(16 * 1024 * 1024 + 1)), /16 MiB/);

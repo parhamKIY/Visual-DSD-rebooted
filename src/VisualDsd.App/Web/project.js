@@ -19,8 +19,9 @@ function readDocument(raw) {
   for (const key of Object.keys(optionDefaults)) options[key] = text(object(raw.options)[key], 100);
   choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa']);
   const databases = {};
-  for (const key of ['toeholds', 'specificities']) if (raw.databases?.[key] !== undefined) {
-    const entry = object(raw.databases[key]); databases[key] = { name: text(entry.name, 120), code: text(entry.code) };
+  const sourceDatabases = raw.databases === undefined ? {} : object(raw.databases);
+  for (const key of ['toeholds', 'specificities']) if (sourceDatabases[key] !== undefined) {
+    const entry = object(sourceDatabases[key]); databases[key] = { name: text(entry.name, 120), code: text(entry.code) };
     if (byteLength(entry.code) > MAX_CODE_BYTES) fail('sequence database exceeds 256 KiB.');
   }
   return { id, name, code, options, databases, revision: 0, exampleId: raw.exampleId == null ? null : text(raw.exampleId, 100) };
