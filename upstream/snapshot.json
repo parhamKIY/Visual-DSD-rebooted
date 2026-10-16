@@ -1,0 +1,3518 @@
+{
+  "captured_on": "2026-10-16",
+  "origin": "https://github.com/microsoft/CRN",
+  "origin_revision": null,
+  "revision_note": "Source supplied as a directory snapshot without Git metadata; file hashes identify this baseline.",
+  "files": [
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/AssemblyInfo.fs",
+      "sha256": "95b6435f20ef4548dc49ec3e6424430e7c658e2b61859daad28f54f71eab1512",
+      "bytes": 1634
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/branchesrenderer.fs",
+      "sha256": "8616a2d63180b12d402e199151bd5993c05a1e300e2bbdc9873c4214daa8ec96",
+      "bytes": 125843
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/branchesrenderer.fsi",
+      "sha256": "ab1601893d225ad381738055e20543d115aef59a85d6d303bc6edd37f77e0b21",
+      "bytes": 2049
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/circlesrenderer.fs",
+      "sha256": "73296a5412c787a3af4f8600eb20c81029c7854c55837763c78db4b0dc0988d6",
+      "bytes": 40989
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/circlesrenderer.fsi",
+      "sha256": "2cbbdb86f3b75f9e568d78ef720aad69c8bc8edeae241cea3381cea3dff3071c",
+      "bytes": 181
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/ClassicDSDDotNet.fsproj",
+      "sha256": "259e26fc98c49a6d281196c00f9c9d281b2c398e4ce4e6a27ab4c90affd77d41",
+      "bytes": 2884
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/defaultDatabase.fs",
+      "sha256": "4a2a4d360b20cb4831a953651ae63c88dd720200eeace96e2552d6486fcbb32e",
+      "bytes": 63003
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/domain.fs",
+      "sha256": "af8454bc490ded6c77941552eddaf5a30ed4f8127b6269ec0cfe44f7e366458d",
+      "bytes": 23442
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/domain.fsi",
+      "sha256": "03dff79b2de0962a551ee954535253156d0417da85e9b35768b0649231728ee2",
+      "bytes": 2737
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/dsd.fs",
+      "sha256": "2f5d8e228d7ff7e27b31888eb7b1d4e428da5c9de57309f1fd5344f50348cf7d",
+      "bytes": 64014
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/dsd.fsi",
+      "sha256": "d1e489e465b1af829eed17b30b806c77259c53b0a1238ab47dc6ff4cb6bc458b",
+      "bytes": 2513
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/DSDParser.fs",
+      "sha256": "49444d02d9229720ce4d172a744253d851ff8a07ab4f97f0606b94d060dd838e",
+      "bytes": 22729
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/dsdreaction.fs",
+      "sha256": "9dcbead7d410823808bd8998e25f6496bb47509f71c3e2283e796d5b50f047eb",
+      "bytes": 90853
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/dsdreaction.fsi",
+      "sha256": "6df86cdf071a66d4c54eb27760993b2a4780cf56f6ac70bb6206fb1f9f43546a",
+      "bytes": 2144
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/errors.fs",
+      "sha256": "167f6ed6398595ae486e90882046d3054440a655a71d7dde3bb56bc773fd75c0",
+      "bytes": 6248
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/errors.fsi",
+      "sha256": "58ca5d201f302a5f60977cdc4a448f144f8090f17f578278c3130044e71f8790",
+      "bytes": 1413
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/gate.fs",
+      "sha256": "cb5a6f716506f07f8534d9cb82746ac5e9242e9420dd72adfad813a4ced2da8b",
+      "bytes": 51209
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/gate.fsi",
+      "sha256": "5242d4fa0a14c891bd0fe5a1cf86732b097270f359febf11fd3cc2a2cbb518b3",
+      "bytes": 5422
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/jsapi.fs",
+      "sha256": "a3c9781a2ad0d372f9a37b7e4cefb8a62fd106879cde31ff8ca2be955a7fcce3",
+      "bytes": 3443
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/logicDSD.fs",
+      "sha256": "ac6b9e51c39e4c920de8e9a99af85981966dea7bf727ef40853a99500fbce7a5",
+      "bytes": 59799
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/measures.fs",
+      "sha256": "45af45c13eba588068399cdf32e8b227a4c939db108d1ec425a47fe9b54c8356",
+      "bytes": 380
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/measures.fsi",
+      "sha256": "45af45c13eba588068399cdf32e8b227a4c939db108d1ec425a47fe9b54c8356",
+      "bytes": 380
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/options.fs",
+      "sha256": "3321b5d0b33649858fd232c5a42a66307919a648ab02ca88ba084ccc90cc2071",
+      "bytes": 30422
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/options.fsi",
+      "sha256": "7c002ee6d822289fc495989dc2d7a8e4e7eff0528f2a513569c299a99de7d14d",
+      "bytes": 6332
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/origami.fs",
+      "sha256": "c716fe3fd0d96e6cf5dd789c882f113d81d4ffa0dbff4b58aa7facb43ec3f364",
+      "bytes": 25615
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/origami.fsi",
+      "sha256": "684eab520e68010e82b1583d301c571b4836e97ec0dc56b8f52ff7a185907762",
+      "bytes": 5264
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/paket.references",
+      "sha256": "e431f814f5958eaa25482e0a28435e16a3fc60a7c6b75beff1637a70efbe2856",
+      "bytes": 49
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/pattern.fs",
+      "sha256": "261648cd3f673ef3cb55e1695eb4238f4be6f55f778c507ff5104b23f916abb4",
+      "bytes": 3487
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/pattern.fsi",
+      "sha256": "3a89d728296fd2cf6698f0eec108e53822bae1da20e32d73eaed7613ca4ff881",
+      "bytes": 527
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/process.fs",
+      "sha256": "7074e5c5ee832970498ab1006d65caee0e65a0843033b3de1e7cd9940b6d9edf",
+      "bytes": 29203
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/process.fsi",
+      "sha256": "38ca1194a24c79ce2121b675e7d3eebcd37db07c8c9e1a078f93f382cd63c7a2",
+      "bytes": 2677
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/segment.fs",
+      "sha256": "f14737a86daf005560bfc4cec369af5930e159aaf11e0578ed1d5f49b9714e91",
+      "bytes": 39952
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/segment.fsi",
+      "sha256": "2c5ecfc1019e305d45a86cf6f6fb18582964d1ae90c85712acf124ed6e3a2699",
+      "bytes": 4100
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/sequence.fs",
+      "sha256": "6c2a02b6a582d4810fd91b3cf866a00bc5fe033e7f682e18807ef05f44cef821",
+      "bytes": 5617
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/sequence.fsi",
+      "sha256": "27758abe36c817c6bc8a63eaf8095baf3b52cd6ba458cbb85f687d36f959dfb4",
+      "bytes": 815
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/sequenceCalc.fs",
+      "sha256": "e5283f695671e478ec7c323f7e26eeec1b6a8c598c3f49132117ce3f0932e5da",
+      "bytes": 34507
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/sequenceCalc.fsi",
+      "sha256": "5b129286941ff076adbb8b38229c428a492ce4801d9e7f0ab676dfa3ac70aca2",
+      "bytes": 2683
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/SLConversion.fs",
+      "sha256": "e685aa19f488a4f38463ed69af68b4e75088cca161eb2272ad307047280db3aa",
+      "bytes": 45842
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/species.fs",
+      "sha256": "6622ab0485fff8c262da557bd8e93684b7def88d3b7e4737d72323ec5cda3946",
+      "bytes": 25544
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/species.fsi",
+      "sha256": "4df81ada6bfdfc1f85cfa7f41c8e598ddd308fb0f3fa0c5b3cb9e2b68c26f6f1",
+      "bytes": 3902
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/strand.fs",
+      "sha256": "babf536ee00375b207337a89f48e48fcde38b7dada74659e3d0696931ab36658",
+      "bytes": 5357
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/strand.fsi",
+      "sha256": "c54cab280641f7018860eecf45eb4e9654a6d859738988be96c1b4def68c4bea",
+      "bytes": 1454
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/svg.fs",
+      "sha256": "de1af40b718175e03222b71b47eac4e629e2db56993e6c12717081c4c70f93ed",
+      "bytes": 61978
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/svg.fsi",
+      "sha256": "7057f94f7d5db23ec250bc8997a56eff7294e266f1c08bfa9a3d5d4529903c45",
+      "bytes": 513
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/syntax.fs",
+      "sha256": "74b4d4132f5a66840e0424c9d7c79cb8ed59efaca99e6aefb1efd6aec5bd97fc",
+      "bytes": 12095
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/syntax.fsi",
+      "sha256": "1437119482e40744b5071605ebb842c67c9d7d201d55f016944748b0cd0aed06",
+      "bytes": 3093
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/types.fs",
+      "sha256": "629ea546378cfc0dcfeb8efb240ce7fd55af8bfcdf1f97447b8bd25ad2c6ff34",
+      "bytes": 5201
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/types.fsi",
+      "sha256": "3cdc42e722bcb37526522b4861f13722bb11efd0a5d05ce2a4687d148a0262f6",
+      "bytes": 1899
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/value.fs",
+      "sha256": "1497b11b370431e27d2a648d9d9f78e858e0ac5bbc62edf2af51b617fc99d8e7",
+      "bytes": 21527
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/value.fsi",
+      "sha256": "dffe8ca4abf8b31aafebc44fe82dece5d9a73b4b6179501154314163619e6cf7",
+      "bytes": 1788
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/visualisation.fs",
+      "sha256": "88ab2323e1baaf4f44d54b9a1952692c4fb9fb831cbea529da00406535c44d40",
+      "bytes": 13236
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDDotNet/visualisation.fsi",
+      "sha256": "66c537510360fb8d01042dce18e6c27ab20ed8653aa0e80634fb145c4a4a20b4",
+      "bytes": 1168
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/CalculusTests.fs",
+      "sha256": "f45775303c54c09ffb8c6db01cf8a7ce22e750d293ec9891c4018d38d9ee45f5",
+      "bytes": 2167
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/ClassicDSDTests.fsproj",
+      "sha256": "7ce3bad22157e4bac7244e804528623ece0f82c0efcb61a2a925f15a24a1ff32",
+      "bytes": 2343
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/CRNRegressions.fs",
+      "sha256": "803b0529ed4b1b53c0e321f35800aee4d49121b612f519c1cfe8144e24ae26dd",
+      "bytes": 3078
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/DsdParserTests.fs",
+      "sha256": "cbd6a00c08714695fb6c3b27fe0c2777a0f9785e46e8db8d8927688c381617df",
+      "bytes": 30720
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/DSDUnitTests.fs",
+      "sha256": "b555f14beb7ec38a2fe960a92bf49652dfada29fc06b7b56d7c2165e01f0318d",
+      "bytes": 97401
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/RenderingTests.fs",
+      "sha256": "6cc80213b39a2c4bd89670d8db9f61de89f181c0ef2246292e3c5c419aa5010e",
+      "bytes": 6439
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/2-domain, DCM - Two domain fork-join.dna",
+      "sha256": "5962eadb54ce4867f2b7cac1a92dd4208238d5100aa05095a5877a9e1cc849e4",
+      "bytes": 611
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/2-domain, DCM - Two-domain transducer.dna",
+      "sha256": "8365caf0c86130305cd082b054f50671205b6004c794a4c5b0ba3813bb9f94b9",
+      "bytes": 250
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Fork.dna",
+      "sha256": "b2ec2ad0907da41584875464c8e63e148cdf2ef640fd6323302ac536e619ef3e",
+      "bytes": 649
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Join.dna",
+      "sha256": "57caeb527786fbd65ab79b5f2134540db1ed51d1d472d76ec6cb25d86b5aaa98",
+      "bytes": 838
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Buffered Transducer.dna",
+      "sha256": "3ef83220951cc59fdf1e535052df1076b87a6107793e0411c32674830cdef800",
+      "bytes": 544
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Oscillating.dna",
+      "sha256": "7e74b79726d8c010658d1eeff3843515bd4462350bc3c3e60b9cd55a66e70dc8",
+      "bytes": 899
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Transducer Composition.dna",
+      "sha256": "471d4b43c2d56f20802593acdacfc5f584fe24ce54b606783471dc692f0431a7",
+      "bytes": 411
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Transducer.dna",
+      "sha256": "e3315cc22be86bf999b5272a149d25657f40dd545d3d85b6607727a601c80b3f",
+      "bytes": 356
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/3-domain, DNA 2016 - Ultrasensitive.dna",
+      "sha256": "dd03957ce4671c0922a0149d191d77d4293a5451635cead07b1b72d0c90ea14f",
+      "bytes": 1528
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Co-operative - Lotka.dna",
+      "sha256": "313a2c3fde881878b469ee1dcfe32f9200600c984fc5c5e7f60569eac1dfc851",
+      "bytes": 846
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Co-operative - Mapk.dna",
+      "sha256": "ada5aeaeb7ab3432d6e318b068da9c959745d86bde196439cb29b59417724446",
+      "bytes": 1597
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized Fanout) SQRT.dna",
+      "sha256": "f90befc2b1a9b74ca9c0b4b897d305418a80e811f0d5a32f5254161a566ad969",
+      "bytes": 4039
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized) Fanout.dna",
+      "sha256": "a63b51de6848837c422b2e9a5bacf4d2f96ed2e3df13c375eade3ab60b1682a4",
+      "bytes": 801
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - (localized) SQRT.dna",
+      "sha256": "051cfa962d76b46d2491fce284f6e4c61eea500775a8c0e1d090fef5262433d3",
+      "bytes": 5673
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - And.dna",
+      "sha256": "497264b054dbc894865b48c988edd7f6466b323cc13d8a2a49c2c8753077c48f",
+      "bytes": 839
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - Fanout.dna",
+      "sha256": "c4c70f8dbd57a9b7f1a91b2b1353d525939e365710e2677de20427841cddb19d",
+      "bytes": 740
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - Or.dna",
+      "sha256": "16e489c9633875c09c348dbd6a3b90278babf38b7dc17f9d9b57d7ab30907166",
+      "bytes": 872
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Formal Analysis - SQRT.dna",
+      "sha256": "9a6cd5d2c1377092e813d230895a6bdd0930c4d75061b48652da5d35fa33c0c2",
+      "bytes": 3694
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Kim et al., Mol Syst Biol 2011 - Oscillator.dna",
+      "sha256": "53c6656b5eec644ac939306f631d0a3006442167d92e503b066660c74848eac3",
+      "bytes": 5200
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Remote transmission lines.dna",
+      "sha256": "9d5bc3e8db0c24c35124f95c61faed5ea754b3065a34c14e24be36a0a2227157",
+      "bytes": 781
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.dna",
+      "sha256": "e88d61fe72e1aa158f5424412724af9faece60b0f2b7fdb3f824c56a157b45ba",
+      "bytes": 706
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Threshold spatial AND.dna",
+      "sha256": "901f0d6803df910ed7974a9836f1408223f4e38caeb630254cccc34f1ea41d67",
+      "bytes": 604
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., DNA 2014 - Transmission lines.dna",
+      "sha256": "2e0938daa23036bfcbb84b6543e5fd6cb57ee5d5f74b0a3d2e6c304b1c950a68",
+      "bytes": 666
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Buffered oscillators.dna",
+      "sha256": "e8cf226c4d1f2f37b195334fe597f6c45618cf53c317c63f8c2c498eb5751df0",
+      "bytes": 1017
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Join gates.dna",
+      "sha256": "039f801789b4f6dc8d34e1c6118aa6ae4d9c0dc1cea752ad359d2bc4465acdcd",
+      "bytes": 1106
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin et al., Interface 2012 - Unbuffered oscillators.dna",
+      "sha256": "7aaa8d60daac42ef9d0d598b7f67752eb131b13283e4a9965655176c1ac0bd1d",
+      "bytes": 889
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Lakin, Parker et al., Interface 2012 - Model-checking examples.dna",
+      "sha256": "4392533fea2729fa4e284bf49d4a7d81ff84649bd94fb515e58e793fdca5c126",
+      "bytes": 1307
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - AND gate with nicks.dna",
+      "sha256": "f6cea73985d33c5d31dabe1254e89850c9cae413bc33c2c503857e7438f3462c",
+      "bytes": 952
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - AND gate.dna",
+      "sha256": "ee7deea80d1a67cec9c143f0581084fad3890723aef20687bd6ebd3ab8e5ef12",
+      "bytes": 722
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR gate with nicks.dna",
+      "sha256": "fd072a3197cc7bac7349bd59977ac7be851f68988f786b2d5f96516d0f9502f5",
+      "bytes": 911
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR gate.dna",
+      "sha256": "0a0874e07ef7e20f576b5fddd1363636407b6014957a6f03240a996e44f30dff",
+      "bytes": 746
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - OR of ANDs.dna",
+      "sha256": "79cc15175f1a715519682f54794a00687a3d7ce39c2fbb4c0c720d8d5c6aa49e",
+      "bytes": 1099
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - Square root.dna",
+      "sha256": "850bd25726c43f3458618573a23c68b20c51c96d1d0f2bfd66960467bded405b",
+      "bytes": 5773
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Localization - Wires.dna",
+      "sha256": "aa3ff7c75d86fe0a6f012348b6587b6cbaf5b88e2083913a89c2db4b6d4fd41a",
+      "bytes": 3117
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Montagne et al., Mol Syst Biol 2011 - Oscillator.dna",
+      "sha256": "da1e3bf050897733b3c10ac173d74d96a85aa02bb1a1d2d411f0233d354a5fe7",
+      "bytes": 2638
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Nature Nanotech 2013 - Consensus Modules.dna",
+      "sha256": "fe0cc1422cd9a16c335461a7f5fbffd8e9167eceaa138b98f2fca7e53c5b0c54",
+      "bytes": 17216
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Nature Nanotech 2013 - Consensus Parameterized.dna",
+      "sha256": "82c155b2fc80cfe82fe707b4375993258dfd9b239c44988cbbb801ede38ae4c0",
+      "bytes": 7000
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Scienze 2007 - Catalytic Directives.dna",
+      "sha256": "f6bfcabb237af85955a0c6a2fb81e14ab4964b22c52bcb093328f1eff891de76",
+      "bytes": 247
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Scienze 2007 - Catalytic.dna",
+      "sha256": "ba5eb9f6f5ce97b81c078ab2ab955547b68e7d4837b0856d2ba24b67a12e683a",
+      "bytes": 181
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - AND Circuit.dna",
+      "sha256": "b5daadfde9c0fcf51233581ad5fca90ddeef5e8eed87e311c8f020c1886a9b8d",
+      "bytes": 296
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Hairpin-free HCR.dna",
+      "sha256": "8e773f14e41eceedc37fef51e9f33ae66168b3a353295e93e4e1e3fa7b438790",
+      "bytes": 180
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Migrations.dna",
+      "sha256": "463cf92c579cf2e2c781569392de5983d8a7754dd9f30623a9f5a5f40950d3b8",
+      "bytes": 128
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Simple - Monomers.dna",
+      "sha256": "e4e5155e4014e70853f302ffd0f754c3a5660e065901ae34a3bdeb5196d385fc",
+      "bytes": 96
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Square root - Qian and Winfree 4 bit square root circuit.dna",
+      "sha256": "62fd6f5fd22ee270365c3ec2ee91c0c37bb3af18f18893b22cc5e8cd80a84be9",
+      "bytes": 7727
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Stack Machine, DNA17 - Ripple carry adder.dna",
+      "sha256": "0e60d8360de3c089af6c5f70066fabead07674ce45247234ff5982ade57dbe7f",
+      "bytes": 8068
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Directives.dna",
+      "sha256": "aa55c2ecc8e324b85725e7be74e3cec0f8e4763e526fb2e4f8709f7f2e54178f",
+      "bytes": 399
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Events.dna",
+      "sha256": "313aff9b5fcdab690b5256b3413a110b7641ef1f14711848df9f2b4af9fb14e1",
+      "bytes": 696
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join Reporter.dna",
+      "sha256": "30f6676f5887d7b220a01058f50df9959dd460e9a7c68bcd4f8a646bf0c5c5f1",
+      "bytes": 357
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Tutorial, VEMDP 2014 - Join.dna",
+      "sha256": "08e760eafad6d4a0f131bf4ad16cb71cf61c6a5534838ca8e3b9cb513beeb5cd",
+      "bytes": 281
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.dna",
+      "sha256": "cd90b055240b45dd195a3187cee73e310d738a7cb0a728c4b467aa47fc2589b1",
+      "bytes": 4617
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.dna",
+      "sha256": "3112a1777b624a9ab0dcb7a6ee81522a0c5d6b0671194c742b5b019d3b7529d5",
+      "bytes": 6079
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.dna",
+      "sha256": "dfd91e90e81f472f088857555f50a994269bb114b7fb461d604cf4d485a5add6",
+      "bytes": 4328
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.dna",
+      "sha256": "8d6b5a4e312b4da4e328f74b8b423a31f22163bbbdc07d957a6189574f7f7fa9",
+      "bytes": 6437
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.dna",
+      "sha256": "5ec2cef2317c130a91fd972d4d7ac7a430ff46289c311cf45c1b922b8af452a5",
+      "bytes": 7541
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - And Gate.dna",
+      "sha256": "4f9caa605bde17c951aa3505b92318882cacdb00bbca3eddba317033a00262b2",
+      "bytes": 1019
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Autocatalytic.dna",
+      "sha256": "12c90bf551ca93864153e87be37d2a68f10d161527b7acd698dc557876663718",
+      "bytes": 802
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Cross Catalytic.dna",
+      "sha256": "94946aed4b7f2843d51ad2a5d84461be5afe511d9805f02f843b1b42c1fbcf95",
+      "bytes": 927
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Feed forward.dna",
+      "sha256": "073d770b38169d90df794357889887d37a728af93345829de995e9323157dcde",
+      "bytes": 1022
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Fluorescent Catalytic.dna",
+      "sha256": "e46a3f5913ff6070e922b9659db1c7bb01974c1380a5e1ec4b221a710eaf1743",
+      "bytes": 800
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/classicDsd/Zhang, Science 2007 - Independent Input.dna",
+      "sha256": "67a2b7fce325af04d1117789ce0db2dfffb51034a36c029638d8b7af8b00dbaf",
+      "bytes": 405
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2011 Mol Syst Biol - Kim - Oscillator.crn",
+      "sha256": "7b3cf670ca241753ef5cbab4ed86b10aed1a651fc4354f9f253e1a046de220b5",
+      "bytes": 2791
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2011 Mol Syst Biol - Kim - Oscillator.dna",
+      "sha256": "02d06767ddfbd2738e7c5c904b39e0e8dd1ebb35ec5a35823c103093821746ec",
+      "bytes": 4494
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2011 Mol Syst Biol - Montagne - Oscillator.crn",
+      "sha256": "48c9e46fe60359379014a79c1ce6c96a1751fe13e7a15880ac0267079519ec1d",
+      "bytes": 1977
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2011 Mol Syst Biol - Montagne - Oscillator.dna",
+      "sha256": "b59ce5c671a123929766fbc6b2002355d2b67cd0e9c9483efbaf98080ac6e5ce",
+      "bytes": 2066
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Buffered Oscillator.crn",
+      "sha256": "4d0209b60e2b1a8d6d036f3facd148fee57c24c5a063e4b483efccbd5b2e679e",
+      "bytes": 83611
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Buffered Oscillator.dna",
+      "sha256": "f551226fa471f00223d0e345e56e2a04b3cfbba91ce66302ca8264bb1d556458",
+      "bytes": 1116
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Join Gates.crn",
+      "sha256": "7776419ad932ebef2a784bd58187603606b4e6e3bc9c2f30a054dc17b3bc8f7b",
+      "bytes": 3029
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Join Gates.dna",
+      "sha256": "511bce2f42cdc7bccfeb5b5da9e10b434607b7b0c81171b948c89f354ce89c1c",
+      "bytes": 1639
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Unbuffered Oscillator.crn",
+      "sha256": "3b706ab32953982b57e486e8d20888d951a5db14e0a76292c23b63e6ef5ea142",
+      "bytes": 46239
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin - Unbuffered Oscillator.dna",
+      "sha256": "2800d554bdc22d7b3d45848349ac7a9e47369bd420cacf9d772f0773755649cb",
+      "bytes": 1010
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin Parker - Examples.crn",
+      "sha256": "6f107a4570b984697daefaa24a91d379445198a718158c76cbae5a5f3d5cfc57",
+      "bytes": 2229
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2012 Interface - Lakin Parker - Examples.dna",
+      "sha256": "48253eaaf0c4c675b670d514c636b2bf518faa8f58162f65cc26b288857ef488",
+      "bytes": 6133
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - 2Domain.crn",
+      "sha256": "824e4ca4bfaeeacd06b2babe8c9700086b4bb744ad1a03686003106fdab28676",
+      "bytes": 10759
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - 2Domain.dna",
+      "sha256": "26d9fb3066a1eb6659e0d9f9889cbfe1c2fa7e25e121cd6b471de203ba7629f5",
+      "bytes": 4543
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - 4Domain.crn",
+      "sha256": "933ddb3f4f4a20663015bce729a27b6274944a33fc36ba198f35dc04e38e64d3",
+      "bytes": 10554
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - 4Domain.dna",
+      "sha256": "a6f6ce9a208b3d4e1efe868c3871cbf2518d5409999f5ac412ab929231fdb582",
+      "bytes": 6016
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - CRN.crn",
+      "sha256": "af6969f9a50a89352fa634a9267b0b782c62bd4442fa189dbb4bec0264962215",
+      "bytes": 1432
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - CRN.dna",
+      "sha256": "9d4ce4ca281dc7d205ec76b1e3207915f726a7cddb49579becd68769fece51b5",
+      "bytes": 5115
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - DNA Enzymes.crn",
+      "sha256": "73b311713db85cd6c837b9d3a5075101c9cfc7121343b494cd1f018043db0fae",
+      "bytes": 8862
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - DNA Enzymes.dna",
+      "sha256": "cdcd9a1a743c375e3129a6db3048d4d8d71fc68c04ddaa9d09fefb53c1efe517",
+      "bytes": 6307
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - RNA Enzymes.crn",
+      "sha256": "b816a8d3c8fd2292174660aafc7e889f25294bed210248a46f4c0dc420cccb2b",
+      "bytes": 7206
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 ACS Synth Biol - Yordanov - PI Controller - RNA Enzymes.dna",
+      "sha256": "5dc28f9cb40800d1b52b48ce33f84b62f739aa5adf3656f70ca048bc4da6e424",
+      "bytes": 7222
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - 3-Stator Transmission Line.crn",
+      "sha256": "5e3a5ffeec4a95cfda1053f205437884b8e9015077203878e516868f5706ada5",
+      "bytes": 2246
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - 3-Stator Transmission Line.dna",
+      "sha256": "dee2ebfcf98645baa7cf18c8604dc3b4f263b640ff56c7fcdec9b937399d3150",
+      "bytes": 727
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Communicating Transmission Lines.crn",
+      "sha256": "c1d6ce20ea4c5d2ca5c8d5cece43ef9e31daeb281ea0d3501bee61c9f9304309",
+      "bytes": 3936
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Communicating Transmission Lines.dna",
+      "sha256": "a7e60d5ddd6083bbaf888565832e864c4c49aba77ff69a6bcd32dcb52ad6a9e9",
+      "bytes": 912
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Threshold-Based Spatial AND Gate (With Reporter).crn",
+      "sha256": "8a217288dc2d833c2d54a882698e214a8e38fbd3a319c24bb28f148f0bae76e2",
+      "bytes": 2487
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Threshold-Based Spatial AND Gate (With Reporter).dna",
+      "sha256": "23951f2d332953d981b8aa9845274d080ff1a9054e6fc5bf14c9f424e24cc8cb",
+      "bytes": 841
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Threshold-Based Spatial AND Gate.crn",
+      "sha256": "7e26ddf7c869014012715e327344bc98675411c71f8f74c3ba1b4a1a7bdbff81",
+      "bytes": 2410
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2014 DNA - Lakin - Threshold-Based Spatial AND Gate.dna",
+      "sha256": "a52ae318c2d7f031c4f37535cb6b78bd5cb7ec6f269d1489e84c15e6a390b966",
+      "bytes": 695
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2Domain.crn",
+      "sha256": "68092a2fdbe85aff0c6209a219d82714153fed58fe9bb6da7bb89f73418b4592",
+      "bytes": 11239
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/2Domain.dna",
+      "sha256": "e007cb65b748cafc5a6e3a86087205324a6c911b16d6bba6f4fb3ae5e002a993",
+      "bytes": 4335
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Circuit.crn",
+      "sha256": "bd92073b4378bbae0f1716ce9ec2e808d6dbc0702bd292276df8a628af11e335",
+      "bytes": 565
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Circuit.dna",
+      "sha256": "a4cb14e233b1402d8de23c062886c9bf189dc34ced1e17dd3690e4bc483b6b90",
+      "bytes": 270
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Directives.crn",
+      "sha256": "4470fa9888eb08c552d916a0b902b83770b8dec2c568abe9e36a8909f0787e1b",
+      "bytes": 642
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Directives.dna",
+      "sha256": "20b93bce789fa5e010f5e23a4d14b409f18cfd4383540f7f848915c7e6ea45a5",
+      "bytes": 410
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Events.crn",
+      "sha256": "94069b2b5bfd756fa4361eafa76c0801ae91bf3b5849164ec856776aa5d4a9aa",
+      "bytes": 776
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Events.dna",
+      "sha256": "7904156af8c1743dbc004211c8d3aed27ea305ff675d4f2ce6d56de16ca66d2c",
+      "bytes": 505
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Gate With Nicks.crn",
+      "sha256": "007f036882f88070b0085128959ec06288b231fb9e737a27c4c7f01fb3854368",
+      "bytes": 1235
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Gate With Nicks.dna",
+      "sha256": "d76cade82673182435504464d20ff9438d5bc0539cad8837e0600abcafc74c33",
+      "bytes": 1106
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/And Gate.crn",
+      "sha256": "5b288c5912907635f485293f089acba5af78068d9117d466b346cdebc88fbebf",
+      "bytes": 6258
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/And Gate.dna",
+      "sha256": "aa2b3d29f401800d2dc8a0113bba7edf6ada839a7e8b39f7fa65d8c63877d2cb",
+      "bytes": 1060
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Reporter.crn",
+      "sha256": "644101acbb4a9c8046fbb7b85156bc844dd2a574257eb057402fedd014edef99",
+      "bytes": 845
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND Reporter.dna",
+      "sha256": "05f6d4ccf38c2b6fcec096d2daf6ea82050a9cce840325e52d13c3e2e2b3718d",
+      "bytes": 335
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND.crn",
+      "sha256": "7a94691e3716e8846e9d43d05e88a5f5d3160ca0c07c7548aeb4e26a77694c13",
+      "bytes": 709
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/AND.dna",
+      "sha256": "3b5855d7ac1fb09b5b1dc7d337ba6ed6ebfcfd66a9dcece801a54d79d15d9671",
+      "bytes": 263
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Fork.crn",
+      "sha256": "84a684e5b072e2aa5838ec7dc95fe7a0adfb640fa4b83491276dcde5cdd8a6e6",
+      "bytes": 1788
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Fork.dna",
+      "sha256": "55d55b7a0c92b8bf7b3eb4f32716510059e21314702fb7d565238c4e78df0fa1",
+      "bytes": 619
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Join.crn",
+      "sha256": "1369a81771b8024be01c184190b6e948a3a41c16b24318fa4db65daa10b59072",
+      "bytes": 3470
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Join.dna",
+      "sha256": "6b2852f6ec184819605c196a643061eda0c0388cd2044ea27a11df14e202b4de",
+      "bytes": 789
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Transducer.crn",
+      "sha256": "60c494515dc08556ed1d2bc0d05eb23e9539b9ce5adcd30214a6495b602c4fd6",
+      "bytes": 1555
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Buffered Transducer.dna",
+      "sha256": "53a99500dd211bd731401af7e7d4aa4672c079e99a9a2f8ac1dc56c2be1515b5",
+      "bytes": 522
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Catalytic Directives.crn",
+      "sha256": "9a6d54572c73e3b710f0504d564aa7725f36ff29ac4846dccf81ee057ea09e26",
+      "bytes": 694
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Catalytic Directives.dna",
+      "sha256": "5eb62cf900adc01e1e9d99e40f658a76fde8f2b8f595f8a95c0afd3df7e57340",
+      "bytes": 761
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Catalytic.crn",
+      "sha256": "6a11c7202cc19853a84f36b73f1f583faed5cc73a1545aaf91e35cccf4fad118",
+      "bytes": 612
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Catalytic.dna",
+      "sha256": "ae0fd41bde5ffed5f8e879ee1680823caff1c518ecc3346c89cc635ffc039d57",
+      "bytes": 229
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Consensus Modules.crn",
+      "sha256": "43dc47c24141dd5ab495d5ede94453d20f53b472720916ce2ecbf8192f1644be",
+      "bytes": 8980
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Consensus Modules.dna",
+      "sha256": "af5725aff1894e68a320182b3eaaf4ad7d930da11a7437054eae484817bf0596",
+      "bytes": 9070
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Consensus Parameterized.crn",
+      "sha256": "b24bee5844e0745d659bfdd5d5b9475d90da7b38a93ea37d1e41a34e109e6418",
+      "bytes": 6221
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Consensus Parameterized.dna",
+      "sha256": "e1e8168f357a5977ac900fb6e09f62aca2df9bd2922942f506772af263a993dc",
+      "bytes": 4598
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/CRN.crn",
+      "sha256": "6d0beeffc333c6f02f85adfa1722453553d81c77311b0331d6b2b3dc28142d87",
+      "bytes": 1333
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/CRN.dna",
+      "sha256": "5ea81f84070ca29044fa9c8e672eb8376d8578a02e51fc0403dc6cfbe89ec5a9",
+      "bytes": 3634
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Cross Catalytic.crn",
+      "sha256": "c84f2a7a5f61d7548cba52d900cc9ffef17a26741fa1b20d54122f929b3c0c60",
+      "bytes": 4524
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Cross Catalytic.dna",
+      "sha256": "a605f34f5a66f5a5268d093370fdebbf6cd557eccf8938a6b0968b89f32b82f9",
+      "bytes": 948
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/DnaToolbox.crn",
+      "sha256": "3c1cc0de5960efae79a4cfb7c30ff4caaa985bc7e572d14a21e3986c2ba86d96",
+      "bytes": 4593
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/DnaToolbox.dna",
+      "sha256": "277772c777bb935baaf0a27c347ca8cdf8985beb3be5a99fa31222cafef0adcc",
+      "bytes": 5914
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fanout (Localized).crn",
+      "sha256": "414977e35c445f52f2f734c44879aa730c830cd5bdd2ca752a6b6b74cfd07ad8",
+      "bytes": 610
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fanout (Localized).dna",
+      "sha256": "2d3a1cd7f9c76c139104d9c3805a8d6e639d935e824fdab713126174e8b034ce",
+      "bytes": 4953
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fanout.crn",
+      "sha256": "d401ecab13ac9f18c79861c6a06b456a0950a9a17bb045d256869a24c9333033",
+      "bytes": 895
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fanout.dna",
+      "sha256": "a9da66bbecae7995f0cf4e3a679b94c1e49a6eca6b46229080e346159a8bda64",
+      "bytes": 2797
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Feed Forward.crn",
+      "sha256": "b44bfc2263fdea9de8bee1392fff998f02f2082794a2326e3fcb0d25a5173e83",
+      "bytes": 2846
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Feed Forward.dna",
+      "sha256": "a2a351f9fc1edb0163af2b03d095b397d2daebb125880935d766ced4194963c2",
+      "bytes": 1025
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fluorescent Catalytic.crn",
+      "sha256": "695bb266efd86c9041860b3d82e8980a687489b2e4b9279b4167a32810f28b31",
+      "bytes": 1268
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fluorescent Catalytic.dna",
+      "sha256": "d8264d211acbbf055c8e1aaaae9fd0b01cf34a3a8bdc55df499c9f75bf223232",
+      "bytes": 839
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Formal Analysis_And.crn",
+      "sha256": "2481f4b52bb8f1e97c3b39700890b66535bbe1c11e56c286ca4b69fb89a934d9",
+      "bytes": 763
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Formal Analysis_And.dna",
+      "sha256": "07a5db9687636656c8b1977bd2fa118718508c5988a5c24a13aca1e10f245caf",
+      "bytes": 2087
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Formal Analysis_Or.crn",
+      "sha256": "53eaf745beb0e20ce031ffaa7543060060c9072a68de54912ab04cc3f11f6bb0",
+      "bytes": 817
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Formal Analysis_Or.dna",
+      "sha256": "87825b134b30d949905d32e60aec94e20170a2aad99b44e207af612f1cb40504",
+      "bytes": 2106
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fuel-Less Threshold-Based Spatial AND Gate.crn",
+      "sha256": "5cdbf04b16ed373cff12b403eee61f7815a937afaa23767dd734b4b6de80754f",
+      "bytes": 1952
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Fuel-Less Threshold-Based Spatial AND Gate.dna",
+      "sha256": "5627441322923bef76d4a8f8c00ddd208cb0b91de8dcb836527a63132c02b99d",
+      "bytes": 763
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Genelet.crn",
+      "sha256": "19c0eca17e034433bb3dddf96815fc34b8e0ae42245298e22805d81e6b56520c",
+      "bytes": 5416
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Genelet.dna",
+      "sha256": "b36c6fc27280fdbaa05f371bf1bb6e4528af16ab5df817e09fa65cf5a5c3c896",
+      "bytes": 6626
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Independent Input.crn",
+      "sha256": "82dd4d42884d80dd672480aa485d10587d47d1ca6bfb32b2397749d0c8c9a187",
+      "bytes": 1117
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Independent Input.dna",
+      "sha256": "7be7645b45d001f7f0de76db2ac6b7d9b05bc8bb30aaa52f698e764bb8334578",
+      "bytes": 386
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Localization_AND Gate.crn",
+      "sha256": "d3230158f9c4a1f21285dcebdbb36277b88b52c0e875f42f43d2d34c6a6d74a7",
+      "bytes": 729
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Localization_AND Gate.dna",
+      "sha256": "df03a418eb741746d828bd0352b1c72895e82109e63849d308fc410f50de06db",
+      "bytes": 941
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Lotka.crn",
+      "sha256": "2dd8ae1f66dfca036d3600c1dfe7e1aecd0e91693667a65ea80ea297b3f1d20f",
+      "bytes": 1912
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Lotka.dna",
+      "sha256": "2807802acd863c6966910da10d918df22165201c375ae37cc28568bc033cf900",
+      "bytes": 977
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Mapk.crn",
+      "sha256": "dd7d9357dd506cac48a2ad4d24b20015442a5f967ab1cbff2f576fbfd52aca0e",
+      "bytes": 17719
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Mapk.dna",
+      "sha256": "3123a7f135cdcaca88c3446584fc259a2e5f142b915d6438614ab89f5c05c85c",
+      "bytes": 2005
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Migrations.crn",
+      "sha256": "ad538e6e04c9242a5731bec3c27613ea105d384591ee25d21bc8998ae3f7cac8",
+      "bytes": 447
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Migrations.dna",
+      "sha256": "7f5a5f59af577ef8ab05b316d33a0fef19175002f1ce30274587efa1e3a88ec5",
+      "bytes": 181
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Gate With Nicks.crn",
+      "sha256": "59b74f7f1a2d81a47dde8b125f168164485b151d27e46462f322acef660698cb",
+      "bytes": 1091
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Gate With Nicks.dna",
+      "sha256": "ea4210c513d0303dbb2c0b5a531984ca0c9ebfc2603bdff8c5cd4ed64065e4dd",
+      "bytes": 1121
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Gate.crn",
+      "sha256": "12494df1fa294812b8ee1df7f108301dbfa2a39842bb596e43ac65862480fe45",
+      "bytes": 792
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Gate.dna",
+      "sha256": "e93b956b41694d09396a4e9465cb9b422cd449f4d73f15a3246cba8961c187a2",
+      "bytes": 958
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Of ANDs.crn",
+      "sha256": "d6bb3176f213c030f57c13666e2cb52639be07a0bb8416acfc31d4b4b66c9284",
+      "bytes": 2725
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/OR Of ANDs.dna",
+      "sha256": "f25881a221caef941cb9cf28fa3b5af832dd425a0313d15dbf0a98f167d1a588",
+      "bytes": 1485
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Oscillating.crn",
+      "sha256": "9b1240dbda8fc51295575a219bcd507c3cb2560428580450e836da0f23d3d007",
+      "bytes": 39315
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Oscillating.dna",
+      "sha256": "ed6062d24b87e3f875a9cbdf4232f1c46a71176dcc45434c51d92f6229d7df8b",
+      "bytes": 857
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Qian And Winfree 4 Bit Square Root Circuit.crn",
+      "sha256": "35954814335fabce1550ee1dc3ac27c961adbccea4cba84a9a401f3333f748d3",
+      "bytes": 44668
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Qian And Winfree 4 Bit Square Root Circuit.dna",
+      "sha256": "c5fd570ddfbe70a351ce29aa7cb91dde6d0ac096ae7ace823c0c439d337bde9e",
+      "bytes": 8773
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT (Localized Fanout).crn",
+      "sha256": "540c6757254fa255fce013c1c1af071356c74724f81c9ef90b40312ee939f048",
+      "bytes": 15283
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT (Localized Fanout).dna",
+      "sha256": "4d70e5303c518760877ca8e45750a987891fadb182c01a3bc1c56a2c001cab53",
+      "bytes": 5616
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT (Localized).crn",
+      "sha256": "db89208dd8c4d337035df6c39e309d6ce0e99f8b593c7c8199d507b2796190f1",
+      "bytes": 17059
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT (Localized).dna",
+      "sha256": "ab4c89a690993295852425060a516dcfbe11a5a0028eae17c62b6308313e6411",
+      "bytes": 7033
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT.crn",
+      "sha256": "8db4edbe3a727bf978a286cc2bee6abcd4e2528ccf48b1fc7ee6e912ccfa893c",
+      "bytes": 17348
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/SQRT.dna",
+      "sha256": "4d1b14839a06ef4b0c00fc0a0d2f6babec715469d569598dc352a9faa4731c73",
+      "bytes": 5186
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Square Root.crn",
+      "sha256": "79319d9c8e6444199f84e4bf352675473a4b911e7d4317198a05d2d672200736",
+      "bytes": 14877
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Square Root.dna",
+      "sha256": "c4fc5c6e7840a46bc794df9d70f402735b3b07a526627ed67b7534152ad0add6",
+      "bytes": 5920
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Transducer Composition.crn",
+      "sha256": "1120350e5096fe7fb4c2eb2dfe674252a72b24463ddd74853aaf1e205e7e143a",
+      "bytes": 1474
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Transducer Composition.dna",
+      "sha256": "41ac4bf53b6c41a19756c88e34de5c61f1a65f18959631a44cfcd53380854d20",
+      "bytes": 403
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Transducer.crn",
+      "sha256": "26a8a9835c2ad38bef4d6c5d92fe18f21e9f56a5059c637ac960f9ae0b3af0f0",
+      "bytes": 755
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Transducer.dna",
+      "sha256": "0fa0f89c6c5865e88d5a89712d04869186a8e1575b3aa1a9586eb1344a8d8236",
+      "bytes": 358
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Two-Domain Fork_Join.crn",
+      "sha256": "101478dd6a4eb72b0276820638a42733d84dfe9754b92bb482f49db3f3e9383b",
+      "bytes": 8742
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Two-Domain Fork_Join.dna",
+      "sha256": "96c8f819da17f5f433303889d9714915c5abd0602b33137169138a5a5e506896",
+      "bytes": 650
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Two-Domain Transducer.crn",
+      "sha256": "b98ffabce44946fb37663f0bc997487ff5248e5dc1cf1272fd6e8aff56c6084b",
+      "bytes": 1040
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Two-Domain Transducer.dna",
+      "sha256": "332fc52530f373895896a8bf95035e185c003f9aa305370153a7a10ad86aa450",
+      "bytes": 452
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Ultrasensitive.crn",
+      "sha256": "8ce9f0962de05cebfb7164e4be87c078b54514b66d510a2dc7d6ffe56018473b",
+      "bytes": 19250
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Ultrasensitive.dna",
+      "sha256": "f06d51955b2c06f06da59b40833522de8ce46fb3528b302d5580e4d43390cea4",
+      "bytes": 1426
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Zhang_Autocatalytic.crn",
+      "sha256": "5ab2e6df538958d90d63a7b39d0ddf27103ac26283c8ded12a3c2fcfe70050fc",
+      "bytes": 4157
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crnComparison/Zhang_Autocatalytic.dna",
+      "sha256": "2bb00fed8c3081be3d577b975311116f980cb87d8247a69b2c15a795b1bd1e81",
+      "bytes": 825
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/2-domain, DCM - Two domain fork-join.crn",
+      "sha256": "112abc5e83f45f71a99bf8fc796e76c44031143ee4308c2ebf96d2199d79140b",
+      "bytes": 2563
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/2-domain, DCM - Two-domain transducer.crn",
+      "sha256": "af4bf4f87b05123d70104f7a355b8d337509d86c051c604d8882f531fe92a105",
+      "bytes": 455
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/2014 ACS Synth Biol - Yordanov - PI Controller - 2Domain.crn",
+      "sha256": "824e4ca4bfaeeacd06b2babe8c9700086b4bb744ad1a03686003106fdab28676",
+      "bytes": 10759
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Buffered Fork.crn",
+      "sha256": "68c1ad3c53b4fad5e50c940e2f58182fb449ff476b01a6f2687f42faafe7c13c",
+      "bytes": 572
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Buffered Join.crn",
+      "sha256": "e86f3d1a504e8e1b30ee5c7b320492b4e8b6fcef55a8a21c98bf2dcb4afe1c12",
+      "bytes": 1034
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Buffered Transducer.crn",
+      "sha256": "7d29d4addb669ec66fd6c65c5e6d0af7dc64e524a90f86dfce792dda79172e91",
+      "bytes": 553
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Oscillating.crn",
+      "sha256": "4035d263dbb09b6191ff78c7df5ef5bb740161b6f5c4c5924106d1db1d2c03cc",
+      "bytes": 6893
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Transducer Composition.crn",
+      "sha256": "cad54f2172623f2510dca527c0c5934af513e2ace1a0a6281a5bec7a7e094a7c",
+      "bytes": 584
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Transducer.crn",
+      "sha256": "bcadec962663f88c4ba30e4f1c5a7471ad3d06b87975b5a48d6b05afee7d496c",
+      "bytes": 370
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/3-domain, DNA 2016 - Ultrasensitive.crn",
+      "sha256": "056d51a1eb38ae09ef73ebc25d9409469d6a23d92c5728b4dd520ff9ad8a8c61",
+      "bytes": 3590
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Co-operative - Lotka.crn",
+      "sha256": "592be4c69e12198fb33f7004e81831507c9eb7a71c54dd65405eb4e9ec13660c",
+      "bytes": 742
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Co-operative - Mapk.crn",
+      "sha256": "66770009bc0cdb85d225f62dcc232d3a0446f479a2f23f9d91f9ffd875b137b4",
+      "bytes": 4150
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Dalchau et al., DNA 2014 - Autocatalytic Spatial.crn",
+      "sha256": "7097c2bf5c2cf6458aea074dc432a7e583322fe5aced6545dfca59d17bb687db",
+      "bytes": 1512
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Dalchau et al., DNA 2014 - Consensus Spatial.crn",
+      "sha256": "e94c847a9297b6824f554c825ad7ff9bc5cff18c1455cc5600c122256bac4698",
+      "bytes": 3144
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Dalchau et al., DNA 2014 - Lotka Spatial.crn",
+      "sha256": "1b5f6c168a79c9f1242e40a5ce3a6ec265534c4dd7f86a9cd9a98590e94e8a52",
+      "bytes": 1280
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (buggy) 10 Transducers.crn",
+      "sha256": "e3db399e647e19d3bff2a9672c6517a76fa01cd4c780634711a451c2a36cdc5b",
+      "bytes": 3805
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (buggy) 2 Transducers.crn",
+      "sha256": "64556de06010184c419b4f81cd579e05b506e2ecb2340668dee4601039200109",
+      "bytes": 1154
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (buggy) 3 Transducers.crn",
+      "sha256": "da9bd6916c09da2b2b9043fa15c2df7374a7f853baaf88e42cfe33442eac5137",
+      "bytes": 1478
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (localized Fanout) SQRT.crn",
+      "sha256": "85c974711a86feafae359029abdbd4669d80c1d10bb292ae0ac7d607095f0293",
+      "bytes": 3464
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (localized) Fanout.crn",
+      "sha256": "bd980d90230daa25ac225a6ecf71d9d662a73180411ea34633da03cbe3cbc57a",
+      "bytes": 345
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - (localized) SQRT.crn",
+      "sha256": "b048fe1254153d02b8de44ac1b1bd3e0f368760986f3c5da7ecb4569f0133a63",
+      "bytes": 3690
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - 10 Transducers.crn",
+      "sha256": "e8c25f3cd36955fa09160c8bdd6edbed9f40eb820602b9867b9f9b075450d7cd",
+      "bytes": 3631
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - 2 Transducers.crn",
+      "sha256": "ce42aa81f3f866d6d4f7fc3d30ef15b6eec2695fe8bef9a0c306e1ccf56f5232",
+      "bytes": 1158
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - 3 Transducers.crn",
+      "sha256": "4ed8c5f7a3b0c54a8d3e722907d95a80256c4c8209b0251a2a4eaa1d2a428e9e",
+      "bytes": 1486
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - And.crn",
+      "sha256": "71c1d10f89193caaf8c24b3ff07e2232fc157c432a4362f8bd154276edd9aa23",
+      "bytes": 301
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - Fanout.crn",
+      "sha256": "6913da9b5c54dd318712a9dfea2462bf78df20ba683ce873b1ec1678b0e52c17",
+      "bytes": 385
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - Or.crn",
+      "sha256": "c4166c8f4fcc53675d5c40ed9eaa2d9e70161c56e7973585b7463ecab0873594",
+      "bytes": 359
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Formal Analysis - SQRT.crn",
+      "sha256": "a240b028cd4874a8c02e10ff71cfc80b7083126cab793744bd278dc0ce56bb16",
+      "bytes": 3726
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Kim et al., Mol Syst Biol 2011 - Oscillator.crn",
+      "sha256": "e4742e4556d18b4be47130bca7bf7dfcc5332e47a52b41b4e47529a1b718544b",
+      "bytes": 1091
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., DNA 2014 - Remote transmission lines.crn",
+      "sha256": "97ae2c8cd4164c2a1c5caca43eab28820bdf5772dc0cc5775ea3475f19b09755",
+      "bytes": 606
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.crn",
+      "sha256": "a3a5b48d3020ca82fa95a788b480e92e8e20b09197d797c773d915ae63af6918",
+      "bytes": 391
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., DNA 2014 - Threshold spatial AND.crn",
+      "sha256": "92e7cf73026cb35e7c57a34996d09283e93f84c631cd0310922b9b8a30af8feb",
+      "bytes": 338
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., DNA 2014 - Transmission lines.crn",
+      "sha256": "eec47840dd77ca4b6240fc77f9922ddc5c24c8dfe60b329d2367fb35e94aef68",
+      "bytes": 438
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., Interface 2012 - Buffered oscillators.crn",
+      "sha256": "9abb3e310db2c82e9d82dd1a33640252655268209d38900d97318db5c9681fa6",
+      "bytes": 14021
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., Interface 2012 - Join gates.crn",
+      "sha256": "cc403390b8db5ca09cfa46193712d61dc9be59525d14250671ede513a58afea9",
+      "bytes": 841
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin et al., Interface 2012 - Unbuffered oscillators.crn",
+      "sha256": "eea10596bb4e067e447cbd03769d5d1d77107bad39c1d050d0a68d20b00f3b91",
+      "bytes": 10160
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Lakin, Parker et al., Interface 2012 - Model-checking examples.crn",
+      "sha256": "2956dbe8f0e9a2a644969ae766b4fe46f228ef8d04dede6a2c01bc454a76c007",
+      "bytes": 738
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Localization - AND gate with nicks.crn",
+      "sha256": "340a5aba7b9c072522da6626a36515823fe223ac9f29c158740f8c6910595185",
+      "bytes": 616
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Localization - AND gate.crn",
+      "sha256": "2902c901d10b4e20f72f1df4f6bb29c7b0f1db71c8c3d0f4c64d449a3ae61770",
+      "bytes": 505
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Localization - OR gate with nicks.crn",
+      "sha256": "fc87597a0b88026c003f73396e61e3a3dff1516af57643a48a653cc63e1d36d8",
+      "bytes": 629
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Localization - OR gate.crn",
+      "sha256": "88ea4c8a9aec8008c708a91eeaeb1f6f7e5364cf4bdde6e7cb6e28bcc3074d60",
+      "bytes": 566
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Localization - OR of ANDs.crn",
+      "sha256": "01f9b6b74284d26dac5eeb1cb27912f5f4896c0e8cd6db41aeeeaa107864efd0",
+      "bytes": 1071
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Montagne et al., Mol Syst Biol 2011 - Oscillator.crn",
+      "sha256": "f5b688b9ee53c73e98acbf9631216784fadef86dccf2516d860c31983f08d187",
+      "bytes": 1393
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Nature Nanotech 2013 - Consensus Modules.crn",
+      "sha256": "95f1a84d3035194dc06c645df3bd7cc1584ce88b8f656d3337b9b16b54981d51",
+      "bytes": 2979
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Nature Nanotech 2013 - Consensus Parameterized.crn",
+      "sha256": "51d10b4572e27eef1f9ae2a4a04555acc63c1bdff985e31657aad60b6473153f",
+      "bytes": 2852
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Parameter Inference - Join + Reporter.crn",
+      "sha256": "b27b383a3031bbf457abd3a9dfc08cdaa68913f32007dfb3a955bc00684ae801",
+      "bytes": 1947
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Parameter Inference - Reporter.crn",
+      "sha256": "bcb27dd838494336064afa200b3352e6a1bd212d1942963e1c829ddddf46ee56",
+      "bytes": 766
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Scienze 2007 - Catalytic Directives.crn",
+      "sha256": "e3706618392dfc9b4d911edf84c1dccc8147f15cddbc57895f5d60a7d7436f03",
+      "bytes": 377
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Scienze 2007 - Catalytic.crn",
+      "sha256": "542d3b74180da3f1d626a9fc606603880f89229d205918f41c69bcaa3cfa7bdb",
+      "bytes": 333
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Simple - AND Circuit.crn",
+      "sha256": "13c1e0ca168d6f97ce88edc0159538d1a7531193a58f46c7873aa65f2d5c8f5c",
+      "bytes": 383
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Simple - Hairpin-free HCR.crn",
+      "sha256": "1749610d1bb836ee6fb6178bf0df15fc03aaa4c9467f3ced8987c9510d9794f9",
+      "bytes": 248
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Simple - Migrations.crn",
+      "sha256": "83dd974a71809899bda5105046140c2d679a79c6bda89787665e9916abf5083e",
+      "bytes": 262
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Simple - Monomers.crn",
+      "sha256": "206dab810491b4dbe9e7a9295a1fdc99c7ef1f1897a748d7d89eaf875b8a75e4",
+      "bytes": 177
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Square root - Qian and Winfree 4 bit square root circuit.crn",
+      "sha256": "580fa72ee05e524c698c401c9b505b93c2270b9f7247988157b14c4f4edf8b6e",
+      "bytes": 8680
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Stack Machine, DNA17 - Ripple carry adder.crn",
+      "sha256": "57211a4a7c95c8c7e3f2c7e14fd4b773a86c26209c9b6a21f0e7a6f2c6fce00f",
+      "bytes": 2063
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join Directives.crn",
+      "sha256": "33c24633992c038e5c641d5a8b82dac1a5911c4cc7418c286831b7295541c9b1",
+      "bytes": 402
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join Events.crn",
+      "sha256": "b4e469951a29d655ddd40bab55b16e4a833415d453f50ed6de88d53bf32073ea",
+      "bytes": 502
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join Fit.crn",
+      "sha256": "8760feed4b7778e3bf33638220936c487fe907db89cc752a5f3f5818ea6b8833",
+      "bytes": 919
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join Reporter Z3.crn",
+      "sha256": "6b086ded1c9405490a03d636a93fbddd8d42a5c17894b5f411bdbfa8d79becdd",
+      "bytes": 937
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join Reporter.crn",
+      "sha256": "a525a612fca3a30dc879e77e54093e2d829f0711c1ba96bf55d80bdcc026a3ad",
+      "bytes": 447
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Tutorial, VEMDP 2014 - Join.crn",
+      "sha256": "7c984dd8d20867996a47c58b214b5bb8dc717f8fc1ee849b78b0c2d503330aa7",
+      "bytes": 384
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.crn",
+      "sha256": "2f1712267308d439fc37fb8425c7ff3413a66cc60020b222de3fe8c495d52771",
+      "bytes": 3589
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.crn",
+      "sha256": "a124222424e3f7c12804cadcb9255e3cff5f7600f499186bbf71d3cebaedda33",
+      "bytes": 1029
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.crn",
+      "sha256": "8f1a090774f7531d9c2d9202479d16ddd7be159ecf4f48a63ee7850cfe94adfc",
+      "bytes": 4035
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.crn",
+      "sha256": "ea0ca68a2585b98f4e34f55451f129579877bf2f1b0c77c61b3129a4ca25f08d",
+      "bytes": 3107
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - And Gate.crn",
+      "sha256": "d2a578f8f64c514e5796e261e842e636b8b5822880fb0689d1c3520be1f38c89",
+      "bytes": 1292
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - Autocatalytic.crn",
+      "sha256": "ab95b7f61ac67d28834f70a76814ba5333b211b4469133151fc789d9365896b1",
+      "bytes": 1114
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - Cross Catalytic.crn",
+      "sha256": "9f226deb4b5409908f5cf51dfa16e2b0e64b0388188ef5bd3f1761f4bf5424b1",
+      "bytes": 1252
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - Feed forward.crn",
+      "sha256": "d658388d95fc763999ff7e7ab0d2bd9b96240d96c3290d574e7a6fed62ee2c2e",
+      "bytes": 723
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - Fluorescent Catalytic.crn",
+      "sha256": "1659390ea6fca5db2701e07748fe06189d3a01641788e1d31d959877da98a38e",
+      "bytes": 501
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/crns/Zhang, Science 2007 - Independent Input.crn",
+      "sha256": "0ff6950e6b649c821e68275cf4c705d93cd1a92d2488abcff6a1e67004df4d19",
+      "bytes": 439
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/degradation.crn",
+      "sha256": "1e033653c186430a6b8587659c5f3201cef6dee2b5a7a74e578d2cf465d2e520",
+      "bytes": 205
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/Localization - AND gate with nicks.crn",
+      "sha256": "340a5aba7b9c072522da6626a36515823fe223ac9f29c158740f8c6910595185",
+      "bytes": 616
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/Localization - AND gate.crn",
+      "sha256": "9d7a92c80c91bc4d4a40c32e5eef997934ceec0b956e8feaff16d4f458ec54ed",
+      "bytes": 506
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/Localization - OR gate with nicks.crn",
+      "sha256": "c49c22a6a5a7e35d7dff265ce6c795cb3944faca40044a73e6bdd9bbafd7a1fe",
+      "bytes": 630
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/Localization - OR gate.crn",
+      "sha256": "29e75c990dcd63e9a9a6c7417eced65a6f7899c1a951ecd63268e98a325e227b",
+      "bytes": 567
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/cme/Localization - OR of ANDs.crn",
+      "sha256": "a9c182f10242763c0f4cbaa8d884977acf796d9d62c7274fd970e2f6fb0a9a97",
+      "bytes": 1072
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/2-domain, DCM - Two domain fork-join.crn",
+      "sha256": "961346c7089c62a2d0dd6d7d254eaf55791309eb58ea79a44ec918796cab4a66",
+      "bytes": 2564
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/2-domain, DCM - Two-domain transducer.crn",
+      "sha256": "81e919e8a230b061c0396c13c4c1dc84c7f15d28e421f1eb6418e502cc4b5957",
+      "bytes": 457
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Co-operative - Lotka.crn",
+      "sha256": "be89ba5cf433c7625d3be9a2bdfcdf5b9f6cfb1a65d3ec90cd1085127ee616f0",
+      "bytes": 742
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Co-operative - Mapk.crn",
+      "sha256": "7a78eb62f52d01e85f4b668023c9c1a14a50bf8c84c34fc7fe9aa31ce8175bac",
+      "bytes": 4180
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - (localized Fanout) SQRT.crn",
+      "sha256": "906560cf51e1999b5995b347e20ead1a8583710efe19254d242044c4b60728ed",
+      "bytes": 3494
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - (localized) Fanout.crn",
+      "sha256": "a53e369338d614eea0bf85b58d3af054eb0345bf39360b30c12842a2e01b1ac1",
+      "bytes": 346
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - (localized) SQRT.crn",
+      "sha256": "795677a7141262419161d9c1e101647997fd4e2ae6fd2f1da4fc6e7d29fa9892",
+      "bytes": 3720
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - And.crn",
+      "sha256": "6d0cbd71c83255d4bef76e3ec2e1b7cdb8e1d7cc309afdf6c1b08c18fe0defe1",
+      "bytes": 302
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - Fanout.crn",
+      "sha256": "c749b60dd9f800e28e7b152027b831818797f06ea903e36ec8241fd4e1f50ca8",
+      "bytes": 386
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - Or.crn",
+      "sha256": "15506f7b9d2f9d02864288d74668056ac0a78b0a12e87858d853b5511da35064",
+      "bytes": 360
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Formal Analysis - SQRT.crn",
+      "sha256": "9beb57874fa6dd0d7e748bdec3cf93cf333ae20abaf8f83b8febd42384f483c2",
+      "bytes": 3727
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Kim et al., Mol Syst Biol 2011 - Oscillator.crn",
+      "sha256": "c81b8eb97b8b1093e834e6aa2b5c9a9ce9c26b47022832937f2731ad4ea55fc1",
+      "bytes": 1119
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., DNA 2014 - Remote transmission lines.crn",
+      "sha256": "a5d1c21c3d6b5aafc1f87c519570b959cd373cf7549f62393e362877fb1b6a70",
+      "bytes": 635
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.crn",
+      "sha256": "0509b6bec46f60b91bed711291c740cd54c3a926a03607ff6af0d7e0a9deb22c",
+      "bytes": 420
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., DNA 2014 - Threshold spatial AND.crn",
+      "sha256": "7bce90cf291b89e67ccf099d21e45f02a5fd97e32a37371091f0a8ef434f4a58",
+      "bytes": 367
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., DNA 2014 - Transmission lines.crn",
+      "sha256": "1fe0b53a1f2f087d3c856fa240d4e0564028f53c3b40b48429c0f64162f71821",
+      "bytes": 467
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., Interface 2012 - Buffered oscillators.crn",
+      "sha256": "a418e250177424b48e5b003e4a5b8b96a46bf3f8e9b4f4485f90ab2e48b04844",
+      "bytes": 14012
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., Interface 2012 - Join gates.crn",
+      "sha256": "e6420b57d77ef567e9f33bb7392379b889eddef8e0588eca389c1634bccbeefb",
+      "bytes": 847
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin et al., Interface 2012 - Unbuffered oscillators.crn",
+      "sha256": "6e06845c23baea0003b8cc6baf7cba55da5bd564182abcb9cbf5c46cfcf5b4cf",
+      "bytes": 10162
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Lakin, Parker et al., Interface 2012 - Model-checking examples.crn",
+      "sha256": "2956dbe8f0e9a2a644969ae766b4fe46f228ef8d04dede6a2c01bc454a76c007",
+      "bytes": 738
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Montagne et al., Mol Syst Biol 2011 - Oscillator.crn",
+      "sha256": "dabf671d4cb2b667cfad21f1bd9fe3ad9f6c5f1cdf911256625487083671ecff",
+      "bytes": 1421
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Nature Nanotech 2013 - Consensus Modules.crn",
+      "sha256": "ce723f692bf1c19c35163bad1089b9dbd3d85f284ac1581b185624c15f6b4cd4",
+      "bytes": 2980
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Nature Nanotech 2013 - Consensus Parameterized.crn",
+      "sha256": "f2d4b31211911c57ccb15f56c400c58eae77a873dc9180d2c2828ecf3744127c",
+      "bytes": 2853
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Scienze 2007 - Catalytic Directives.crn",
+      "sha256": "d3511ce287c3634414a50627000906177a44ed4017d447b537666bd22279405b",
+      "bytes": 378
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Scienze 2007 - Catalytic.crn",
+      "sha256": "542d3b74180da3f1d626a9fc606603880f89229d205918f41c69bcaa3cfa7bdb",
+      "bytes": 333
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Simple - AND Circuit.crn",
+      "sha256": "13c1e0ca168d6f97ce88edc0159538d1a7531193a58f46c7873aa65f2d5c8f5c",
+      "bytes": 383
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Simple - Migrations.crn",
+      "sha256": "83dd974a71809899bda5105046140c2d679a79c6bda89787665e9916abf5083e",
+      "bytes": 262
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Square root - Qian and Winfree 4 bit square root circuit.crn",
+      "sha256": "580fa72ee05e524c698c401c9b505b93c2270b9f7247988157b14c4f4edf8b6e",
+      "bytes": 8680
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Tutorial, VEMDP 2014 - Join Directives.crn",
+      "sha256": "33c24633992c038e5c641d5a8b82dac1a5911c4cc7418c286831b7295541c9b1",
+      "bytes": 402
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Tutorial, VEMDP 2014 - Join Events.crn",
+      "sha256": "228ade0581bedea16c68d99a117ba3e75d225d6590a2624223493aead765ece4",
+      "bytes": 531
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Tutorial, VEMDP 2014 - Join Reporter.crn",
+      "sha256": "a525a612fca3a30dc879e77e54093e2d829f0711c1ba96bf55d80bdcc026a3ad",
+      "bytes": 447
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Tutorial, VEMDP 2014 - Join.crn",
+      "sha256": "7c984dd8d20867996a47c58b214b5bb8dc717f8fc1ee849b78b0c2d503330aa7",
+      "bytes": 384
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.crn",
+      "sha256": "2e334a14ce809897ccf26cf5938269aa20970e96014437e52a8c9124123ea185",
+      "bytes": 5281
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.crn",
+      "sha256": "b15ff430cde82c98c4bea1c394cfa2d8f457dfed4e50b6950388f5593c110da8",
+      "bytes": 3618
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.crn",
+      "sha256": "caa07c5265e5f305263c28c3b8f1d3dbde4597f27beba818feac79b8cd5528ac",
+      "bytes": 1058
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.crn",
+      "sha256": "77a279cd56ce19957e79412bdfa5f41a202e5d50fc87ecd7413c20cbc101cbab",
+      "bytes": 4064
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.crn",
+      "sha256": "8aa88afcf2ac9fc307805fae0a69384be8c0af8b99b94961a071af619679b2a6",
+      "bytes": 3136
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - And Gate.crn",
+      "sha256": "d2a578f8f64c514e5796e261e842e636b8b5822880fb0689d1c3520be1f38c89",
+      "bytes": 1292
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - Autocatalytic.crn",
+      "sha256": "ab95b7f61ac67d28834f70a76814ba5333b211b4469133151fc789d9365896b1",
+      "bytes": 1114
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - Cross Catalytic.crn",
+      "sha256": "9f226deb4b5409908f5cf51dfa16e2b0e64b0388188ef5bd3f1761f4bf5424b1",
+      "bytes": 1252
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - Feed forward.crn",
+      "sha256": "d658388d95fc763999ff7e7ab0d2bd9b96240d96c3290d574e7a6fed62ee2c2e",
+      "bytes": 723
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - Fluorescent Catalytic.crn",
+      "sha256": "fa57ea688c7a389060202b9e084c8465713ba32933d264a6a101778b396eae27",
+      "bytes": 497
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/long/Zhang, Science 2007 - Independent Input.crn",
+      "sha256": "445d823c12c66bc1899f59154b89fab6ae93d0604a3af6c34d1dec64dab489b5",
+      "bytes": 435
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/2-domain, DCM - Two-domain transducer.crn",
+      "sha256": "81e919e8a230b061c0396c13c4c1dc84c7f15d28e421f1eb6418e502cc4b5957",
+      "bytes": 457
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Formal Analysis - Fanout.crn",
+      "sha256": "c749b60dd9f800e28e7b152027b831818797f06ea903e36ec8241fd4e1f50ca8",
+      "bytes": 386
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Nature Nanotech 2013 - Consensus Modules.crn",
+      "sha256": "ce723f692bf1c19c35163bad1089b9dbd3d85f284ac1581b185624c15f6b4cd4",
+      "bytes": 2980
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Scienze 2007 - Catalytic.crn",
+      "sha256": "542d3b74180da3f1d626a9fc606603880f89229d205918f41c69bcaa3cfa7bdb",
+      "bytes": 333
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Simple - Migrations.crn",
+      "sha256": "83dd974a71809899bda5105046140c2d679a79c6bda89787665e9916abf5083e",
+      "bytes": 262
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Tutorial, VEMDP 2014 - Join Reporter.crn",
+      "sha256": "a525a612fca3a30dc879e77e54093e2d829f0711c1ba96bf55d80bdcc026a3ad",
+      "bytes": 447
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/simulations/deterministic/quick/Zhang, Science 2007 - Independent Input.crn",
+      "sha256": "445d823c12c66bc1899f59154b89fab6ae93d0604a3af6c34d1dec64dab489b5",
+      "bytes": 435
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/2-domain, DCM - Two domain fork-join.vdsd",
+      "sha256": "96c8f819da17f5f433303889d9714915c5abd0602b33137169138a5a5e506896",
+      "bytes": 650
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/2-domain, DCM - Two-domain transducer.vdsd",
+      "sha256": "ae3770710fa6913168c8ba6d7f82b77dc0611a1adfc2aeeede44b7e4c8e6d7a4",
+      "bytes": 432
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Fork.vdsd",
+      "sha256": "55d55b7a0c92b8bf7b3eb4f32716510059e21314702fb7d565238c4e78df0fa1",
+      "bytes": 619
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Join.vdsd",
+      "sha256": "6b2852f6ec184819605c196a643061eda0c0388cd2044ea27a11df14e202b4de",
+      "bytes": 789
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Buffered Transducer.vdsd",
+      "sha256": "53a99500dd211bd731401af7e7d4aa4672c079e99a9a2f8ac1dc56c2be1515b5",
+      "bytes": 522
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Oscillating.vdsd",
+      "sha256": "ed6062d24b87e3f875a9cbdf4232f1c46a71176dcc45434c51d92f6229d7df8b",
+      "bytes": 857
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Transducer Composition.vdsd",
+      "sha256": "41ac4bf53b6c41a19756c88e34de5c61f1a65f18959631a44cfcd53380854d20",
+      "bytes": 403
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Transducer.vdsd",
+      "sha256": "fb95bd17733aadcbceb6c604f67a79cde3193d82212d837dc79ab7aa82609fbc",
+      "bytes": 361
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/3-domain, DNA 2016 - Ultrasensitive.vdsd",
+      "sha256": "f06d51955b2c06f06da59b40833522de8ce46fb3528b302d5580e4d43390cea4",
+      "bytes": 1426
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Co-operative - Lotka.vdsd",
+      "sha256": "2151d56c481cd491e1aafe1e45a3bbd1ad6d81348d92899859a98f437b426945",
+      "bytes": 959
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Co-operative - Mapk.vdsd",
+      "sha256": "0a6ce887c46f457315b70e8dbb60a6b639b57a0cbce2314faeea4b4e2cff1b96",
+      "bytes": 1997
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Autocatalytic Spatial.vdsd",
+      "sha256": "44d326d72226d877ed054e81c353c1fcfd8a39c265b84f11f4e7d6482f68d2ee",
+      "bytes": 3821
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Consensus Spatial.vdsd",
+      "sha256": "ff2fc46de6a79a8ab38c2ccf0d96c16f1db7b2f62575a61bb8b107c66666d1ca",
+      "bytes": 4876
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Dalchau et al., DNA 2014 - Lotka Spatial.vdsd",
+      "sha256": "fe14f022ca05eee246d3ff6586c83edd59777e7e9847753f9432ae606d22bf71",
+      "bytes": 1942
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 10 Transducers.vdsd",
+      "sha256": "6cd5c67f6db38262fe0532411ec028488fef0f3ba9ea5a89ff85ce2492c2dcc7",
+      "bytes": 1569
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 2 Transducers.vdsd",
+      "sha256": "8683e1f135da90c3e9f27943e161921ac3374d56e36529cc0838aaee5dcdcbd5",
+      "bytes": 1370
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (buggy) 3 Transducers.vdsd",
+      "sha256": "c41551a55cdfe865c94c15ee88e82bbe878e11f78fdef31ecfe984f1cd56d6e8",
+      "bytes": 1391
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized Fanout) SQRT.vdsd",
+      "sha256": "b20d402b3ee4f4aaaf720ecc22e6f8caa412c02b5f9613853bfcfbb9b49b6452",
+      "bytes": 5720
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized) Fanout.vdsd",
+      "sha256": "e988ded85952a62cf3a80191bb460ccfbb572d2b0bc8da6e86eef480f380fe9c",
+      "bytes": 4924
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - (localized) SQRT.vdsd",
+      "sha256": "4c33c8f8984e880c422ad832c56de4766eaffea242dc635ac8f75e74f5693d7a",
+      "bytes": 7141
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 10 Transducers.vdsd",
+      "sha256": "5570d4a1afc6305793efabe3774184fb4adf507a386a764601fa7d43097b2263",
+      "bytes": 1184
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 2 Transducers.vdsd",
+      "sha256": "c9d307cd0fd910ce856b89eafc7a13142e6fc149c82963e65fa007d70181eab3",
+      "bytes": 1375
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - 3 Transducers.vdsd",
+      "sha256": "7ddb10ab87c636f17f42bd4161854ad3d95dff350bff780f3f0b338174818af5",
+      "bytes": 1397
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - And.vdsd",
+      "sha256": "56ae430582580a6c7e7da884a0371cbfcdf0f4ea4d3271dbd117db1fabb85789",
+      "bytes": 2105
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - Fanout.vdsd",
+      "sha256": "9a9e099beda23a2d4a1a40806a85ff76787c7bce26c54b7d2ed6d383d7b7be7f",
+      "bytes": 2807
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - Or.vdsd",
+      "sha256": "eb1547fcdac2a3a3ce6a838769a5f070d1abb655ba27640bbb074b2c738c7987",
+      "bytes": 2129
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Formal Analysis - SQRT.vdsd",
+      "sha256": "d3bb1201f501afb46de794f85434816c697d347a0aa9871709a00c0b7773abc2",
+      "bytes": 5294
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Kim et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+      "sha256": "cd744a1bba3dd4650e3a7433076009ba826fcf8bd53bf7f7960c0bc96cd06a49",
+      "bytes": 4522
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Remote transmission lines.vdsd",
+      "sha256": "38592af466ff98c8c221541c2d226f965f0f88ad8b44f8ef05ce4fa308d0eb59",
+      "bytes": 910
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.vdsd",
+      "sha256": "fb09c7e946f41c56cc9bdfccc2aa5d6d726d0e60ee6d66732b675a6b42faa697",
+      "bytes": 834
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Threshold spatial AND.vdsd",
+      "sha256": "82a448504e8eda99723aad558b8059d55d0f4ba0fa263310b7bf9d30a10d45aa",
+      "bytes": 691
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., DNA 2014 - Transmission lines.vdsd",
+      "sha256": "dee2ebfcf98645baa7cf18c8604dc3b4f263b640ff56c7fcdec9b937399d3150",
+      "bytes": 727
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Buffered oscillators.vdsd",
+      "sha256": "83e017e34aa95d71eea56dd11b46167aa90c4eaa356061e9d6344e2134be0c2b",
+      "bytes": 1111
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Join gates.vdsd",
+      "sha256": "519a6646e4bff8e7e8a728b046621464fd35240462f92c78829706c938c3175d",
+      "bytes": 1663
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin et al., Interface 2012 - Unbuffered oscillators.vdsd",
+      "sha256": "d4a499208c6afa8e7510eff41f4991e5258c9e1c7561d339b8463007d0ae8a9f",
+      "bytes": 1006
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Lakin, Parker et al., Interface 2012 - Model-checking examples.vdsd",
+      "sha256": "5df726fbd803782a8adedd1911f4773347b15a39387b69e86b1ab2d51fef7f9c",
+      "bytes": 6131
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - AND gate with nicks.vdsd",
+      "sha256": "10b5843e542c6277316800e2e53813b312e9a1f031e3d7171176a41b95933797",
+      "bytes": 1104
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - AND gate.vdsd",
+      "sha256": "7a7d0b2596ef66d77d3d2135faedb3ffe6cef4b80626def934482f4eb08728e7",
+      "bytes": 939
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR gate with nicks.vdsd",
+      "sha256": "9ef48c81d233128af16629969091cf864e5003ce9a841b579f2fc610aca9d26c",
+      "bytes": 1119
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR gate.vdsd",
+      "sha256": "d85a2e9afe58d74b6f52211c2854c82cb44fa2a0c1a49b71cfef7f67807b37a5",
+      "bytes": 956
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - OR of ANDs.vdsd",
+      "sha256": "ae7153038a53588c243a14fb3f9ebac4631075405b70e427a4152fd43369c930",
+      "bytes": 1483
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - Square root.vdsd",
+      "sha256": "ec265612f48224ac60d9300008810026cc0864ff6bd604c1cd0d8db72a337601",
+      "bytes": 6014
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Localization - Wires.vdsd",
+      "sha256": "cb9fc7f2a2b2358112311c2cc907cec49d87ed313667d1556f8b66c9b889e1d9",
+      "bytes": 3408
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Montagne et al., Mol Syst Biol 2011 - Oscillator.vdsd",
+      "sha256": "4b772e48fd13d7864b0314991e6f4a6128313ab8bbf0f2d6876dba43d174cbe4",
+      "bytes": 2090
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Nature Nanotech 2013 - Consensus Modules.vdsd",
+      "sha256": "35cfee06ab392a262dbd0abb4056faf94b7ae4534c8f77c0ec7bbc7d25e6250a",
+      "bytes": 11400
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Nature Nanotech 2013 - Consensus Parameterized.vdsd",
+      "sha256": "85da2a22c88ebc10d16b3b55f848adbd0e48fc9147057699e2f7d61ea6b6d53c",
+      "bytes": 4587
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Parameter Inference - Join + Reporter.vdsd",
+      "sha256": "27e138681bb4f1da0ce6c30a9f67b1dfcbcebabe601015e4f5b1e698f1a7c66c",
+      "bytes": 2364
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Parameter Inference - Reporter.vdsd",
+      "sha256": "a0dabd26f2becc1ad97f62e410f10c89e05d7d184bdcd89fd15771f7bb0ce51d",
+      "bytes": 669
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Scienze 2007 - Catalytic Directives.vdsd",
+      "sha256": "493668a312e91fc7b142ace78908202efd177621029563da945527a827ad2bb1",
+      "bytes": 761
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Scienze 2007 - Catalytic.vdsd",
+      "sha256": "ae0fd41bde5ffed5f8e879ee1680823caff1c518ecc3346c89cc635ffc039d57",
+      "bytes": 229
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd",
+      "sha256": "a4cb14e233b1402d8de23c062886c9bf189dc34ced1e17dd3690e4bc483b6b90",
+      "bytes": 270
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Hairpin-free HCR.vdsd",
+      "sha256": "4d412903f2655e9bfefb80e8bbbe0400d03aa85198d984b0d63ba577ccf4fba2",
+      "bytes": 310
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Migrations.vdsd",
+      "sha256": "7f5a5f59af577ef8ab05b316d33a0fef19175002f1ce30274587efa1e3a88ec5",
+      "bytes": 181
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Monomers.vdsd",
+      "sha256": "f2ad0ac68fc604ca4916361930769276398f686f2c309b30132963478ba0376f",
+      "bytes": 197
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Square root - Qian and Winfree 4 bit square root circuit.vdsd",
+      "sha256": "c5fd570ddfbe70a351ce29aa7cb91dde6d0ac096ae7ace823c0c439d337bde9e",
+      "bytes": 8773
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Stack Machine, DNA17 - Ripple carry adder.vdsd",
+      "sha256": "ef506dcd4fc14d720e48212a9164d7d43cb47460cefff71482a8cda2b8131611",
+      "bytes": 14734
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Directives.vdsd",
+      "sha256": "7b5d306f2d22c54e0cd4a5bd8ed9c22cd027df2ff2325e15a4123d8b41b198e3",
+      "bytes": 409
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Events.vdsd",
+      "sha256": "6216abcba7d1b4dc3e801984d7e565c8f50b3f694376654abd67c8c78d977f22",
+      "bytes": 503
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Fit.vdsd",
+      "sha256": "44276a48c82f6fa48df2330af6aefc6cdd9856bed9e796689934765851358c3c",
+      "bytes": 965
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Reporter Z3.vdsd",
+      "sha256": "f47df754ec2ac71cf79f0e49fd7ce9176384e1f89e1cdbb7a36591de225bb8d3",
+      "bytes": 1192
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join Reporter.vdsd",
+      "sha256": "05f6d4ccf38c2b6fcec096d2daf6ea82050a9cce840325e52d13c3e2e2b3718d",
+      "bytes": 335
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Tutorial, VEMDP 2014 - Join.vdsd",
+      "sha256": "3b5855d7ac1fb09b5b1dc7d337ba6ed6ebfcfd66a9dcece801a54d79d15d9671",
+      "bytes": 263
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.vdsd",
+      "sha256": "9d0aa4f525571e08c083d0ba827c158d774ad4e78ca60cbe1cfbbd401cb62385",
+      "bytes": 4920
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.vdsd",
+      "sha256": "b10068e273c3ac6da5e2fa64a30dc0c29c3b80ba99215845057b0a0c99086109",
+      "bytes": 6056
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.vdsd",
+      "sha256": "2ff042d1c3e1041c749bce861e61c8d63f7c83f5c989bea70baefbf6131082ef",
+      "bytes": 5165
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.vdsd",
+      "sha256": "ff796a086e199ffadf885b4a18339402eacd7a565a11f9d96cd79e2c47f55e49",
+      "bytes": 6347
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.vdsd",
+      "sha256": "7931515f0e9cce5e597a8e239729ddc37bf3a605e037cd2d439e376cab945575",
+      "bytes": 7262
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - And Gate.vdsd",
+      "sha256": "adcb8c79b90225430e96d61b4f5a172c6c8d4758a0906dfd203ba441d8cc4393",
+      "bytes": 1063
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Autocatalytic.vdsd",
+      "sha256": "07f206c4817fcaf36170a1abe0dd42969ed4ca7cd034849a06465d28933fc798",
+      "bytes": 822
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Cross Catalytic.vdsd",
+      "sha256": "a605f34f5a66f5a5268d093370fdebbf6cd557eccf8938a6b0968b89f32b82f9",
+      "bytes": 948
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Feed forward.vdsd",
+      "sha256": "a2a351f9fc1edb0163af2b03d095b397d2daebb125880935d766ced4194963c2",
+      "bytes": 1025
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Fluorescent Catalytic.vdsd",
+      "sha256": "814c6d77767759dc8290014aa1e70f13eeea71042caa178f8b2dcd2fdd06ce08",
+      "bytes": 833
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/testData/visualDsd/Zhang, Science 2007 - Independent Input.vdsd",
+      "sha256": "7be7645b45d001f7f0de76db2ac6b7d9b05bc8bb30aaa52f698e764bb8334578",
+      "bytes": 386
+    },
+    {
+      "path": "ClassicDSD/ClassicDSDTests/TestUtils.fs",
+      "sha256": "15f71e3bb7f2e0d86a3af394bd776a43b875ca60551fd4b34cf131d0bba73176",
+      "bytes": 22798
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/2-domain, DCM - Two domain fork-join.txt",
+      "sha256": "81446d8ffea6d1f4c8f976d9dd5db041c65532f5038cac4e2f7c857429c407b9",
+      "bytes": 642
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+      "sha256": "ff9990591cccda8972f231829e8e594f9e7ee2ab8494f1c18907d0f06c549ea3",
+      "bytes": 272
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Fork.txt",
+      "sha256": "51a8b9e6f82de709e8552bf950c9a915416dd1729e5e4ad95223c4d0fc57a788",
+      "bytes": 698
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Join.txt",
+      "sha256": "87e6868ab86f9d4b371d452bbbb8cc9ad7bd23970d11a3aa0f420ec9c96279b1",
+      "bytes": 887
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Transducer.txt",
+      "sha256": "7916a8d0a5001d41f87c06818b313299124f1aa9d20495d06ee5fe615a044cc6",
+      "bytes": 593
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Oscillating.txt",
+      "sha256": "039c32a4ce2cd1a624a565df056703019ac021cccb5077c09e64a5f0da550e3a",
+      "bytes": 948
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer Composition.txt",
+      "sha256": "622cde4735f1ef1d6eaaea5b82f90da4555fcba44dd75f36ce0fbe1a752d78a4",
+      "bytes": 460
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt",
+      "sha256": "c2eb236b154a7475aa27c5de7bcff284488ada263b608932878b0972cbeb0e8c",
+      "bytes": 405
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Ultrasensitive.txt",
+      "sha256": "28ec6cf95f13a3374a4fc33c782ae352fb8eef3ed58c5f24bcd7e5cfde134cbe",
+      "bytes": 1559
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Catalytic.txt",
+      "sha256": "b1b866baaf83fe78e447635e9580bdeb931db8ac8e5bd9bf46d084aff487627e",
+      "bytes": 156
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/CatalyticSequenceRates.txt",
+      "sha256": "6b46076a263991666c17892d47a70eec1e078d8868dd69f031cc03a2dc05fc5e",
+      "bytes": 414
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Co-operative - Lotka.txt",
+      "sha256": "a343a9cb16456c90048247d9900d1fe26cde5c707715c0d84184f44572396ebd",
+      "bytes": 901
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Co-operative - Mapk.txt",
+      "sha256": "66c778ff62dfce8139b9b8d4c127b470f9c6bd07c4fac1aa8602b3ec125d6312",
+      "bytes": 1646
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - (localized Fanout) SQRT.txt",
+      "sha256": "eeda41bd20b244fb6f8d07a6e911940540f9cb671a3fc523048995fedfd4d40b",
+      "bytes": 4048
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) Fanout.txt",
+      "sha256": "c7d572399559939f5010523bf1e6d852a0f87e21b0bf89526be15a57204556db",
+      "bytes": 810
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) SQRT.txt",
+      "sha256": "9c744615d7dc8cb867611853af1207655f2096b9b2bd9d6651346dbc898eaef2",
+      "bytes": 5682
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - And.txt",
+      "sha256": "f52a7d552fe45694fa4e9d8efeab3f5d0d0707bb068fab355dfa68ff611727c6",
+      "bytes": 848
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - Fanout.txt",
+      "sha256": "509e88de85719bb048107b95ca4d07803cd2c6158c994a382510c679a6b0ca96",
+      "bytes": 749
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - Or.txt",
+      "sha256": "8da3a520b232f103971cb185f038555975e2edd03ad49c1f3a9ef75175d28a45",
+      "bytes": 881
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Formal Analysis - SQRT.txt",
+      "sha256": "7c64a389604561be9dabcd9d7ab68c65d1444537b6e6f619b097c979dd5eba0f",
+      "bytes": 3703
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Kim et al., Mol Syst Biol 2011 - Oscillator.txt",
+      "sha256": "8a631d0fe9843eb6335421cf3751b1a07d649ce0ebee8e8ad331cc83bba0688c",
+      "bytes": 4404
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Remote transmission lines.txt",
+      "sha256": "614f7d631072b840c2eaf3b2aeaf105f81ef0b8840a5f136ac9988edad66b676",
+      "bytes": 831
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt",
+      "sha256": "6473b7c4df624d873a1eff06544ba7192e2ed8f7964d406dacbcebaa309553a5",
+      "bytes": 754
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial AND.txt",
+      "sha256": "8058528ef58342f93318fedbe1f7228bcab5b2871e22041acaa0a96223a0dcf8",
+      "bytes": 662
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Transmission lines.txt",
+      "sha256": "490c74c558a6908a4490ed2720a09a8ee3443596b5ec10ba3eb3a62a216406b0",
+      "bytes": 716
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Buffered oscillators.txt",
+      "sha256": "633f2204160d01460623a05c9d690fdba302235826f1901e301c4d583f66bc52",
+      "bytes": 1099
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Join gates.txt",
+      "sha256": "558f532b8e86b394c6765756c9b332d68b9b8ae14b3814d14625496a6ce1c371",
+      "bytes": 1155
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Unbuffered oscillators.txt",
+      "sha256": "41d096ead176b0c9935c8e53abe4907cda0abd67a53bfe43fac1ab4b45daaa90",
+      "bytes": 946
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Lakin, Parker et al., Interface 2012 - Model-checking examples.txt",
+      "sha256": "c437419370d553b2bc673243d5473652d917db5fbd3ead0b18363ccdf74047fc",
+      "bytes": 1329
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - AND gate with nicks.txt",
+      "sha256": "258604a4a3b7c2c0206ad11bd6fb259364e5a8de60f30146cc7b9172d316cb8e",
+      "bytes": 974
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - AND gate.txt",
+      "sha256": "02002beaac9b27bdd951da12cbd485c0e4c5639216b47ac36ffac7918066e995",
+      "bytes": 744
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - OR gate with nicks.txt",
+      "sha256": "a7997fa01e860312f2a1c37a0978bd9aa640f583b86b078893bbeb39f02a7429",
+      "bytes": 933
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - OR gate.txt",
+      "sha256": "00bb9f423e8d5324d0395baae172fade89d28d4c0c44518bc19efe7d55fab28a",
+      "bytes": 768
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - OR of ANDs.txt",
+      "sha256": "3bc9dbf0f90bc415d9595050679915fd17e189269e46589956789d2d67007012",
+      "bytes": 1121
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - Square root.txt",
+      "sha256": "4a93339e32a81b58f16413a6b21df105bc9bd2b856945b3ff7d50143a5b95d9b",
+      "bytes": 5795
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Localization - Wires.txt",
+      "sha256": "035961f4428fc551825c122c4e746138fd679fea7aecc177b40a7c5c937b7248",
+      "bytes": 3139
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-CME.txt",
+      "sha256": "6368784800af6498631d464b24d240cb3d859e868c247a40e62dc7826033c8dd",
+      "bytes": 578
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-CTMC.txt",
+      "sha256": "c955a80196d02565437f96cc4af809586dbb510c19a0ff21b848f38ec2456e7b",
+      "bytes": 545
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Inference-Samples.txt",
+      "sha256": "33adb0c382e8a645584b5af0541008c5d4c91bd0e4d8d8021838ac8a0f18f543",
+      "bytes": 683
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Inference.txt",
+      "sha256": "a67375063a82572fbd13fae8f43e644203181a521a91a00a12941f3ee240e7df",
+      "bytes": 674
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Initials.txt",
+      "sha256": "5c4cf29e78451c8dcf6fec9b247a3cefaa3f3de429eb3ca4f7a6573e83bd7f56",
+      "bytes": 583
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-JIT.txt",
+      "sha256": "24f1eb39aa1e91d1b2f205de23f531a05878deaf992770f39027035b615b49c6",
+      "bytes": 458
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Leaks.txt",
+      "sha256": "639d09b22c9536036b3f03156ab54d9017c4d30f5972764b447df3e7a49096ca",
+      "bytes": 572
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-LNA.txt",
+      "sha256": "e8d7e4e55ccfdce0c0c2ace755e3766bc764f4d77dacc8c11a23abd918d9cbb3",
+      "bytes": 578
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Localised.txt",
+      "sha256": "6b9e2c7a5e633d424f27685446223a920ee797ed0961696fe9b9e110a72fca74",
+      "bytes": 609
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Nucleotides.txt",
+      "sha256": "3f13aeb0a0d36a4299c239560c746974e1da44e457dcd783cdaccaeab137b6d6",
+      "bytes": 718
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+      "sha256": "4ab6ef3f86858aab7d6c7f89c4beeb5267b54d0710808ba5cd23c1c6aa57670b",
+      "bytes": 649
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Spatial.txt",
+      "sha256": "83e20498b5055b54c692c64ea9c071935147227cf063505acab21fbb99fe366c",
+      "bytes": 822
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Stochastic.txt",
+      "sha256": "18c247f789158065abeca79643ed79309dafa09e514bc48d1e698520bf6125c2",
+      "bytes": 585
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Subdomains.txt",
+      "sha256": "2cdff6c8533fa819e057bc6a0291fafb4897a7889377d05807db04de167d9415",
+      "bytes": 701
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+      "sha256": "8b89f3ca11373a182ad5297450301dd06835a34000a921c682ed5f73245197d7",
+      "bytes": 635
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+      "sha256": "f5c93e05b5b03e251ef89165fe0223459a3e2588c3858b94c3177278c3c06fc2",
+      "bytes": 555
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Montagne et al., Mol Syst Biol 2011 - Oscillator.txt",
+      "sha256": "67fd1b734fd7933a26c896d4c7966dce6b508c98a8b688bce1be06a28df7a90f",
+      "bytes": 2072
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Modules.txt",
+      "sha256": "008eaa978a06ccdadc50dffc1d67d0497f025ee0dde5ae3f8e92c3681c653fb5",
+      "bytes": 17238
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Parameterized.txt",
+      "sha256": "749e3fed0897ab4ec82fcaaf0f7e285ee50dfc84a4dd846b44e0a0e2c4fabdf9",
+      "bytes": 32769
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/cargo_sorting_DNA_robot.txt",
+      "sha256": "ae8bbaba701c5dd8223ff610f9377838d11e4dc0527d3097d1504eaa13c40116",
+      "bytes": 5795
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt",
+      "sha256": "388d659ca20a52c53e41626a66f1da5a2fac87f9e748748663cd41582c1137cd",
+      "bytes": 3548
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/enzymes.txt",
+      "sha256": "c752d31196318dda471c951da6b9c815d4fc7cded7fbe3ebb57eadc23e2b6573",
+      "bytes": 4315
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/join_infinite.txt",
+      "sha256": "27399ee821c2973b5759742f6d03c2d393b4207e70ece1c0ac3cde704cb3e95d",
+      "bytes": 1130
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/join_kinetic_rates.txt",
+      "sha256": "7aa95c6da862f488490560e908c0313ee9bf4edb81777c8486f5acdedd70e157",
+      "bytes": 1961
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt",
+      "sha256": "59c2ac392af589eedadb315dfcc530d4972c4293450fce50b25bf594f37c725f",
+      "bytes": 899
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/localized_hcr.txt",
+      "sha256": "f1cf888aea1c9960755eae4c5c36e0390f0ca74f56fdb23f8647ff6d9ade3241",
+      "bytes": 5367
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/oligator.txt",
+      "sha256": "f3684cda5bf972e387078aa04e305fb75df16abb181a605634232dcc184d84e5",
+      "bytes": 5669
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/oligator_nucleotides.txt",
+      "sha256": "d9cba648895960f57e9d7fbeab5c1e30b4216a51be651a98f2d3955f4ee36a9e",
+      "bytes": 6421
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_AND.txt",
+      "sha256": "05daa622d7684ff50b12ae3889721ec007372c67ceaa7435ea4bb965fc93e55a",
+      "bytes": 4976
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_OR.txt",
+      "sha256": "77ca40b03efc6992115a0aac954d5952a30a98909ab33228384edbf063dceb99",
+      "bytes": 5033
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/RulesDSD/walker_enzymatic.txt",
+      "sha256": "9f9cdc7cf47cfb17c1ff0a795c4af3370959b62f2639a46494e55af9cb6a8a24",
+      "bytes": 5644
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic Directives.txt",
+      "sha256": "17d495082b0bed41a81ec3a7a3e2e7ba152a66344f8774a45d1fde3132551bb7",
+      "bytes": 296
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic.txt",
+      "sha256": "746a250c5c8dc7bd9dd28725cae4e586d8d665a7ef7bed56c63c9479324be319",
+      "bytes": 240
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Simple - AND Circuit.txt",
+      "sha256": "bdd958b84419f89d4ce7c6b1b546babb2ec090259e87308b8be857b8de196fc6",
+      "bytes": 345
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Simple - Hairpin-free HCR.txt",
+      "sha256": "cfbe7624540215c56de54798731164a049bd35f78a6dd9cfbf64a81d18064bf7",
+      "bytes": 212
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+      "sha256": "d1f529a02b123e1e036cef30570d3bae7e1166ec1af257155ff6abfd43d8f3bf",
+      "bytes": 160
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Simple - Monomers.txt",
+      "sha256": "517ce2bb0d136a08c52da020e6eaf29925188a0faec821819a046baf18f2e0a9",
+      "bytes": 127
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Square root - Qian and Winfree 4 bit square root circuit.txt",
+      "sha256": "8ad36acda38255fc82c98728ddcf323a5ed6ba637583332b93072ba6fe480d4a",
+      "bytes": 7763
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Stack Machine, DNA17 - Ripple carry adder.txt",
+      "sha256": "514d89f230ca9e854b4c1bae408f48cfb19410c3670796262e0d179a962f95e6",
+      "bytes": 8123
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/TransmissionLines.txt",
+      "sha256": "efc9e015f05b4daa10c3111434f613253708ceaa4f861ac0fcb73e93d2fffa8c",
+      "bytes": 577
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Tutorial - Join.txt",
+      "sha256": "7c0d3b5801c6473a976fdcf2adbed9bfff0151064e0ece4062a5c5100705d509",
+      "bytes": 600
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/01 standard dsd.dna",
+      "sha256": "2d0a96318178f63cbadcf89bce61eee645edb6ccb5997cefa7fe9b2604089dd3",
+      "bytes": 98
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/02 standard gates.dna",
+      "sha256": "a67b3408d559b4a3f97954049f1213b81412fe238a2a3f44cef23cb4d6a95821",
+      "bytes": 223
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/03 standard reaction.dna",
+      "sha256": "2307fc167001ddfb6dc3ca07b4658433d3d50eb59168f9ee7b19ac8ba125a6f9",
+      "bytes": 57
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+      "sha256": "164b419835dc1d3c63b6a4c7c39e2dee7b27584bb53ce7ba69f589293a3e6815",
+      "bytes": 19
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/05 rxn rate.dna",
+      "sha256": "20aa47160d857ebd6c450bae650b260f5a72360f468b227db4f98a07ef8d27cf",
+      "bytes": 52
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/06 rxn Michaelis-Menten.dna",
+      "sha256": "908906ec52ae0700d6471712314e818ef08c58677de31f3eb62ffd8c17551430",
+      "bytes": 321
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/07 hairpins basic.dna",
+      "sha256": "94ce06a507a210d223cf8babd41146ef4c0a59af700be8813bb22f9d32ddafb1",
+      "bytes": 24
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/08 hairpins open.dna",
+      "sha256": "9bedd393a27ae1e68c7d42633e512d6e88e990a27444e9a3d4ced5d15798dbc1",
+      "bytes": 26
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/09 hairpins close.dna",
+      "sha256": "7ed16e72f4cf0ffe7479a60e7e0eea6849a442293ed1dbd5390e5ac0e934a14b",
+      "bytes": 84
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/10 tethers basic.dna",
+      "sha256": "bed23550ae4aac78513f3ea9f9176e2728de96ce8844bcf0d144878bd5c44807",
+      "bytes": 20
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/11 tethers untethered.dna",
+      "sha256": "8193e5ff16ae70f85c66238042dbf764b39890022057094dac6d31a77fd345cf",
+      "bytes": 30
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/12 tethers free.dna",
+      "sha256": "52dea328e64aa769896089146ec4f0743318c873c1a8ab878d4b9d1254184ce3",
+      "bytes": 33
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/13 tethers free react.dna",
+      "sha256": "6db19f243b611210818d9d9c5b4cffa22b8de39f479e158a2181c2c0e4069647",
+      "bytes": 57
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/14 tethers tethered react.dna",
+      "sha256": "4bdf94f0957584a3a149bb41186adf8914299f52244018586ebe364da7cd521b",
+      "bytes": 97
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/15 tethers react compete.dna",
+      "sha256": "c4c06f41aac5bec2e790abb28a3837ece95be3d4008278d6b595405d6c31bac8",
+      "bytes": 113
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/16 tethers react compete lc.dna",
+      "sha256": "25da4c392932937b646725914f8da4bf5925735e7c2f0e8d8cb93f401e4e5a11",
+      "bytes": 123
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/17 tethers tag intuition.dna",
+      "sha256": "803de6b16453a00c1f079e0201a229020c54b022177b9e2470c510a268f479a4",
+      "bytes": 182
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/circular_walker.dna",
+      "sha256": "e3d3e5cbbced60ad182973e617b30c4fc5bcc1025a0de5c18e2f01aab3b3aeb6",
+      "bytes": 786
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/split_circular_walker.dna",
+      "sha256": "d38c02c727626f55b1166a18341e95658e74148c14329ee77bc36bf97b1fe6d7",
+      "bytes": 726
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/WalkerTalk/Walker.dna",
+      "sha256": "2e47259f9f49f3f90d861e535b1a5a16aefd1e1219e27d9be4848d52ae55e068",
+      "bytes": 360
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt",
+      "sha256": "84497f2c62550d396a46cedb4815f1ec975ada68616891b56e89763820c0eea3",
+      "bytes": 4256
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt",
+      "sha256": "c7d93a01192b2c2b9d37327fb917a8d7cab189bcc86860dd22e646f79d0895a0",
+      "bytes": 5696
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt",
+      "sha256": "ff9bd8a9d590db0b6889fb5ac26fac0219355e5e7b62c46047d30f6bdfd92778",
+      "bytes": 4846
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt",
+      "sha256": "83d473a57d62f672096bc6ac4d1ad465db079eec5897a279d96efaabc8cff762",
+      "bytes": 6024
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt",
+      "sha256": "155f0cf16646d7c4ce2f05ab7a0d98599a8ecb6dc27eb3c4e6e8abff54b69e75",
+      "bytes": 6943
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - And Gate.txt",
+      "sha256": "792e138a5eca1658789a937cb3c43f74348acabc4745ac51b7e67b665b5700f8",
+      "bytes": 1053
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Autocatalytic.txt",
+      "sha256": "5dd07bba46da4cc0cd4c3b4401c908aa103fe79a976c9ffce0de0ef802bda180",
+      "bytes": 850
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Cross Catalytic.txt",
+      "sha256": "b0dcada26c23671d08b35c4a095857510d945f3322624500adcc1626710b5dec",
+      "bytes": 961
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Feed forward.txt",
+      "sha256": "33804fc64612d73db7409832c826a06da265565c5e7417b793388a759acf4391",
+      "bytes": 1056
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Fluorescent Catalytic.txt",
+      "sha256": "25befb8053cc959b851c09eccb53791414532c13fc4c8f832cc4b92c9275af9c",
+      "bytes": 849
+    },
+    {
+      "path": "ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Independent Input.txt",
+      "sha256": "6fe9339992427c98609422572270c6e23ff9e4d7c9a82f650918d5d07803a104",
+      "bytes": 439
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/adapter.fs",
+      "sha256": "8ec6f6186bf04c7fa9b53d7d27262396d02b04c58b027d2d39b70335efb6996f",
+      "bytes": 314
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/api.fs",
+      "sha256": "a62a9f09c2bc20448214cf44eed725b6f727e4542e991a9f68d92eddb24f2cfd",
+      "bytes": 526
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/assignment.fs",
+      "sha256": "3de61c7358a60cbde830788a2822efcf2e667ac0a57b9964128d7913519fc847",
+      "bytes": 4534
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/attributes.fs",
+      "sha256": "cfcacb6c8dc7857a6ebd2bfa266ff232008dcbe31fe7502c7c4f5a173414fde1",
+      "bytes": 430
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/calculus.fs",
+      "sha256": "5bd00631c0c65e4e69faa5eddbd834a6c09ec56b15afa3a6efb6e4975c37396c",
+      "bytes": 6805
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/cme.fs",
+      "sha256": "a2b3a96cf3d1c1803a079f716c65b5cc365c3b1e83ebb72ba5c7efafa8d00689",
+      "bytes": 10166
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/column.fs",
+      "sha256": "cc948673173151e16b4cf6a5ae19b5838d65e8de812211a41efba46f6f4b60f2",
+      "bytes": 350
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/crn.fs",
+      "sha256": "898a8bed3dc76834053fce7eec3d4ac6db8586c9098293c9f9536c9a003abe97",
+      "bytes": 61873
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/crn_settings.fs",
+      "sha256": "67b0379495302063153f9831070ebaa8939b58b0865164146bd7fe58e8dd4776",
+      "bytes": 16582
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/CRNEngineDotNet.fsproj",
+      "sha256": "b27b4c6800ca6bf30206540bd714a51e79d28b4adf02fecf3329b3142f3d3661",
+      "bytes": 5073
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/ctmc.fs",
+      "sha256": "c2fbf56ad491bc3222326603e48037625a2f018a0ee3a0dba2f408f2252d56c7",
+      "bytes": 8177
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/dataset.fs",
+      "sha256": "eb04989944ca615290a749e1a043b98cfbe2c6a3aae3428b94711032468f1852",
+      "bytes": 398
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/deterministic_settings.fs",
+      "sha256": "318524ee9df5f43c8f3007c053a9dd4b5672570eafe5c53874ee08c21114f1b3",
+      "bytes": 1560
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/dictionary.fs",
+      "sha256": "cf7e17f9cafd2dddb9f19c11a69f3d76a6fd1b420dd9563705adb32aefbdae2b",
+      "bytes": 1083
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/directive.fs",
+      "sha256": "63a4cd4a070cea8e968f94143aef66c9ade823b31304696cf975f5b64373eb90",
+      "bytes": 2868
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/distribution.fs",
+      "sha256": "7b04bc66e199a567d9c048727945e86209bbc5795e80ead03afa526fd7435205",
+      "bytes": 2995
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/environment.fs",
+      "sha256": "d711718afc93bad630d6d13e6900c635ffa40526487af44a663d503acda00674",
+      "bytes": 870
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/errors.fs",
+      "sha256": "932ae6b3fdbbf331da68914ceef9b549730fcd7eab2b40ae1b0035fc06112010",
+      "bytes": 1251
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/event.fs",
+      "sha256": "f249cfd68185f12edf2c80f87aa02249bd02a7e8f797208d6c08cf340b0af7bb",
+      "bytes": 1930
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/expression.fs",
+      "sha256": "b91eaf116e8a03aa9e8cba355f4b0e610079517aae913cdf70c40beae126c623",
+      "bytes": 35302
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/fakeSlowTest.fs",
+      "sha256": "2e91bcc6d1c9d4f74d05c53abd62449b8cff1947356525dae3b170b30f04a419",
+      "bytes": 437
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/functional.fs",
+      "sha256": "85b30450f0abf38ae1268247c047fffc31311404e1b59012be1822b97d0cfcb4",
+      "bytes": 1917
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/graph.fs",
+      "sha256": "264f057920a6fe1e2db71a60496be7e473011031d3e543bf0b6ee7ed6ee8e2d6",
+      "bytes": 857
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/gui.fs",
+      "sha256": "893ba3484586ea1848ead72e06acb60da4a1348f8d864c5643c74af96a11e62a",
+      "bytes": 3885
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/hashtable.fs",
+      "sha256": "30caf8ff6fd02329e7d6084ed2ff9dc551ea4fd6b2ab2c4f412bcb4f15427432",
+      "bytes": 1701
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/html.fs",
+      "sha256": "f07ab004cfd1aa821ce6931d3a60e3e32470595aa397a14e67d3d736a067115f",
+      "bytes": 8827
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/inference.fs",
+      "sha256": "9e5cc29a9e988a01b8ee7040d68b2ebbb767bd3a252796230963be849714deb9",
+      "bytes": 17378
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/inference.fsi",
+      "sha256": "0991ebd4abab942bcbc147b0433a6d53342ca3176f2ad69bcb8e114b73188faa",
+      "bytes": 2908
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/inference_settings.fs",
+      "sha256": "f49024652796a8daaba197f67279586240372ab392b23698a5e70cd54c71d76c",
+      "bytes": 4961
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/InferenceSiteGraph.fs",
+      "sha256": "78937181029f1eea2b5d6b8f21f3f8527686489f8df8bf9160a87d833f2f4299",
+      "bytes": 23181
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/initial.fs",
+      "sha256": "a10a3c830795eeadb368614adcd57ed94bfd45b2fc8ed235dc01af0aab6052d5",
+      "bytes": 7543
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/initials.fs",
+      "sha256": "726b496bf5be250c0f2e11d65c72fb5142cd9efda73ec1285e2f1fccb8932261",
+      "bytes": 894
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/inlined.fs",
+      "sha256": "a842fbbdfbdaf05390f5b7b9616a1ae7ed30dc2ca0ec92289057cf99cdca6e0a",
+      "bytes": 447
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/instance.fs",
+      "sha256": "618d1de63314d68c048d3f5de598049de58e6d77cabb176555f6d8ea1b0d1ec9",
+      "bytes": 1937
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/instruction.fs",
+      "sha256": "ffdf2940fa324aa67e7b1373a840a50505601bc3d6d02cce57bbec4610e702c4",
+      "bytes": 9139
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/interval.fs",
+      "sha256": "aea40c1734cba9a4633fdf4a17cadc2418e5c016b0ae9eddfd2395dffabb3945",
+      "bytes": 472
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/io.fs",
+      "sha256": "ff67c1ea17781415149946eab80eb3bb257db42ab10e84dcc1f4653405f7d45b",
+      "bytes": 2606
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/IPQ.fs",
+      "sha256": "3ed9ae7f28ba0e2116e22535f25de9b659d5f2171af36d440f439901f4412003",
+      "bytes": 3633
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/jit.fs",
+      "sha256": "5c09c47baf80d39e72eec2b4ae0dbaa753886ad8c08b53ba0ea229966f06d0b0",
+      "bytes": 34580
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/jit.fsi",
+      "sha256": "170f53d7cfb522ed8bdffd5498f325fb21751847e733bdec3b9d4b0e4acad698",
+      "bytes": 3333
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/jsapi.fs",
+      "sha256": "71bf76ae7e1ca6ff7158b14d4849d6c7997550f9a6970a62b361ad6fd25f5148",
+      "bytes": 33842
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/key.fs",
+      "sha256": "e408b3da008f66233dcdb9818152ea7dd90515e373087d206243c2cc55c160aa",
+      "bytes": 3494
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/keywords.fs",
+      "sha256": "0a040147fabcdc106fecf6ac9ad258a5b3d812346793308a06b70c59ed7518f1",
+      "bytes": 202
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/kinetics.fs",
+      "sha256": "d05a573ba3dce40ed53b7a106ba629f9d12b7e0cdd2bc036bf593e1cedfe3f56",
+      "bytes": 686
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/lambda.fs",
+      "sha256": "f97dc165197d8132f3b8952be2583943d12bb7c02382920dfc000eef27bef8de",
+      "bytes": 876
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/legacyParser.fs",
+      "sha256": "e7b10d27ca383c267a6271e9926e9b36f78dcf312cdab7d94182fa1f94d49215",
+      "bytes": 27148
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/legacyParser.fsi",
+      "sha256": "145b082c628de7c4bdb96140f5ffe73aac3a841e23f2601d30260158dd84f5d3",
+      "bytes": 310
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/lib.fs",
+      "sha256": "5a30395d4502aea438f4548f7f0336c2d78a89f823f1a0bd924b7c414495ddb9",
+      "bytes": 23738
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/lna.fs",
+      "sha256": "dcdc89d2cb0b728b57a496f9a6e3b82f2b538e12ab443b97f904af5b283b6bd0",
+      "bytes": 7327
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/Matrix.fs",
+      "sha256": "b3dc974ee28ef1c8003595c7083b92b09f22c85d5c1a7ff0f38be3ffe685eb31",
+      "bytes": 3709
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/Matrix.fsi",
+      "sha256": "5106a17c5027f2866d9ba2b52726da3721adb6b2f95126002fe3d2e22e960e0e",
+      "bytes": 4236
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/model.fs",
+      "sha256": "92a505f77d7b642330448086011eaf8a9974681da4cf11738de0a9860e4c22a1",
+      "bytes": 16357
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/moment_closure_settings.fs",
+      "sha256": "763c3641c833fb46b289cb487dcc58588c63b0aa60aad03c421cd29bcef4496a",
+      "bytes": 3984
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/mset.fs",
+      "sha256": "b809d2d30007b593b7153e8bf33b3537e8285a129b695ab1240242d8ceb44e3b",
+      "bytes": 5340
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/mset.fsi",
+      "sha256": "b6ebcbef2cac11a4096c840debd9c3e4e931b50afb2761e68a9af5a8c93abcf9",
+      "bytes": 2450
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/noise_model.fs",
+      "sha256": "b2821efaff5eeb131372b1fe771adeca3d270677772f6839e4870fb18eb4d129",
+      "bytes": 830
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/noise_parameter.fs",
+      "sha256": "96e069d7a1bf24d79a8dca88b67ef58d45ad8292937b75e65fa4d06914b835d1",
+      "bytes": 863
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/ode.fs",
+      "sha256": "eb222371a162a409ed4d8123aa73b27f60a75aa1de79208589fdc83d6fca30fe",
+      "bytes": 25999
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/odeoslo.fs",
+      "sha256": "f0fdc78b2390198464838aca96b97d435f2463b7799f0a5e72ef32af6d5eb0d6",
+      "bytes": 5201
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/odesundials.fs",
+      "sha256": "aa83f9fcdfdb86908b495d735492db1274f90aabe577473d46cd2baa985bc302",
+      "bytes": 12756
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/operators.fs",
+      "sha256": "2698097c8d4fb043786f2c343e691453e0a9d39528cc4f05e9f48e86d606c45f",
+      "bytes": 650
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/oslo_integrator.fs",
+      "sha256": "a581de9fb8f5e7b8e7a273f09c938cc779efad0d719b1d811329680e0e3f3d7d",
+      "bytes": 12537
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/paket.references",
+      "sha256": "78460863c96c0869f7fd820ff7adba3ffe3476dd66d2fe241c6393c2d34a4c94",
+      "bytes": 87
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/parameter.fs",
+      "sha256": "e15570de1894bb5a942dfadf8ad699ed756c032aaadce344461199fbb42e231c",
+      "bytes": 4619
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/parameters.fs",
+      "sha256": "48e0ab93b4bd5bd5f9e6c6d6bec9d25a2463a2d5fbd31850ca47a0eefbb39049",
+      "bytes": 7498
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/parametersummary.fs",
+      "sha256": "705c05c32af560769f4dbb6e0bc7df9ec87b5c31624b3f0955e5b0ff356b970f",
+      "bytes": 4112
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/pde.fs",
+      "sha256": "b681e9c4479dd2a936a6f1bdd4c56e5b6af15224f26cfc16e03d480bc7c4f4cc",
+      "bytes": 11953
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/plot_settings.fs",
+      "sha256": "241026e8fedb1f8dd67c60e437fbaa12d94779e2ba71c2399c485164b7bb9606",
+      "bytes": 4752
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/plotting.fs",
+      "sha256": "b524b93fb2a945b3132ec6073f7670284060b636b1175008d6e1e8df2a55dc86",
+      "bytes": 16879
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/point.fs",
+      "sha256": "a635c113ddc79dfaee1ed8da554143254938f892acd1502b1265fd8e05073a9a",
+      "bytes": 486
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/population.fs",
+      "sha256": "79740c26799236e4d08686047fdbd8e6ed522849153336f1b33714dab50bda64",
+      "bytes": 1013
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/populations.fs",
+      "sha256": "cdf3e3bc5293d6d6b305878b7712fd517470413e90b78fb2d55048288d63b7de",
+      "bytes": 7100
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/pQueue.fs",
+      "sha256": "fe26e4080537c0e19eafed53ae99be50eff7a1167518bdc1071e29975b57a35c",
+      "bytes": 2124
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/prior.fs",
+      "sha256": "d194f9a17ee872b6e5737aa60ab3a1eb9059e538ac0cd104cf89334f323b28e8",
+      "bytes": 1193
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/probabilities.fs",
+      "sha256": "8d8370951addcee08c6fd4458cdd6f5d6464764c506451664f0ca2d8d915d4a3",
+      "bytes": 2180
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/queue.fs",
+      "sha256": "ba2d63e21e3be08fc594fe12a7a033edbac47a48c5f8656920f743f2d68398d4",
+      "bytes": 738
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/rate.fs",
+      "sha256": "73293f6ac4d32e2d503e5ff015b45676152989dade786d3c234c4dcc3b7362c2",
+      "bytes": 1078
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/reaction.fs",
+      "sha256": "aa1822da203cea2a488f581c35e87b68f9c4719c232dd78183a6472c89ecd5f8",
+      "bytes": 9582
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/reactions.fs",
+      "sha256": "a1a2838971527815c00b7bcb0c00f2b92d89b3c4f1c3fb57ea9749c133e3d83b",
+      "bytes": 583
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/result.fs",
+      "sha256": "2ae7d03a7e67c3b2d7a86e54c12ef394c0a3f3b08ec4409edafe04077d61c5bb",
+      "bytes": 4008
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/RngAdapter.fs",
+      "sha256": "edc87bbc7bf246dec0f034139c0693785c9efbb4fcf3c13b44e266cef81bbca4",
+      "bytes": 1991
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/row.fs",
+      "sha256": "df304ac56ccb88ae16c07017e13b7aa6e255d0390f9b5c056ca0a1f25231db79",
+      "bytes": 3416
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/sbml.fs",
+      "sha256": "b6d84d5d8ef38e2b829e3609cd5441f17f3c69e5ab7d9279f0f724154a0f2e6f",
+      "bytes": 35155
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/sbml.fsi",
+      "sha256": "4446fad043ec51b082364fbd713c328317783b697593fb12ccd2dc00f00e7dcb",
+      "bytes": 7882
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/simulation.fs",
+      "sha256": "3c787eb0236ae349326da2605ac534fa8245cc0b246f6430b53532b9b50ebffe",
+      "bytes": 3472
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/simulation_settings.fs",
+      "sha256": "1b08b7ca43ae00a4ca5c4f016da4b5c1de833ff33c058dab0532e6077a4c2139",
+      "bytes": 6276
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/simulator.fs",
+      "sha256": "d90228220999ab4d73390d08803537ee1d2c2d65993cb922b40229b40d7e4000",
+      "bytes": 2750
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/spatial_initial.fs",
+      "sha256": "6bebff88a0a9aa61c20cd3df0d9e26ecc3e788e630f5ccd8a3412e90a00987d4",
+      "bytes": 4593
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/spatial_settings.fs",
+      "sha256": "da4847af667e2466af4f516a00f9dc9d3c8dfaec123d55d6bfb471b70faf424d",
+      "bytes": 4160
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/species.fs",
+      "sha256": "5fded9a5503720320d145fc3c4e3b9ae23ddb1dd29250d1a8c4c11cebf3b335b",
+      "bytes": 502
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/ssa.fs",
+      "sha256": "edfa4e4045c2d3b255686a7beb0f3eb22035d703ada6da6d70d076b5d9238f85",
+      "bytes": 23252
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/statistics.fs",
+      "sha256": "e8d60e8ec84cd0acf236932e86330edcc8da9cef5d552c1fc4344b44eb1831c1",
+      "bytes": 2268
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/stochastic_settings.fs",
+      "sha256": "9b65ffd4298308d890ae49259d7b92878b65b010d0f4a88f5cff0b1ad1011e29",
+      "bytes": 2306
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/stringbuilder.fs",
+      "sha256": "6b881394316564e3297f362eb763d14a5f93985e4c2e77b4517bfb534156c1ec",
+      "bytes": 458
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/stringmap.fs",
+      "sha256": "38b4845fe396dbb38149f0f57cb2323695c5f009982d1df4b40d4a87d649cc65",
+      "bytes": 1292
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/sundials.fs",
+      "sha256": "5769e77b636372a7451dc6491efa7aa88d785b538d761a0f6180a98df1a129de",
+      "bytes": 4343
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/svg.fs",
+      "sha256": "711ac09087fb02fa37542536f86ffcbb475a4e21b5c954e12287951cae4492f3",
+      "bytes": 20396
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/svg.fsi",
+      "sha256": "f086bd254d61458297f4b556915a42c8623353757a9c38823cb396b07979bd89",
+      "bytes": 2503
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/sweep.fs",
+      "sha256": "711963b5d6d29cf12413ee778cada4fad952b2a06f310677bb0da7048864b59a",
+      "bytes": 3586
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/sweeps.fs",
+      "sha256": "fac711918d1c6617007bb3929b75734b797c4c8e5cb41c164374754661bb13ee",
+      "bytes": 2584
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/synthesis_settings.fs",
+      "sha256": "9cd6a22480d2839ca7110b88e4ea4c808862764bb70aa0b502022be2c35014c6",
+      "bytes": 1429
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/table.fs",
+      "sha256": "886665014e96313ada1b9e92d90968f485e9c1d937cae336e10d7e7ca3871580",
+      "bytes": 9188
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/target.fs",
+      "sha256": "159b6a3463358ee540946c8fbf5304b94d382df1322cf297c834fd44b7e21cd5",
+      "bytes": 826
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/task.fs",
+      "sha256": "13a420052516e45306ebc9ac002983572063bc3564cffcb3b5f0b1c269e606f7",
+      "bytes": 1020
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/units.fs",
+      "sha256": "41ddb693e69978349976e00c572757b94a247d574de4eeea55f9ab4dbe7451bb",
+      "bytes": 4568
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/value.fs",
+      "sha256": "58be6f9f5b6fef258b4c5dd7a3c381a72eda10cbc32b4d76d3854f378d3398ad",
+      "bytes": 149
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/variation.fs",
+      "sha256": "5446fa5b80eb1463e9d4421d9a0314a5cf8cbc464f33ca991ece46c45ed4b41b",
+      "bytes": 752
+    },
+    {
+      "path": "CRNEngine/CRNEngineDotNet/websharperstubs.fs",
+      "sha256": "f5614e4eab7f53d84b38d759beeb04fcce47a6a41d030990ee0808fca5fb2153",
+      "bytes": 400
+    },
+    {
+      "path": "Filzbach.FSharp/Analysis.fs",
+      "sha256": "d41514fa8bc1fb1f0bbd6646514de5ff3fa5f1ec9798b332758fa639952802f4",
+      "bytes": 7332
+    },
+    {
+      "path": "Filzbach.FSharp/DataStructures.fs",
+      "sha256": "d2b876c130404229562aa8a06893bdd2e1072fc009e33a4f7028a2646a4cfcdc",
+      "bytes": 2527
+    },
+    {
+      "path": "Filzbach.FSharp/Filzbach.fs",
+      "sha256": "63fd11a879b601145bfb8ed03d3465cf131a3557014fe282165e0e2a7c0893a6",
+      "bytes": 22348
+    },
+    {
+      "path": "Filzbach.FSharp/Filzbach.FSharp.Portable.fsproj",
+      "sha256": "41a1853b6838e5480c6171615c0bbeba97cac571328cebd2f1f7373be8eb960a",
+      "bytes": 657
+    },
+    {
+      "path": "Filzbach.FSharp/Filzbach.Js.fs",
+      "sha256": "5b0ddc22b1a686660c2c02f64debfa76d4fea3a379faaf115ad4b012818aeac6",
+      "bytes": 1424
+    },
+    {
+      "path": "Filzbach.FSharp/FilzbachMultiple.fs",
+      "sha256": "4403126e0dcc8d7e3e82668ad181e00af8493a65ca582fe946090e4a65bc8ab5",
+      "bytes": 11435
+    },
+    {
+      "path": "Filzbach.FSharp/Lib.fs",
+      "sha256": "4484d16dc002d2ce658e1008c457e5f2ea13cb3a3d183c1e2f1d2413adbbe42b",
+      "bytes": 4658
+    },
+    {
+      "path": "Filzbach.FSharp/paket.references",
+      "sha256": "e49536328b35456569e88e5326e2b1adf38ac86ec8fca3471e2c647510e144e6",
+      "bytes": 33
+    },
+    {
+      "path": "Filzbach.FSharp/Parameter.fs",
+      "sha256": "1206a48df756f277c0516184b3357ffc7e91210d0b6fa3221e379031fd7e783f",
+      "bytes": 2235
+    },
+    {
+      "path": "Filzbach.FSharp/WebSharper.Stubs.fs",
+      "sha256": "3ef6adc9678ef1c45f7990064ef4ca0361bf10d70e1f3695fcabc17fe70c8229",
+      "bytes": 739
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "bytes": 1141
+    },
+    {
+      "path": "NOTICE",
+      "sha256": "123d807e913d150180ccf0102300caaceb0fd8f113db308d0cb977286863f26e",
+      "bytes": 2259
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/Gauss.fs",
+      "sha256": "6c91e02d89b324d659cb4ede30d3a96370c46fdfc565296fc725b157ffaa6f8b",
+      "bytes": 6078
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/GearBDF.fs",
+      "sha256": "1a27ed45ebe5a21b442ca75b3e117d9433a2d71f85c575929733eb8fc17ff553",
+      "bytes": 21159
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/Matrix.fs",
+      "sha256": "863d1146e09c8a7ddc9219f1b951339061f74c642cbfa1b64607727f5240fc41",
+      "bytes": 5655
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/Oslo.FSharp.fsproj",
+      "sha256": "75a528ba378573b1a689070ab4a4ccf72f548fa78f6b2061851b72ab15a501a4",
+      "bytes": 659
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/paket.references",
+      "sha256": "3b28b598950d160b2c9c677a33990848b0efb412e6ad9a53b35e3c464ef274bf",
+      "bytes": 30
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/RK547M.fs",
+      "sha256": "fafd83960aa07f2cc239456d9034f2a148a3b6e141a2abb8c1baa1095cc97b56",
+      "bytes": 13407
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/SparseMatrix.fs",
+      "sha256": "76c30ea032167d9dd51ed4e250d65447ae507aa4c146420b7366229506e17b67",
+      "bytes": 15374
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/SparseVector.fs",
+      "sha256": "5af3b35808ded6d57bf72bc5acad63e31309f841f2c619a5f1d64f6c9fd4919c",
+      "bytes": 5264
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/Vector.fs",
+      "sha256": "a4e7379c49df8cac063269326fbd6f76b28e16104dc2b427c4ef5b9bc2f3e4a1",
+      "bytes": 5453
+    },
+    {
+      "path": "Oslo/Oslo.FSharp/WebSharperAttributes.fs",
+      "sha256": "fa939ef3c9519c6ea9ed7722dc4b4b9c0db4909319a1ef3c76e73380db564b97",
+      "bytes": 966
+    },
+    {
+      "path": "ParserCombinators/ParserCombinators/paket.references",
+      "sha256": "e49536328b35456569e88e5326e2b1adf38ac86ec8fca3471e2c647510e144e6",
+      "bytes": 33
+    },
+    {
+      "path": "ParserCombinators/ParserCombinators/ParserCombinators.fs",
+      "sha256": "8975675ea1a7a1d601ead67eb5db429fc130bb2f6cf873e80ad3643157afed07",
+      "bytes": 26203
+    },
+    {
+      "path": "ParserCombinators/ParserCombinators/ParserCombinators.fsi",
+      "sha256": "6a9e5c5b360040065c608f05c9754ce9f8032e56a2bffe8a80f7f225f77cf572",
+      "bytes": 4781
+    },
+    {
+      "path": "ParserCombinators/ParserCombinators/ParserCombinators.fsproj",
+      "sha256": "37c654d4fe73d57fccbe8fbc95b82ad87bd037ea30384f4ff22a04b2ca251476",
+      "bytes": 444
+    },
+    {
+      "path": "ParserCombinators/ParserCombinators/websharperstubs.fs",
+      "sha256": "3ef6adc9678ef1c45f7990064ef4ca0361bf10d70e1f3695fcabc17fe70c8229",
+      "bytes": 739
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/AssemblyInfo.fs",
+      "sha256": "990fb6b5fea6818caf8a28ce9c581f9f8d4d5772c7911f7e101a35497fffdd15",
+      "bytes": 1561
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/paket.references",
+      "sha256": "e49536328b35456569e88e5326e2b1adf38ac86ec8fca3471e2c647510e144e6",
+      "bytes": 33
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/ReactionDiffusion.fsproj",
+      "sha256": "683e2deacddb4dccb258634284d3e453a097f78090a4a22f499b76469f0982ee",
+      "bytes": 541
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/settings.fs",
+      "sha256": "b50832cf23221921b7bd4bf366274b956bb15ea2ddfaeb91661e44ff0e4e1be0",
+      "bytes": 724
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/solver.fs",
+      "sha256": "ad9d248f80603bb239696d99314eb52add8ac0bb783339bcebff6faaa3490967",
+      "bytes": 1542
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/solver1d.fs",
+      "sha256": "b11e707dd18a907a6e79d949f1188eed7455848fe8b158f0848fca80af783d84",
+      "bytes": 5869
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/solver2d.fs",
+      "sha256": "9aaf637832b43b9392dab016b78a6a9f44af80b9e6f0f8a167bdd16d6bc44f8f",
+      "bytes": 7569
+    },
+    {
+      "path": "PDESolvers/ReactionDiffusion/websharperstubs.fs",
+      "sha256": "46ab291ba017330f33452592bc45c0afdcb6d26dc6ae4e7f108addce2bfbcc97",
+      "bytes": 743
+    },
+    {
+      "path": "RulesDSD/RulesDSD/AssemblyInfo.fs",
+      "sha256": "0a0b75564fac2a80e726cdd9167f6527e3952fe5f62c4aaebd6437a8ce192576",
+      "bytes": 1534
+    },
+    {
+      "path": "RulesDSD/RulesDSD/concreteProcess.fs",
+      "sha256": "6fe6c99190f6dc1ee320614fca60bc08df6210201314bbd029332fe3b39a3db9",
+      "bytes": 477
+    },
+    {
+      "path": "RulesDSD/RulesDSD/paket.references",
+      "sha256": "ebb9bb952ecea1f298a4a27f6150ef3403ec0deda56690c11cd24411647139c5",
+      "bytes": 64
+    },
+    {
+      "path": "RulesDSD/RulesDSD/parser.fs",
+      "sha256": "ad60f0e621d578554a92e2e6fc9d2658d68bea2430e6329eb5092f8727e37d4f",
+      "bytes": 16066
+    },
+    {
+      "path": "RulesDSD/RulesDSD/processEquality.fs",
+      "sha256": "4265203a02a1d69e7af5210775584103878cd5324e27b9c2db5ac32c2e9bc6fd",
+      "bytes": 18749
+    },
+    {
+      "path": "RulesDSD/RulesDSD/resolution.fs",
+      "sha256": "1bb53e6d391e4849904ba4b4e79180340f3e8f6cbd5988a62b5b738b67f209c1",
+      "bytes": 30970
+    },
+    {
+      "path": "RulesDSD/RulesDSD/RulesDSD.fsproj",
+      "sha256": "4fd1b24ff2f96945e7364804d397bcb7d7f6f1796798bc2f28e25bae8f2b7597",
+      "bytes": 1122
+    },
+    {
+      "path": "RulesDSD/RulesDSD/substitution.fs",
+      "sha256": "e304ca54907c5a54ebd9ae93f180549443c0f3fe70b84d731351baf0f887d775",
+      "bytes": 11667
+    },
+    {
+      "path": "RulesDSD/RulesDSD/syntax.fs",
+      "sha256": "6228f373a080d428c266a9fd64b2e3e9676a0105ace7ad03d6ea8b789da5faa2",
+      "bytes": 51646
+    },
+    {
+      "path": "RulesDSD/RulesDSD/unification.fs",
+      "sha256": "c5343e154f13c9ecf38d10c73b06ee54218168be06bc51f8baaa1a9ad3ac8ed4",
+      "bytes": 11426
+    }
+  ]
+}

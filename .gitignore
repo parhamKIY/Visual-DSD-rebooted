@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+.tooling/
+artifacts/
+.vs/
+.idea/
+*.user
+*.suo
+TestResults/
