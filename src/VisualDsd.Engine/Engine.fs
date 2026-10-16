@@ -19,14 +19,15 @@ module private Conversion =
         ReactionData(participants r.reactants, participants r.products, participants r.catalysts,
                      rate r.rate, r.reverse |> Option.map rate |> Option.defaultValue Unchecked.defaultof<RateData>)
 
-    let species (crn: Crn) (initial: Initial<Microsoft.Research.CRNEngine.Species, Value>) =
+    let species valueKind (crn: Crn) (initial: Initial<Microsoft.Research.CRNEngine.Species, Value>) =
         let id = initial.species.name
         let attributes = Map.tryFind id crn.attributes
         SpeciesData(id, attributes |> Option.map (fun a -> a.name) |> Option.defaultValue id,
                     attributes |> Option.map (fun a -> a.structure) |> Option.defaultValue id,
                     attributes |> Option.map (fun a -> a.svg) |> Option.defaultValue "",
                     value initial.value, initial.constant,
-                    initial.time |> Option.map value |> Option.defaultValue null)
+                    initial.time |> Option.map value |> Option.defaultValue null,
+                    if valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind)
 
     let simulation (instance: Instance<Functional>) (table: Table<float>) =
         let times = table.times |> List.toArray
@@ -50,7 +51,7 @@ module private Conversion =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.3.0", [|"parse"; "expand"; "simulate"|],
+        EngineInfo("Visual DSD Rebooted", "0.4.0", [|"parse"; "expand"; "simulate"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -97,16 +98,19 @@ type Engine private () =
                             seed = if request.Seed.HasValue then Some request.Seed.Value else current.seed
                     }
                     let simulation = updateSimulation unexpanded.settings.simulation
-                    if not (Double.IsFinite simulation.initial && Double.IsFinite simulation.final) then
+                    let activeSimulations = if unexpanded.settings.simulations.IsEmpty then [simulation] else unexpanded.settings.simulations |> List.map updateSimulation
+                    if activeSimulations |> List.exists (fun sim -> not (Double.IsFinite sim.initial && Double.IsFinite sim.final)) then
                         failure "INVALID_TIME" "The model's time bounds must be finite."
-                    elif request.Operation = "simulate" && simulation.final <= simulation.initial then
+                    elif request.Operation = "simulate" && (activeSimulations |> List.exists (fun sim -> sim.final <= sim.initial)) then
                         failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
-                    elif request.Operation = "simulate" && (simulation.points < 1 || simulation.points > 100000) then
+                    elif request.Operation = "simulate" && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
                         failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
                     elif request.Operation = "simulate" && simulator <> Simulator.Oslo && simulator <> Simulator.SSA then
                         failure "UNSUPPORTED_SIMULATOR" "This build supports the managed deterministic (Oslo) and stochastic (SSA) simulators."
                     elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
                         failure "JIT_SIMULATOR" "Just-in-time models require the stochastic simulator."
+                    elif request.Operation = "simulate" && jit && (not unexpanded.settings.simulations.IsEmpty || not unexpanded.settings.sweeps.IsEmpty) then
+                        failure "JIT_BATCH_UNSUPPORTED" "Named simulations and parameter sweeps are not yet supported for just-in-time models. Run each setting as a separate model."
                     else
                         let update (settings: Crn_settings<'a>) =
                             { settings with simulator = simulator; simulation = updateSimulation settings.simulation
@@ -136,7 +140,7 @@ type Engine private () =
                         else
                             let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
                                                   compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
-                                                  crn.initials |> List.map (Conversion.species crn) |> List.toArray,
+                                                  crn.initials |> List.map (Conversion.species (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn) |> List.toArray,
                                                   crn.reactions |> List.map Conversion.reaction |> List.toArray, simulations)
                             EngineResponse(true, request.Operation, dialect, model, [||])
             with

@@ -24,7 +24,7 @@ public sealed record Diagnostic(string Code, string Message, int? Line = null, i
 public sealed record Participant(string SpeciesId, int Multiplicity);
 public sealed record RateData(string Kind, string Expression);
 public sealed record ReactionData(Participant[] Reactants, Participant[] Products, Participant[] Catalysts, RateData Rate, RateData? ReverseRate);
-public sealed record SpeciesData(string Id, string Name, string Structure, string Svg, string Initial, bool Constant, string? Time);
+public sealed record SpeciesData(string Id, string Name, string Structure, string Svg, string Initial, bool Constant, string? Time, string ValueKind);
 public sealed record SeriesData(string Name, double[] Values);
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);

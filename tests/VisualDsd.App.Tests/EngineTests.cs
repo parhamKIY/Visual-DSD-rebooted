@@ -95,6 +95,7 @@ public class EngineTests
         Assert.True(simulated.Success, JsonSerializer.Serialize(simulated));
         Assert.True(simulated.Model!.IsJit);
         Assert.NotEmpty(Assert.Single(simulated.Model.Simulations).Times);
+        Assert.All(simulated.Model.Species, species => Assert.Contains(species.ValueKind, new[] { "finalPopulation", "scheduledInput" }));
     }
 
     [Fact]
@@ -152,5 +153,25 @@ public class EngineTests
         EngineResponse response = CoreEngine.Execute(new() { Code = code, Operation = "simulate" });
         Assert.True(response.Success, JsonSerializer.Serialize(response));
         Assert.Equal(new int?[] { 11, 22 }, response.Model!.Simulations.Select(run => run.Seed).ToArray());
+    }
+
+    [Theory]
+    [InlineData("directive simulations [a={initial=10;final=0}]")]
+    [InlineData("directive simulations [a={points=0}]")]
+    public void Named_simulations_cannot_bypass_simulation_validation(string directive)
+    {
+        EngineResponse response = CoreEngine.Execute(new() { Code = directive + "\n<a>", Operation = "simulate", Simulator = "oslo" });
+        Assert.False(response.Success);
+        Assert.Contains(response.Diagnostics, diagnostic => diagnostic.Code is "INVALID_TIME_RANGE" or "INVALID_POINTS");
+    }
+
+    [Theory]
+    [InlineData("directive simulations [a={final=10};b={final=20}]")]
+    [InlineData("directive parameters [N=1]\ndirective sweeps [s=[N=[1;2]]]")]
+    public void JIT_batch_settings_are_not_silently_ignored(string directive)
+    {
+        EngineResponse response = CoreEngine.Execute(new() { Code = "directive jit\ndirective simulator stochastic\n" + directive + "\n<a>", Operation = "simulate" });
+        Assert.False(response.Success);
+        Assert.Equal("JIT_BATCH_UNSUPPORTED", Assert.Single(response.Diagnostics).Code);
     }
 }
