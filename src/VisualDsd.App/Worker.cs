@@ -1,0 +1,138 @@
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
+using VisualDsd.Contracts;
+
+namespace VisualDsd.App;
+
+public interface IEngineWorker
+{
+    Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken cancellationToken);
+}
+
+public sealed class WorkerFailure(string code, string message) : Exception(message)
+{
+    public string Code { get; } = code;
+}
+
+public sealed record WorkerCommand(string Executable, string[] PrefixArguments)
+{
+    public static WorkerCommand Current()
+    {
+        string executable = Environment.ProcessPath ?? throw new InvalidOperationException("The application executable was not found.");
+        string entry = Environment.GetCommandLineArgs()[0];
+        return Path.GetFileNameWithoutExtension(executable).Equals("dotnet", StringComparison.OrdinalIgnoreCase) && entry.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+            ? new(executable, [Path.GetFullPath(entry)])
+            : new(executable, []);
+    }
+}
+
+public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitBytes = 512L * 1024 * 1024) : IEngineWorker
+{
+    public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    public const int MaximumResultCharacters = 8 * 1024 * 1024;
+
+    public async Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds));
+        CancellationToken token = deadline.Token;
+        var start = new ProcessStartInfo(command.Executable)
+        {
+            UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8, StandardErrorEncoding = Encoding.UTF8
+        };
+        foreach (string argument in command.PrefixArguments) start.ArgumentList.Add(argument);
+        start.ArgumentList.Add("--worker");
+        using var process = new Process { StartInfo = start };
+        try
+        {
+            if (!process.Start()) throw new WorkerFailure("WORKER_START", "The model worker could not start.");
+            Task<string> output = ReadLimitedAsync(process.StandardOutput, MaximumResultCharacters, token, () => Kill(process));
+            Task<string> errors = ReadLimitedAsync(process.StandardError, 64 * 1024, token, () => Kill(process));
+            Task memory = MonitorMemoryAsync(process, token);
+            Task input = SendInputAsync(process, request, token);
+            try
+            {
+                await Task.WhenAll(process.WaitForExitAsync(token), input, output, errors, memory);
+            }
+            catch
+            {
+                if (memory.IsFaulted) await memory;
+                if (output.IsFaulted) await output;
+                if (errors.IsFaulted) await errors;
+                throw;
+            }
+            EngineResponse? response;
+            try { response = JsonSerializer.Deserialize<EngineResponse>(await output, Json); }
+            catch (JsonException) { throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an invalid response."); }
+            if (response is null || (process.ExitCode != 0 && response.Success))
+                throw new WorkerFailure("WORKER_EXIT", "The model worker exited unexpectedly.");
+            return response;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new WorkerFailure("TIMEOUT", $"The model exceeded its {request.TimeoutSeconds}-second time limit.");
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            throw new WorkerFailure("WORKER_START", "The model worker executable could not be started.");
+        }
+        catch (IOException)
+        {
+            throw new WorkerFailure("WORKER_EXIT", "The model worker closed its input or output unexpectedly.");
+        }
+        finally
+        {
+            Kill(process);
+            try { if (process.Id > 0) await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); }
+            catch (InvalidOperationException) { }
+            catch (TimeoutException) { }
+        }
+    }
+
+    private static async Task SendInputAsync(Process process, ModelRequest request, CancellationToken token)
+    {
+        await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request, Json).AsMemory(), token);
+        process.StandardInput.Close();
+    }
+
+    private async Task MonitorMemoryAsync(Process process, CancellationToken token)
+    {
+        while (!process.HasExited)
+        {
+            process.Refresh();
+            if (process.PrivateMemorySize64 > memoryLimitBytes)
+            {
+                Kill(process);
+                throw new WorkerFailure("MEMORY_LIMIT", "The model exceeded its worker memory limit.");
+            }
+            await Task.Delay(100, token);
+        }
+    }
+
+    private static async Task<string> ReadLimitedAsync(StreamReader reader, int limit, CancellationToken token, Action abort)
+    {
+        var result = new StringBuilder();
+        char[] buffer = new char[4096];
+        int count;
+        while ((count = await reader.ReadAsync(buffer, token)) > 0)
+        {
+            if (result.Length + count > limit)
+            {
+                abort();
+                throw new WorkerFailure("OUTPUT_LIMIT", "The model output exceeded the interactive result limit.");
+            }
+            result.Append(buffer, 0, count);
+        }
+        return result.ToString();
+    }
+
+    private static void Kill(Process process)
+    {
+        try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+        catch (InvalidOperationException) { }
+        catch (System.ComponentModel.Win32Exception) { }
+    }
+}

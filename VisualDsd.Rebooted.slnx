@@ -8,4 +8,8 @@
   <Project Path="src/Oslo.FSharp/Oslo.FSharp.fsproj" />
   <Project Path="src/ParserCombinators/ParserCombinators.fsproj" />
   <Project Path="tests/ClassicDSDTests/ClassicDSDTests.fsproj" />
+  <Project Path="src/VisualDsd.Contracts/VisualDsd.Contracts.csproj" />
+  <Project Path="src/VisualDsd.Engine/VisualDsd.Engine.fsproj" />
+  <Project Path="src/VisualDsd.App/VisualDsd.App.csproj" />
+  <Project Path="tests/VisualDsd.App.Tests/VisualDsd.App.Tests.csproj" />
 </Solution>
