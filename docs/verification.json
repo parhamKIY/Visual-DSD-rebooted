@@ -30,5 +30,14 @@
     "The selected legacy Cascading test remains skipped.",
     "Native Sundials, user-interface QA and scientific model validation are outside phase 1.",
     "All 61 historical CRN fixture pairs are preserved; full execution of those pairs remains future work."
-  ]
+  ],
+  "clean_checkout": {
+    "verified_revision": "dc7a05d76907b82c367b86f8318fbe4d3dfdbbb6",
+    "locked_restore": true,
+    "reference_cases_reproduced": 255,
+    "total": 325,
+    "passed": 324,
+    "failed": 0,
+    "skipped": 1
+  }
 }
