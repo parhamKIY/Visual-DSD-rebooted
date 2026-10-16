@@ -12,7 +12,7 @@ open RulesDSD.ProcessEquality
 open System.Diagnostics
 #if JavaScript
 #else
-open QuickGraph
+open QuikGraph
 #endif
 
 type Mode = SingleAnswer | AllAnswers
@@ -366,7 +366,7 @@ let rec resolveGoal (program:RulesProgram<'s>) (theta:Substitution<'s, 'a>) (cle
               let agraph = e.ToAdjacencyGraph()                
                         
               // compute strongly connected components of g
-              let sccAlgo = QuickGraph.Algorithms.ConnectedComponents.StronglyConnectedComponentsAlgorithm agraph 
+              let sccAlgo = QuikGraph.Algorithms.ConnectedComponents.StronglyConnectedComponentsAlgorithm agraph
               sccAlgo.Compute()
               
     

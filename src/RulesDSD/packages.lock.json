@@ -17,11 +17,11 @@
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
       },
-      "QuickGraph": {
+      "QuikGraph": {
         "type": "Direct",
-        "requested": "[3.6.61119.7, )",
-        "resolved": "3.6.61119.7",
-        "contentHash": "crtYNiFcYFtYbmbEfdYsdGw5M3923OO5ZZD25K+WeLPgTp/q4oq3U/FVrbaOK5+Jg8UJDmoZ6sqAVion4RgXCA=="
+        "requested": "[2.5.0, )",
+        "resolved": "2.5.0",
+        "contentHash": "sG+mrPpXwxlXknRK5VqWUGiOmDACa9X+3ftlkQIMgOZUqxVOQSe0+HIU9PTjwqazy0pqSf8MPDXYFGl0GYWcKw=="
       },
       "WebSharper.Core": {
         "type": "Direct",

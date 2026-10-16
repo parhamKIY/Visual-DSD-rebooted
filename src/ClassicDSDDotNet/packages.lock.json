@@ -47,10 +47,10 @@
         "resolved": "1.1.0",
         "contentHash": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A=="
       },
-      "QuickGraph": {
+      "QuikGraph": {
         "type": "Transitive",
-        "resolved": "3.6.61119.7",
-        "contentHash": "crtYNiFcYFtYbmbEfdYsdGw5M3923OO5ZZD25K+WeLPgTp/q4oq3U/FVrbaOK5+Jg8UJDmoZ6sqAVion4RgXCA=="
+        "resolved": "2.5.0",
+        "contentHash": "sG+mrPpXwxlXknRK5VqWUGiOmDACa9X+3ftlkQIMgOZUqxVOQSe0+HIU9PTjwqazy0pqSf8MPDXYFGl0GYWcKw=="
       },
       "crnenginedotnet": {
         "type": "Project",
@@ -99,7 +99,7 @@
           "CRNEngineDotNet": "[1.0.0, )",
           "FSharp.Core": "[10.1.402, )",
           "ParserCombinators": "[1.0.0, )",
-          "QuickGraph": "[3.6.61119.7, )",
+          "QuikGraph": "[2.5.0, )",
           "WebSharper.Core": "[4.5.19.349, )"
         }
       }
