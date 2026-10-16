@@ -12,6 +12,7 @@ const state = () => stateFor(activeId);
 
 function element(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
 function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').hidden = false; toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500); }
+function connection(online) { $('connection').classList.toggle('offline', !online); $('connection').replaceChildren(element('span', 'status-dot'), document.createTextNode(online ? 'Local · connected' : 'Service unavailable')); }
 function persist() {
   clearTimeout(persistTimer);
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, documents, activeId })); canPersist = true; }
@@ -30,12 +31,13 @@ function download(name, text, type = 'text/plain;charset=utf-8') {
   link.href = url; link.download = name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_'); document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 function stem() { return current().name.replace(/\.[^.]+$/, '') || 'model'; }
-function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model file saved.'); }
+function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model download started.'); }
 
 async function api(path, options = {}) {
   let response;
   try { response = await fetch(path, { ...options, signal: AbortSignal.timeout(10000), headers: { ...options.headers, ...(options.body ? { 'Content-Type': 'application/json' } : {}) } }); }
-  catch { throw new Error('The local service is unavailable. Keep this page open and restart Visual DSD.'); }
+  catch { connection(false); throw new Error('The local service is unavailable. Keep this page open and restart Visual DSD.'); }
+  connection(true);
   if (!response.ok) {
     let body; try { body = await response.json(); } catch { /* Empty HTTP errors have no diagnostic body. */ }
     const message = body?.diagnostics?.map(error => error.message).join('\n');
@@ -89,6 +91,8 @@ async function openExample(id) {
   const existing = documents.find(model => model.exampleId === id);
   if (existing) return selectDocument(existing.id);
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
+  const loaded = documents.find(model => model.exampleId === id);
+  if (loaded) return selectDocument(loaded.id);
   addDocument(createDocument(`${example.name.replace(' · legacy', '')}.${example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id));
 }
 async function openFiles(files) {
@@ -118,6 +122,8 @@ function focusDiagnostic(diagnostic) {
 }
 function renderDiagnostics() {
   const box = $('diagnostics'); box.replaceChildren(); box.hidden = !state().diagnostics.length;
+  const lines = new Set(state().diagnostics.map(diagnostic => diagnostic.line));
+  for (const [index, line] of Array.from($('line-numbers').children).entries()) line.classList.toggle('error-line', lines.has(index + 1));
   for (const diagnostic of state().diagnostics) {
     const button = element('button'); button.type = 'button';
     button.append(element('strong', '', diagnostic.line ? `Line ${diagnostic.line}${diagnostic.column ? `:${diagnostic.column}` : ''} · ` : ''), document.createTextNode(diagnostic.message));
@@ -136,10 +142,13 @@ async function run(operation) {
   if (activeJob) return;
   const model = current(), documentId = model.id, revision = model.revision;
   let request;
-  try { request = requestFor(model, operation); }
+  try {
+    for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if ($(key).validity.badInput) throw new Error(`${key}: enter a valid number.`);
+    request = requestFor(model, operation);
+  }
   catch (error) { showError(error); return; }
   state().diagnostics = []; renderDiagnostics(); renderEditor();
-  activeJob = { id: null, documentId, revision, operation, message: operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…', started: performance.now(), cancelling: false };
+  activeJob = { id: null, documentId, revision, operation, request, name: model.name, message: operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…', started: performance.now(), cancelling: false };
   const task = activeJob; updateBusy();
   try {
     const admitted = await api('/api/jobs', { method: 'POST', body: JSON.stringify(request) }); task.id = admitted.id; updateBusy();
@@ -165,7 +174,7 @@ function finishJob(job, task) {
   if (job.state === 'cancelled') { view.status = 'Calculation stopped.'; return; }
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
-    view.response = job.result; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
+    view.response = job.result; view.snapshot = { name: task.name, request: task.request }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
     view.tab = task.operation === 'simulate' ? 'plot' : 'species';
     view.status = `${task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
@@ -290,7 +299,7 @@ $('species-search').addEventListener('input', () => { state().search = $('specie
 for (const [kind, render] of [['species', renderSpecies], ['reaction', renderReactions], ['data', renderData]]) for (const direction of ['prev', 'next']) $(`${kind}-${direction}`).addEventListener('click', () => { state()[`${kind}Page`] += direction === 'prev' ? -1 : 1; render(); });
 for (const id of ['export-csv', 'data-export-csv']) $(id).addEventListener('click', exportCsv);
 $('export-svg').addEventListener('click', () => download(`${stem()}-simulation.svg`, chart.exportSvg(), 'image/svg+xml'));
-$('export-json').addEventListener('click', () => download(`${stem()}-result.json`, JSON.stringify(state().response, null, 2), 'application/json'));
+$('export-json').addEventListener('click', () => download(`${stem()}-result.json`, JSON.stringify({ format: 'visual-dsd-result', version: 1, ...state().snapshot, result: state().response }, null, 2), 'application/json'));
 $('shortcuts').addEventListener('click', () => $('help-dialog').showModal());
 $('close-help').addEventListener('click', () => $('help-dialog').close());
 document.addEventListener('keydown', event => { if (!event.ctrlKey && !event.metaKey) return; if (event.key === 'Enter') { event.preventDefault(); run('simulate'); } else if (event.key.toLowerCase() === 's') { event.preventDefault(); saveModel(); } else if (event.key.toLowerCase() === 'o') { event.preventDefault(); $('file-input').click(); } });
@@ -307,8 +316,9 @@ async function initialize() {
   selectDocument(activeId);
   try {
     const [info, library] = await Promise.all([api('/api/info'), api('/api/examples')]);
-    examples = library; renderExamples(); $('connection').replaceChildren(element('span', 'status-dot'), document.createTextNode('Local · connected')); $('version').textContent = `Version ${info.version}`;
+    examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
+    $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
     if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
-  } catch (error) { $('connection').classList.add('offline'); $('connection').replaceChildren(element('span', 'status-dot'), document.createTextNode('Service unavailable')); toast(error.message); }
+  } catch (error) { connection(false); toast(error.message); }
 }
 initialize().catch(error => toast(error.message));

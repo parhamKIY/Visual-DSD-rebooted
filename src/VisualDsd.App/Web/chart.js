@@ -131,6 +131,7 @@ export class SimulationChart {
     const visible = this.run.series.map((series, index) => ({ ...series, index })).filter(series => this.visible.has(series.index));
     const exportHeight = height + visible.length * 20 + 20;
     copy.setAttribute('xmlns', ns); copy.setAttribute('width', String(width)); copy.setAttribute('height', String(exportHeight)); copy.setAttribute('viewBox', `0 0 ${width} ${exportHeight}`);
+    copy.querySelector('rect')?.setAttribute('height', String(exportHeight));
     copy.removeAttribute('tabindex'); copy.removeAttribute('aria-label');
     copy.querySelector('[aria-hidden="true"]')?.remove();
     const style = svgElement('style', {}, '.chart-grid{stroke:#e9eeeb;stroke-width:1;stroke-dasharray:3 4}.chart-axis{stroke:#d8e1dd;stroke-width:1}.chart-label{fill:#829589;font:10px sans-serif}.chart-axis-title{fill:#677d6e;font:10px sans-serif}.chart-series{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}');
