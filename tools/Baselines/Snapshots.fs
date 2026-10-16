@@ -3,6 +3,7 @@ namespace VisualDsd.Rebooted.Baselines
 open System
 open System.IO
 open System.Security.Cryptography
+open System.Text
 open System.Text.Json
 open Microsoft.Research.DNA
 open Microsoft.Research.CRNEngine
@@ -50,6 +51,13 @@ module Snapshots =
     let jsonOptions = JsonSerializerOptions(WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)
 
     let sha256 path = File.ReadAllBytes path |> SHA256.HashData |> Convert.ToHexString |> fun s -> s.ToLowerInvariant()
+
+    let referenceManifestHash repoRoot =
+        File.ReadAllText(Path.Combine(repoRoot, "upstream", "snapshot.json")).Replace("\r\n", "\n")
+        |> Encoding.UTF8.GetBytes
+        |> SHA256.HashData
+        |> Convert.ToHexString
+        |> fun hash -> hash.ToLowerInvariant()
 
     let rec findRoot (directory: DirectoryInfo) =
         if isNull directory then failwith "Repository root was not found."

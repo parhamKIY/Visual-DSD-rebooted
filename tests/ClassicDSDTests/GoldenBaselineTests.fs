@@ -40,7 +40,7 @@ let ``golden results identify the immutable original snapshot`` () =
     let root = Snapshots.root()
     let golden = Snapshots.loadGolden root
     Assert.Equal(1, golden.SchemaVersion)
-    Assert.Equal(Snapshots.sha256 (Path.Combine(root, "upstream", "snapshot.json")), golden.ReferenceManifestSha256)
+    Assert.Equal(Snapshots.referenceManifestHash root, golden.ReferenceManifestSha256)
     Assert.Equal(255, golden.Cases.Length)
     Assert.Equal(13, golden.Cases |> Array.filter (fun c -> c.Expected.Status = "fail") |> Array.length)
     Assert.Equal(2, golden.Cases |> Array.filter (fun c -> c.Spec.Operation = "oslo" || c.Spec.Operation = "ssa") |> Array.length)

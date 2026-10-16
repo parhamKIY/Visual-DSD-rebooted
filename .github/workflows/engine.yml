@@ -17,8 +17,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v6.0.0
         with:
           global-json-file: global.json
       - name: Verify original reference and rebooted engine
@@ -26,7 +26,7 @@ jobs:
         run: ./eng/test.ps1 -Locked
       - name: Save test evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: engine-tests-${{ matrix.os }}
           path: artifacts/test-results

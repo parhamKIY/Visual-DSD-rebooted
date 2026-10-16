@@ -29,7 +29,7 @@ let main arguments =
                 { Spec = spec; SourceSha256 = Snapshots.sha256 (Snapshots.sourcePath repoRoot spec); Expected = snapshot })
         let golden = {
             SchemaVersion = 1
-            ReferenceManifestSha256 = Snapshots.sha256 (Path.Combine(repoRoot, "upstream", "snapshot.json"))
+            ReferenceManifestSha256 = Snapshots.referenceManifestHash repoRoot
             Cases = cases
         }
         if record then
