@@ -36,3 +36,11 @@ test('layout is deterministic and all rendered paths remain finite, including a 
   assert.ok(first.every(node => node.x > x && node.x < x + width && node.y > y && node.y < y + height));
   assert.deepEqual(fitView([]), [0, 0, 1000, 640]);
 });
+
+
+test('timed input entries do not create extra chemical species or disconnected graph nodes', () => {
+  const withInput = { ...model, species: [...model.species, { id: 'initial:1:a', sourceId: 'a', name: 'a', initial: '3', time: '0.5', valueKind: 'timedInput' }] };
+  const graph = graphFor(withInput);
+  assert.equal(graph.totalSpecies, 4); assert.equal(graph.speciesCount, 4); assert.equal(graph.limited, false);
+  assert.equal(graph.nodes.some(node => node.id === 's:initial:1:a'), false);
+});

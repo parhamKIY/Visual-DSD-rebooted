@@ -104,7 +104,7 @@ export function numberLabel(value) {
 
 export function populationLabel(species) {
   if (species.valueKind === 'spatial') return 'Spatial initial field · defined in model';
-  return `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`;
+  return `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : species.valueKind === 'timedInput' ? 'Timed input' : species.valueKind === 'initialContribution' ? 'Initial contribution' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`;
 }
 
 export function reactionLabel(reaction, species) {

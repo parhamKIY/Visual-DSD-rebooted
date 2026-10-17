@@ -54,9 +54,12 @@ function readNetwork(source, isJit, operation) {
   const species = array(source.species, 10000).map(item => {
     object(item); if (typeof item.constant !== 'boolean') fail('invalid species flag.');
     const valueKind = item.valueKind ?? (isJit && operation === 'simulate' ? item.time == null ? 'finalPopulation' : 'scheduledInput' : 'initial');
-    return { id: text(item.id, 512), name: text(item.name), structure: text(item.structure), svg: text(item.svg, 8 * 1024 * 1024), initial: text(item.initial), constant: item.constant, time: nullableText(item.time), valueKind: choice(valueKind, ['initial', 'finalPopulation', 'scheduledInput', 'spatial']) };
+    const result = { id: text(item.id, 512), name: text(item.name), structure: text(item.structure), svg: text(item.svg, 8 * 1024 * 1024), initial: text(item.initial), constant: item.constant, time: nullableText(item.time), valueKind: choice(valueKind, ['initial', 'finalPopulation', 'scheduledInput', 'spatial', 'timedInput', 'initialContribution']) };
+    if (item.sourceId !== undefined) result.sourceId = nullableText(item.sourceId);
+    return result;
   });
   const ids = new Set(species.map(item => item.id)); if (ids.size !== species.length) fail('duplicate species identifiers.');
+  for (const item of species) if (item.sourceId && (!ids.has(item.sourceId) || species.find(source => source.id === item.sourceId)?.sourceId || item.sourceId === item.id)) fail('invalid initial-condition species reference.');
   const participants = items => array(items, 10000).map(item => { object(item); if (!ids.has(item.speciesId)) fail('reaction refers to an unknown species.'); return { speciesId: item.speciesId, multiplicity: integer(item.multiplicity, 1, 2147483647) }; });
   const rate = item => { object(item); return { kind: choice(item.kind, ['massAction', 'functional']), expression: text(item.expression) }; };
   const reactions = array(source.reactions, 50000).map(item => { object(item); return { reactants: participants(item.reactants), products: participants(item.products), catalysts: participants(item.catalysts), rate: rate(item.rate), reverseRate: item.reverseRate == null ? null : rate(item.reverseRate) }; });

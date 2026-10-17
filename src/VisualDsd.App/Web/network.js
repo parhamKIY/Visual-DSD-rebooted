@@ -6,7 +6,8 @@ const svgNode = (tag, attributes = {}, text) => { const node = document.createEl
 const htmlNode = (tag, text) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node; };
 
 export function graphFor(model, focus = '', maximum = MAX_GRAPH_NODES) {
-  const species = new Map(model.species.map(item => [item.id, item]));
+  const canonicalSpecies = model.species.filter(item => !item.sourceId);
+  const species = new Map(canonicalSpecies.map(item => [item.id, item]));
   const nodes = new Map(), edges = [];
   const addSpecies = id => { if (!species.has(id)) throw new Error('The network refers to an unknown species.'); nodes.set(`s:${id}`, { id: `s:${id}`, kind: 'species', label: species.get(id).name || id, species: species.get(id) }); };
   if (focus && species.has(focus)) addSpecies(focus);
@@ -24,8 +25,8 @@ export function graphFor(model, focus = '', maximum = MAX_GRAPH_NODES) {
       edges.push({ id: `e:${edges.length}`, source, target, multiplicity: participant.multiplicity, role, reversible: role !== 'catalysts' && Boolean(reaction.reverseRate) });
     }
   });
-  if (!focus) for (const item of model.species) if (nodes.size < maximum) addSpecies(item.id);
-  return { nodes: [...nodes.values()], edges, speciesCount: [...nodes.values()].filter(node => node.kind === 'species').length, reactionCount, totalSpecies: model.species.length, totalReactions: model.reactions.length, limited: omitted || (!focus && nodes.size < model.species.length + model.reactions.length), focus };
+  if (!focus) for (const item of canonicalSpecies) if (nodes.size < maximum) addSpecies(item.id);
+  return { nodes: [...nodes.values()], edges, speciesCount: [...nodes.values()].filter(node => node.kind === 'species').length, reactionCount, totalSpecies: canonicalSpecies.length, totalReactions: model.reactions.length, limited: omitted || (!focus && nodes.size < canonicalSpecies.length + model.reactions.length), focus };
 }
 
 export function layoutGraph(graph) {

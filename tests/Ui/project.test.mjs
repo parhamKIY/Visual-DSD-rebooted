@@ -103,3 +103,13 @@ test('batch import validates every network in its own identifier scope and rejec
     const { view } = batchFixture(); mutate(view.response.model); assert.throws(() => readResponse(view.response), Error);
   }
 });
+
+
+test('timed inputs preserve their own values and absolute times with a stable species reference', () => {
+  const { document, view, views } = fixture();
+  const input = { ...view.response.model.species[0], id: 'initial:1:a', sourceId: 'a', initial: '3', time: '0.5', valueKind: 'timedInput' };
+  view.response.model.species.push(input);
+  const restored = parseProject(serialiseProject([document], document.id, views, '0.8.0'));
+  assert.deepEqual(restored.views.get(document.id).response.model.species[1], input);
+  for (const sourceId of ['unknown', 'initial:1:a']) { input.sourceId = sourceId; assert.throws(() => readResponse(view.response)); }
+});

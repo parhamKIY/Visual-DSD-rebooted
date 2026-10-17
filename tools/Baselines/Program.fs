@@ -10,16 +10,17 @@ open Microsoft.Research.DNA
 [<EntryPoint>]
 let main arguments =
     try
-        let record = arguments = [|"--record-reference"|]
-        if not record && arguments <> [|"--verify-reference"|] then
-            failwith "Usage: ReferenceBaselines --record-reference | --verify-reference"
+        let compatibility = arguments = [|"--record-compatibility"|] || arguments = [|"--verify-compatibility"|]
+        let record = arguments = [|"--record-reference"|] || arguments = [|"--record-compatibility"|]
+        if not record && arguments <> [|"--verify-reference"|] && not compatibility then
+            failwith "Usage: ReferenceBaselines --record-reference | --verify-reference | --record-compatibility | --verify-compatibility"
         let repoRoot = Snapshots.root()
         let enginePath = Assembly.GetAssembly(typeof<Dsd.bundle>).Location
         let referenceRoot = Path.GetFullPath(Path.Combine(repoRoot, "reference")) + string Path.DirectorySeparatorChar
         if not (enginePath.StartsWith(referenceRoot, StringComparison.OrdinalIgnoreCase)) then
             failwith "Recording requires the isolated reference engine."
         let specs =
-            File.ReadAllText(Path.Combine(repoRoot, "tests", "baselines", "cases.json"))
+            File.ReadAllText(Path.Combine(repoRoot, "tests", "baselines", (if compatibility then "compatibility-cases.json" else "cases.json")))
             |> fun text -> JsonSerializer.Deserialize<CaseSpec array>(text, Snapshots.jsonOptions)
         let cases =
             specs |> Array.map (fun spec ->
@@ -33,10 +34,14 @@ let main arguments =
             Cases = cases
         }
         if record then
-            Snapshots.saveGolden repoRoot golden
+            if compatibility then
+                File.WriteAllText(Path.Combine(repoRoot, "tests", "baselines", "compatibility-baselines.json"), JsonSerializer.Serialize(golden, Snapshots.jsonOptions) + "\n")
+            else Snapshots.saveGolden repoRoot golden
             printfn "Recorded %d reference cases (%d expected unsupported inputs)." cases.Length (cases |> Array.filter (fun c -> c.Expected.Status = "fail") |> Array.length)
         else
-            let expected = Snapshots.loadGolden repoRoot
+            let expected =
+                if compatibility then File.ReadAllText(Path.Combine(repoRoot, "tests", "baselines", "compatibility-baselines.json")) |> fun text -> JsonSerializer.Deserialize<GoldenFile>(text, Snapshots.jsonOptions)
+                else Snapshots.loadGolden repoRoot
             if expected.ReferenceManifestSha256 <> golden.ReferenceManifestSha256 || expected.Cases.Length <> cases.Length then
                 failwith "The reference snapshot or case catalogue differs from the recorded baseline."
             Array.iter2 (fun saved actual ->

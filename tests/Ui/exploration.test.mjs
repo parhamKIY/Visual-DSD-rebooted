@@ -67,3 +67,9 @@ test('spatial initial conditions are labeled as fields rather than scalar concen
   const { view } = fixture(); view.response.model.species[0].valueKind = 'spatial';
   const restored = readResponse(view.response); assert.match(populationLabel(restored.model.species[0]), /Spatial initial field/); assert.doesNotMatch(populationLabel(restored.model.species[0]), /Initial: 1/);
 });
+
+test('scheduled JIT inputs use remaining time and ordinary timed inputs use absolute time', () => {
+  const species = { initial: '3', time: '0.5', constant: false };
+  assert.equal(populationLabel({ ...species, valueKind: 'timedInput' }), 'Timed input: 3 · at 0.5');
+  assert.equal(populationLabel({ ...species, valueKind: 'scheduledInput' }), 'Scheduled input: 3 · after 0.5');
+});

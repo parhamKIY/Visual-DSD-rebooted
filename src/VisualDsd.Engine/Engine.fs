@@ -39,11 +39,16 @@ module private Conversion =
     let network valueKind (crn: Crn) =
         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
             raise (ExecutionFailure("MODEL_TOO_LARGE", "The expanded model exceeds the interactive result limit."))
+        let seen = System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)
         let entries = crn.initials |> List.mapi (fun index initial ->
             let entry = species valueKind crn initial
-            if entry.ValueKind = "scheduledInput" then
-                SpeciesData(sprintf "scheduled:%d:%s" index entry.Id, entry.Name, entry.Structure, entry.Svg,
-                            entry.Initial, entry.Constant, entry.Time, entry.ValueKind)
+            let first = entry.ValueKind <> "scheduledInput" && seen.Add entry.Id
+            if entry.ValueKind = "scheduledInput" || not first then
+                let kind = if entry.ValueKind = "scheduledInput" then "scheduledInput" elif initial.time.IsSome then "timedInput" else "initialContribution"
+                SpeciesData(sprintf "initial:%d:%s" index entry.Id, entry.Name, entry.Structure, entry.Svg,
+                            entry.Initial, entry.Constant, entry.Time, kind, entry.Id)
+            elif initial.time.IsSome && entry.ValueKind = "initial" then
+                SpeciesData(entry.Id, entry.Name, entry.Structure, entry.Svg, entry.Initial, entry.Constant, entry.Time, "timedInput")
             else entry)
         NetworkData(entries |> List.toArray,
                     crn.reactions |> List.map reaction |> List.toArray)
@@ -106,7 +111,7 @@ module private StatisticalSolvers =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.7.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+        EngineInfo("Visual DSD Rebooted", "0.8.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =

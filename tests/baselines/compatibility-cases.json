@@ -1,0 +1,362 @@
+[
+  {
+    "id": "compatibility/join/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/join/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/join/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/join/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/join/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/join/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/reactions/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/migrations/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/two-domain/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two-domain transducer.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/unique/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/expand/default",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "default",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/expand/detailed",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "detailed",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/expand/finite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "finite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/expand/infinite",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "infinite",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/explicit-rxn/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-join/expand",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-join/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-join/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-catalytic/expand",
+    "operation": "expand",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-catalytic/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/rules-catalytic/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "current",
+    "source": "upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/legacy-migrations/expand",
+    "operation": "expand",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Migrations.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/legacy-migrations/oslo",
+    "operation": "trajectory-oslo",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Migrations.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  },
+  {
+    "id": "compatibility/legacy-migrations/ssa",
+    "operation": "trajectory-ssa",
+    "dialect": "legacy",
+    "source": "upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - Migrations.vdsd",
+    "semantics": "source",
+    "expectedStatus": "pass"
+  }
+]

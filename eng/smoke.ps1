@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.7.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.8.0') { throw "Unexpected version: $version" }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json

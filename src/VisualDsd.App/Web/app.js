@@ -274,7 +274,8 @@ function updateStamp() {
   $('export-json').disabled = !response;
   if (!response) return;
   const model = selectedModel();
-  $('result-summary').textContent = `${model.species.length} species · ${model.reactions.length} reactions`;
+  const contributions = model.species.filter(species => species.sourceId).length;
+  $('result-summary').textContent = `${model.species.length - contributions} species${contributions ? ` · ${contributions} input entries` : ''} · ${model.reactions.length} reactions`;
   $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.compilation} semantics${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
 }
 function renderResults() {
@@ -292,8 +293,9 @@ function renderResults() {
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
+  view.networkFocus = model.species.find(item => item.id === view.networkFocus)?.sourceId || view.networkFocus;
   if (!model.species.some(item => item.id === view.networkFocus)) view.networkFocus = '';
-  $('network-focus').replaceChildren(element('option', '', 'Full network'), ...model.species.map(item => { const option = element('option', '', `${item.id} · ${item.structure || item.name}`); option.value = item.id; return option; }));
+  $('network-focus').replaceChildren(element('option', '', 'Full network'), ...model.species.filter(item => !item.sourceId).map(item => { const option = element('option', '', `${item.id} · ${item.structure || item.name}`); option.value = item.id; return option; }));
   $('network-focus').firstElementChild.value = ''; $('network-focus').value = view.networkFocus;
   try { network.render(model, view.networkFocus); $('network-export').disabled = false; }
   catch (error) { $('network-caption').textContent = error.message; $('network').replaceChildren(); $('network-export').disabled = true; }

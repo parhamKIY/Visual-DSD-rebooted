@@ -126,12 +126,12 @@ module Snapshots =
             }
             match spec.Operation with
             | "parse" | "expand" -> model
-            | "oslo" | "ssa" ->
-                let simulator = if spec.Operation = "oslo" then Simulator.Oslo else Simulator.SSA
+            | "oslo" | "ssa" | "trajectory-oslo" | "trajectory-ssa" ->
+                let simulator = if spec.Operation.EndsWith("oslo", StringComparison.Ordinal) then Simulator.Oslo else Simulator.SSA
                 let simulation = {
                     crn.settings.simulation with
                         initial = 0.0; final = 100.0; points = 10
-                        times = [for index in 0..10 -> float index * 10.0]
+                        times = if spec.Operation.StartsWith("trajectory-", StringComparison.Ordinal) then [] else [for index in 0..10 -> float index * 10.0]
                         seed = Some 42; plots = []
                 }
                 let simulated = { crn with settings = { crn.settings with simulator = simulator; simulation = simulation } } |> fun c -> c.saturate_plots()
