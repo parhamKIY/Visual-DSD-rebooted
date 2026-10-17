@@ -5,8 +5,6 @@ open Microsoft.Research.DNA
 open Microsoft.Research.CRNEngine
 open VisualDsd.Contracts
 
-exception private ExecutionFailure of string * string
-
 module private Conversion =
     let value (expression: Value) = Expression.to_string id expression
     let rate (r: Rate<Value, Functional>) =
@@ -65,10 +63,46 @@ module private Conversion =
                        instance.settings.seed |> Option.map Nullable |> Option.defaultValue (Nullable()),
                        settings { crn with settings = { crn.settings with simulation = instance.settings } }, network)
 
+    let statistical (crn: Crn) (instance: Instance<Functional>) (table: Table<Point>) =
+        let means = table |> Table.map (fun point -> point.mean)
+        let result = simulation crn null instance means
+        let series = List.zip (result.Series |> Array.toList) table.columns |> List.map (fun (series,column) ->
+            let deviations = column.values |> List.map (fun point -> point.stdev) |> List.toArray
+            if deviations |> Array.exists (fun value -> not (Double.IsFinite value) || value < 0.0) then failwith "The solver returned an invalid standard deviation."
+            SeriesData(series.Name, series.Values, deviations)) |> List.toArray
+        SimulationData(result.Name, result.Sweep, result.Assignment, result.Times, series, result.Seed, result.Settings, null)
+
+module private StatisticalSolvers =
+    let simulate (crn: Crn) =
+        let instances = crn.get_instances()
+        if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
+        instances |> List.map (fun instance ->
+            let current = { crn with settings = { crn.settings with simulation = instance.settings } } |> fun model -> model.substitute instance.environment
+            if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "LNA and CME currently require stochastic scale=1."))
+            if current.initials.Length > 128 then raise (ExecutionFailure("MODEL_TOO_LARGE", "Statistical solvers currently support at most 128 species."))
+            if current.settings.simulation.plots |> List.exists (function Expression.Key (Key.Species _) -> false | _ -> true) then
+                raise (ExecutionFailure("STATISTICAL_PLOTS", "LNA and CME require single-species plots; statistics for compound expressions are not supported."))
+            let env = Parameters.to_env current.settings.parameters
+            let eval = Expression.eval (Environment.find env)
+            if current.initials |> List.exists (fun initial -> initial.time |> Option.exists (fun time -> eval time <> current.settings.simulation.initial)) then
+                raise (ExecutionFailure("STATISTICAL_EVENTS", "Timed population inputs are not supported by LNA and CME."))
+            let table =
+                if current.settings.simulator = Simulator.LNA then current.to_lna().simulate()
+                else
+                    if current.initials |> List.exists (fun initial -> initial.constant || let value = eval initial.value in not (Double.IsFinite value) || value < 0.0 || value > float Int32.MaxValue || Math.Round value <> value) then
+                        raise (ExecutionFailure("CME_INITIALS", "CME requires finite nonnegative integer populations and does not support constant species."))
+                    let calc, initial, reactions, adapter = current.initialise_ctmc()
+                    let states =
+                        try calc.to_ctmc_bounded 1000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter
+                        with error when error.Message.StartsWith("State space exceeds", StringComparison.Ordinal) -> raise (ExecutionFailure("STATE_SPACE_LIMIT", error.Message))
+                    let cme = current.to_cme states
+                    Cme.simulate env (Crn.to_inlined_rates current.settings) false cme |> snd
+            Conversion.statistical current instance table) |> List.toArray
+
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.5.0", [|"parse"; "expand"; "simulate"|],
-                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"|])
+        EngineInfo("Visual DSD Rebooted", "0.6.0", [|"parse"; "expand"; "simulate"; "infer"|],
+                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
         let validation = RequestValidation.Validate request
@@ -104,6 +138,8 @@ type Engine private () =
                         match request.Simulator with
                         | "oslo" -> Simulator.Oslo
                         | "ssa" -> Simulator.SSA
+                        | "lna" -> Simulator.LNA
+                        | "cme" -> Simulator.CME
                         | _ -> unexpanded.settings.simulator
                     let updateSimulation (current: Simulation_settings<'a>) = {
                         current with
@@ -117,12 +153,14 @@ type Engine private () =
                     let activeSimulations = if unexpanded.settings.simulations.IsEmpty then [simulation] else unexpanded.settings.simulations |> List.map updateSimulation
                     if activeSimulations |> List.exists (fun sim -> not (Double.IsFinite sim.initial && Double.IsFinite sim.final)) then
                         failure "INVALID_TIME" "The model's time bounds must be finite."
-                    elif request.Operation = "simulate" && (activeSimulations |> List.exists (fun sim -> sim.final <= sim.initial)) then
+                    elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.final <= sim.initial)) then
                         failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
-                    elif request.Operation = "simulate" && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
+                    elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
                         failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
-                    elif request.Operation = "simulate" && simulator <> Simulator.Oslo && simulator <> Simulator.SSA then
-                        failure "UNSUPPORTED_SIMULATOR" "This build supports the managed deterministic (Oslo) and stochastic (SSA) simulators."
+                    elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME]) then
+                        failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA and CME simulators."
+                    elif request.Operation = "infer" && jit then
+                        failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
                     elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
                         failure "JIT_SIMULATOR" "Just-in-time models require the stochastic simulator."
                     else
@@ -134,8 +172,13 @@ type Engine private () =
                             | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = update classic.settings }
                             | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
                         let initialCrn = if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured
+                        let mutable inference = Unchecked.defaultof<InferenceData>
                         let crn, simulations =
-                            if request.Operation <> "simulate" then initialCrn, [||]
+                            if request.Operation = "infer" then
+                                let fitted, results, details = ParameterInference.run request initialCrn
+                                inference <- details
+                                fitted, results |> List.map (fun result -> Conversion.simulation fitted null result.instance result.table) |> List.toArray
+                            elif request.Operation <> "simulate" then initialCrn, [||]
                             elif jit then
                                 let instances = initialCrn.get_instances()
                                 if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
@@ -170,7 +213,9 @@ type Engine private () =
                                 fst results.Head, results |> List.map snd |> List.toArray
                             else
                                 if initialCrn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
-                                let runs = initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
+                                let runs =
+                                    if simulator = Simulator.LNA || simulator = Simulator.CME then StatisticalSolvers.simulate initialCrn
+                                    else initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
                                 initialCrn, runs
                         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
                             failure "MODEL_TOO_LARGE" "The expanded model exceeds the interactive result limit."
@@ -178,7 +223,7 @@ type Engine private () =
                             let network = Conversion.network (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn
                             let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
                                                   compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
-                                                  network.Species, network.Reactions, simulations)
+                                                  network.Species, network.Reactions, simulations, inference)
                             EngineResponse(true, request.Operation, dialect, model, [||])
             with
             | ExecutionFailure(code, message) -> failure code message

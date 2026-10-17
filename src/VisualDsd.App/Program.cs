@@ -76,7 +76,7 @@ public static class Program
 
     private static async Task<ModelRequest> ParseCommandAsync(string[] args)
     {
-        if (args.Length < 2 || args[0] is not ("parse" or "expand" or "simulate")) throw new ArgumentException("Expected parse, expand, or simulate and a model file. Use --help for options.");
+        if (args.Length < 2 || args[0] is not ("parse" or "expand" or "simulate" or "infer")) throw new ArgumentException("Expected parse, expand, simulate, or infer and a model file. Use --help for options.");
         if (args[1] != "-" && new FileInfo(args[1]).Length > RequestValidation.MaximumCodeBytes + 3)
             throw new ArgumentException("The model file exceeds 256 KiB.");
         string code = args[1] == "-" ? await ReadInputAsync(Console.In, RequestValidation.MaximumCodeBytes) : await File.ReadAllTextAsync(args[1]);
@@ -95,10 +95,17 @@ public static class Program
                 "--points" => request with { Points = int.Parse(value, CultureInfo.InvariantCulture) },
                 "--seed" => request with { Seed = int.Parse(value, CultureInfo.InvariantCulture) },
                 "--timeout-seconds" => request with { TimeoutSeconds = int.Parse(value, CultureInfo.InvariantCulture) },
+                "--data" => request with { Data = [..request.Data, ObservationCsv.Parse(Path.GetFileNameWithoutExtension(value), await ReadCsvAsync(value))] },
                 _ => throw new ArgumentException($"Unknown option {args[index]}.")
             };
         }
         return request;
+    }
+
+    private static async Task<string> ReadCsvAsync(string path)
+    {
+        if (new FileInfo(path).Length > 512 * 1024) throw new ArgumentException("Observation CSV exceeds 512 KiB.");
+        return await File.ReadAllTextAsync(path);
     }
 
     private static async Task<int> RunWorkerAsync()
@@ -174,6 +181,11 @@ public static class Program
         WebAssets.Map(app);
         app.MapGet("/health", () => Results.Ok(new { status = "ok", version = CoreEngine.Info.Version }));
         app.MapGet("/api/info", () => Results.Json(CoreEngine.Info));
+        app.MapPost("/api/data/parse", (CsvDataRequest request) =>
+        {
+            try { return Results.Json(ObservationCsv.Parse(request.Name, request.Csv)); }
+            catch (FormatException error) { return Results.Json(new { diagnostics = new[] { new Diagnostic("INVALID_DATA", error.Message) } }, statusCode: 400); }
+        });
         app.MapGet("/api/jobs", () => Results.Json(jobs.List()));
         app.MapGet("/api/jobs/{id}", (string id) => jobs.Get(id) is { } job ? Results.Json(job) : Results.NotFound());
         app.MapPost("/api/jobs", (ModelRequest request) =>

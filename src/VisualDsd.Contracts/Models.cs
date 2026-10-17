@@ -18,6 +18,7 @@ public sealed record ModelRequest
     public string? Toeholds { get; init; }
     public string? Specificities { get; init; }
     public int TimeoutSeconds { get; init; } = 30;
+    public DatasetData[] Data { get; init; } = [];
 }
 
 public sealed record Diagnostic(string Code, string Message, int? Line = null, int? Column = null);
@@ -25,12 +26,20 @@ public sealed record Participant(string SpeciesId, int Multiplicity);
 public sealed record RateData(string Kind, string Expression);
 public sealed record ReactionData(Participant[] Reactants, Participant[] Products, Participant[] Catalysts, RateData Rate, RateData? ReverseRate);
 public sealed record SpeciesData(string Id, string Name, string Structure, string Svg, string Initial, bool Constant, string? Time, string ValueKind);
-public sealed record SeriesData(string Name, double[] Values);
+public sealed record SeriesData(string Name, double[] Values, double[]? StandardDeviation = null);
+public sealed record ObservationData(double[] Times, SeriesData[] Series, string? TimeUnit = null);
+public sealed record DatasetData(string Name, ObservationData[] Tables);
+public sealed record CsvDataRequest(string Name, string Csv);
+public sealed record ParameterEstimateData(string Name, string Kind, double Mle, double Mean, double Variance, double Median,
+    double Lower95, double Upper95, double[] Samples);
+public sealed record InferenceData(long Seed, int BurnIn, int Iterations, int Thin, int RetainedSamples, int DataPoints,
+    double MaxLogLikelihood, ParameterEstimateData[] Parameters, double[] LogLikelihood, ObservationData[] Observations);
 public sealed record NetworkData(SpeciesData[] Species, ReactionData[] Reactions);
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
     SettingsData? Settings = null, NetworkData? Network = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
-public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations);
+public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
+    InferenceData? Inference = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>
@@ -51,10 +60,12 @@ public static class RequestValidation
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));
-        if (request.Operation is not ("parse" or "expand" or "simulate")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, or simulate."));
+        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, or infer."));
         if (request.Dialect is not ("auto" or "current" or "legacy")) errors.Add(new("INVALID_DIALECT", "Dialect must be auto, current, or legacy."));
         if (request.Compilation is not ("source" or "default" or "detailed" or "finite" or "infinite")) errors.Add(new("INVALID_COMPILATION", "Unknown compilation mode."));
-        if (request.Simulator is not ("source" or "oslo" or "ssa")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, or ssa."));
+        if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, or cme."));
+        errors.AddRange(ObservationValidation.Validate(request.Data));
+        if (request.Operation == "infer" && request.Data is { Length: 0 }) errors.Add(new("MISSING_DATA", "Import observation data before fitting parameters."));
         if (request.Initial.HasValue && !double.IsFinite(request.Initial.Value)) errors.Add(new("INVALID_TIME", "Initial time must be finite."));
         if (request.Final.HasValue && !double.IsFinite(request.Final.Value)) errors.Add(new("INVALID_TIME", "Final time must be finite."));
         if (request.Initial.HasValue && request.Final.HasValue && request.Final <= request.Initial) errors.Add(new("INVALID_TIME_RANGE", "Final time must be greater than initial time."));

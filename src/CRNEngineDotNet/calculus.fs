@@ -40,7 +40,7 @@ type Calculus<'s> when 's : comparison =
             )
             ([],[])
     initial_state, applicable_reactions, adapter
-  member calculus.to_ctmc ratesEnv scale initial_state applicable_reactions adapter =
+  member calculus.to_ctmc_bounded maximumStates ratesEnv scale initial_state applicable_reactions adapter =
     let mutable graph:Dictionary.t<State,Transition list> = Dictionary.empty()
     let mutable memoized_states:Dictionary.t<State,State> = Dictionary.empty() // Musn't make duplicates or consumes excessive memory
     Dictionary.add graph initial_state []
@@ -79,6 +79,7 @@ type Calculus<'s> when 's : comparison =
           if was_known then
               Dictionary.find memoized_states new_st
           else
+              if graph.Count >= maximumStates then failwithf "State space exceeds the limit of %d states." maximumStates
               (Dictionary.add graph new_st [];
               Dictionary.add memoized_states new_st new_st;
               new_st)
@@ -136,3 +137,5 @@ type Calculus<'s> when 's : comparison =
         explore ws  
     outerexplore()
     {ctmc={graph=graph; initial_state=initial_state}; to_species=adapter.index.to_species}
+  member calculus.to_ctmc ratesEnv scale initial_state applicable_reactions adapter =
+    calculus.to_ctmc_bounded System.Int32.MaxValue ratesEnv scale initial_state applicable_reactions adapter
