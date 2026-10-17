@@ -52,6 +52,7 @@ module Exploration =
             let indices = Dictionary<State,int>()
             let transitions = ResizeArray<StateTransitionData>()
             let initial = counts |> Array.mapi (fun i n -> i,n) |> Array.filter (snd >> ((<) 0)) |> Map.ofArray
+            if stateCount >= 5000 then fail "STATE_SPACE_LIMIT" "State exploration exceeds 5000 states per batch."
             states.Add initial; indices.Add(initial, 0)
             let mutable cursor = 0
             while cursor < states.Count do

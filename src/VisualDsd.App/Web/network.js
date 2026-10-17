@@ -1,3 +1,5 @@
+import { populationLabel } from './model.js';
+
 export const MAX_GRAPH_NODES = 140;
 const ns = 'http://www.w3.org/2000/svg';
 const svgNode = (tag, attributes = {}, text) => { const node = document.createElementNS(ns, tag); for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, String(value)); if (text !== undefined) node.textContent = text; return node; };
@@ -109,7 +111,7 @@ export class ReactionNetwork {
     if (node.kind === 'species') {
       const item = node.species;
       if (item.svg) { const image = htmlNode('img'); image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(item.svg)}`; image.alt = item.structure; this.details.append(image); }
-      this.details.append(htmlNode('code', item.structure), htmlNode('p', `${item.valueKind === 'finalPopulation' ? 'Population at end' : item.valueKind === 'scheduledInput' ? 'Scheduled input' : 'Initial'}: ${item.initial}${item.constant ? ' · constant' : ''}`));
+      this.details.append(htmlNode('code', item.structure), htmlNode('p', populationLabel(item)));
     } else {
       const reaction = node.reaction;
       const side = values => values.map(item => `${item.multiplicity === 1 ? '' : `${item.multiplicity} `}${item.speciesId}`).join(' + ') || '∅';

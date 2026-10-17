@@ -1,4 +1,4 @@
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, populationLabel } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
@@ -352,7 +352,7 @@ function renderSpecies() {
     heading.append(element('strong', '', species.name || species.id), element('span', 'muted', species.id));
     if (species.svg) { const image = svgImage(species.svg); image.alt = species.structure || species.name; drawing.append(image); } else drawing.textContent = species.structure;
     const structure = element('div', 'species-structure', species.structure); structure.title = species.structure;
-    footer.append(element('span', '', `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`));
+    footer.append(element('span', '', populationLabel(species)));
     if (species.svg) { const save = element('button', 'text-button', 'Save SVG'); save.type = 'button'; save.setAttribute('aria-label', `Save ${species.id} SVG`); save.addEventListener('click', () => download(`${stem()}-${species.id}.svg`, species.svg, 'image/svg+xml')); footer.append(save); }
     card.append(heading, drawing, structure, footer); return card;
   }));

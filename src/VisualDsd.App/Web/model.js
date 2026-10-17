@@ -102,6 +102,11 @@ export function numberLabel(value) {
   return number === 0 ? '0' : Math.abs(number) >= 100000 || Math.abs(number) < .001 ? number.toExponential(3).replace(/\.?0+e/, 'e') : Number(number.toPrecision(6)).toString();
 }
 
+export function populationLabel(species) {
+  if (species.valueKind === 'spatial') return 'Spatial initial field · defined in model';
+  return `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`;
+}
+
 export function reactionLabel(reaction, species) {
   const names = new Map(species.map(item => [item.id, item.name || item.id]));
   const side = participants => participants.map(participant => `${participant.multiplicity === 1 ? '' : `${participant.multiplicity} `}${names.get(participant.speciesId) || participant.speciesId}`).join(' + ') || '∅';

@@ -27,7 +27,7 @@ module private Conversion =
                     attributes |> Option.map (fun a -> a.svg) |> Option.defaultValue "",
                     value initial.value, initial.constant,
                     initial.time |> Option.map value |> Option.defaultValue null,
-                    if valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind)
+                    if initial.spatial.IsSome then "spatial" elif valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind)
 
     let settings (crn: Crn) =
         let simulation = crn.settings.simulation

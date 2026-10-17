@@ -24,7 +24,7 @@ export function spatialCsv(run, timeUnit) {
 
 export function statesCsv(graph, network) {
   const names = new Map(network.species.map(species => [species.id, species.structure || species.name || species.id]));
-  return csvFor({ times: graph.states.map((_, i) => i), series: graph.speciesIds.map((id, index) => ({ name: names.get(id) || id, values: graph.states.map(row => row[index]) })) }).replace(/^Time,/, 'State,');
+  return csvFor({ times: graph.states.map((_, i) => i), series: graph.speciesIds.map((id, index) => ({ name: names.get(id) || id, values: graph.states.map(row => row[index]) })) }).replace(/^Time(?=,|\r?\n)/, 'State');
 }
 
 export function spatialScale(series) {

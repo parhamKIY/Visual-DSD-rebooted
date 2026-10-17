@@ -15,6 +15,14 @@ public class ExplorationTests
         return Assert.Single(result.Model!.Simulations);
     }
 
+    [Fact]
+    public void Spatial_fields_are_identified_instead_of_being_reported_as_a_scalar_initial_population()
+    {
+        var result = CoreEngine.Execute(new() { Code = "directive simulator pde\ndirective simulation {final=0.1;points=2;plots=[<a>]}\ndirective spatial {nx=5;dt=0.01}\n<a> = {spatial={centralcore={inner=3;outer=0;width=0.2}}}", Operation = "simulate" });
+        Assert.True(result.Success, JsonSerializer.Serialize(result)); Assert.Equal("spatial", Assert.Single(result.Model!.Species).ValueKind);
+        Assert.Equal(new double[] { 0, 0, 3, 0, 0 }, result.Model.Simulations[0].Spatial!.Series[0].Frames[0]);
+    }
+
     [Theory]
     [InlineData(1, "Periodic")]
     [InlineData(1, "ZeroFlux")]

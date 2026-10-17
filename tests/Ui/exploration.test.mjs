@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
-import { createDocument, requestFor } from '../../src/VisualDsd.App/Web/model.js';
+import { createDocument, requestFor, populationLabel } from '../../src/VisualDsd.App/Web/model.js';
 import { readResponse, serialiseProject, parseProject } from '../../src/VisualDsd.App/Web/project.js';
 import { spatialCsv, statesCsv, shortestPath, stateSummary, spatialScale } from '../../src/VisualDsd.App/Web/exploration.js';
 globalThis.crypto ??= webcrypto;
@@ -61,4 +61,9 @@ test('spatial colors share a fixed scale across all frames and saved view indexe
 test('analysis metadata cannot be imported under an unrelated operation or simulator', () => {
   const { view, run } = fixture('analyze'); view.response.operation = 'expand'; assert.throws(() => readResponse(view.response));
   const spatial = fixture(); spatial.run.settings.simulator = 'ssa'; assert.throws(() => readResponse(spatial.view.response));
+});
+
+test('spatial initial conditions are labeled as fields rather than scalar concentrations', () => {
+  const { view } = fixture(); view.response.model.species[0].valueKind = 'spatial';
+  const restored = readResponse(view.response); assert.match(populationLabel(restored.model.species[0]), /Spatial initial field/); assert.doesNotMatch(populationLabel(restored.model.species[0]), /Initial: 1/);
 });
