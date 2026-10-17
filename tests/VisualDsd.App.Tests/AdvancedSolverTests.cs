@@ -163,4 +163,26 @@ public class AdvancedSolverTests
         Assert.Null(run.Series[0].StandardDeviation);
         Assert.InRange(Math.Abs(run.Series[0].Values[^1] - 10 * Math.Exp(-1)), 0, .005);
     }
+
+    [Theory]
+    [InlineData("crn", "sundials")]
+    [InlineData("crn", "cmesundials")]
+    [InlineData("crn", "oslo")]
+    [InlineData("crn", "ssa")]
+    [InlineData("crn", "lna")]
+    [InlineData("crn", "cme")]
+    [InlineData("dsd", "sundials")]
+    [InlineData("dsd", "cmesundials")]
+    [InlineData("dsd", "oslo")]
+    [InlineData("dsd", "ssa")]
+    [InlineData("dsd", "lna")]
+    [InlineData("dsd", "cme")]
+    public void Switching_from_moment_closure_restores_default_species_plots(string language, string solver)
+    {
+        string source = language == "crn" ? "| 10 A | A ->{0.5} B" : "(10 * <a> | rxn <a> ->{0.5} <b>)";
+        var run = Run("directive simulator mc\ndirective simulation {final=1;points=10}\n" + source, solver, language);
+        Assert.Equal(2, run.Series.Length);
+        Assert.All(run.Series, series => Assert.Equal(run.Times.Length, series.Values.Length));
+        Assert.InRange(run.Series.Sum(series => series.Values[^1]), 9.99, 10.01);
+    }
 }

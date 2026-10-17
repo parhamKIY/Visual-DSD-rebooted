@@ -188,6 +188,7 @@ module private CrnExecution =
             | "cme" -> Simulator.CME | "pde" -> Simulator.PDE
             | "sundials" -> Simulator.Sundials | "cmesundials" -> Simulator.CMESundials | "mc" -> Simulator.MC | _ -> original.settings.simulator
         let crn = { original with settings = { original.settings with simulator = simulator; simulation = update original.settings.simulation; simulations = original.settings.simulations |> List.map update } }
+        let crn = crn.saturate_plots()
         let active = if crn.settings.simulations.IsEmpty then [crn.settings.simulation] else crn.settings.simulations
         for sim in active do
             if not (Double.IsFinite sim.initial && Double.IsFinite sim.final) then raise (ExecutionFailure("INVALID_TIME", "The model's time bounds must be finite."))
