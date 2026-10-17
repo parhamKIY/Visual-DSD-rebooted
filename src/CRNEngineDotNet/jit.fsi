@@ -61,3 +61,4 @@ val simulate : jit               : t<'s>                 (* a JIT data structure
 
 val to_ctmc : jit:t<'s> -> calc:Calculus<'s> -> (ctmc_result<'s>*('s->Attributes))
 val to_crn : jit:t<'s> -> original:Crn -> Crn
+val to_ctmc_bounded : int -> t<'s> -> Calculus<'s> -> (ctmc_result<'s> * ('s -> Attributes) * reaction<'s> list)

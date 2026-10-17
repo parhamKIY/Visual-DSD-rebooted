@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.10.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.11.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -95,7 +95,24 @@ foreach ($statisticalSolver in @('lna', 'cme', 'cmesundials')) {
     $statistics = Invoke-Standalone -Arguments @('simulate', '-', '--simulator', $statisticalSolver) -InputText $decaySource | ConvertFrom-Json
     $trace = $statistics.model.simulations[0].series[0]
     if (!$statistics.success -or $trace.standardDeviation.Count -ne $trace.values.Count -or [Math]::Abs($trace.values[-1] - 10 * [Math]::Exp(-1.75)) -gt 0.01) { throw "Standalone $statisticalSolver differs from the analytic decay solution." }
+    if ($statisticalSolver -ne 'lna') {
+        $run = $statistics.model.simulations[0]
+        $probabilities = $run.probabilities
+        if ($probabilities.states.Count -ne 11 -or $probabilities.mass.Count -ne $run.times.Count) { throw 'Standalone joint CME probabilities are incomplete.' }
+        foreach ($row in $probabilities.mass) {
+            $total = ($row | Measure-Object -Sum).Sum
+            if ([Math]::Abs($total - 1) -gt 1e-10) { throw 'Standalone CME mass is not conserved.' }
+        }
+    }
 }
+$jitAnalysisSource = @'
+directive jit
+dom a = {bind=0.1;unbind=0.2}
+(2 * <a^ b> | 2 * {a^*}[b])
+'@
+$jitAnalysis = Invoke-Standalone -Arguments @('analyze', '-') -InputText $jitAnalysisSource | ConvertFrom-Json
+$jitGraph = $jitAnalysis.model.simulations[0].stateSpace
+if (!$jitAnalysis.success -or !$jitAnalysis.model.isJit -or $jitGraph.states.Count -ne 3 -or $jitGraph.transitions.Count -ne 2 -or !$jitAnalysis.model.simulations[0].network) { throw 'Standalone lazy JIT state generation failed.' }
 $momentSource = @'
 directive simulator mc
 directive simulation {final=2;points=20}
@@ -162,4 +179,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

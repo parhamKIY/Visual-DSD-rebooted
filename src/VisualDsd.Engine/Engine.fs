@@ -81,6 +81,7 @@ module private StatisticalSolvers =
     let simulate (crn: Crn) =
         let instances = crn.get_instances()
         if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
+        let mutable probabilityValues, probabilityStateCells = 0L, 0L
         instances |> List.map (fun instance ->
             let current = { crn with settings = { crn.settings with simulation = instance.settings } } |> fun model -> model.substitute instance.environment
             if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "LNA and CME solvers currently require stochastic scale=1."))
@@ -91,6 +92,7 @@ module private StatisticalSolvers =
             let eval = Expression.eval (Environment.find env)
             if current.initials |> List.exists (fun initial -> initial.time |> Option.exists (fun time -> eval time <> current.settings.simulation.initial)) then
                 raise (ExecutionFailure("STATISTICAL_EVENTS", "Timed population inputs are not supported by LNA and CME solvers."))
+            let mutable probabilityData = Unchecked.defaultof<ProbabilityData>
             let table =
                 if current.settings.simulator = Simulator.LNA then current.to_lna().simulate()
                 else
@@ -105,11 +107,24 @@ module private StatisticalSolvers =
                     let states =
                         try calc.to_ctmc_bounded 1000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter
                         with error when error.Message.StartsWith("State space exceeds", StringComparison.Ordinal) -> raise (ExecutionFailure("STATE_SPACE_LIMIT", error.Message))
+                    let size = states.ctmc.graph.Count
+                    probabilityStateCells <- probabilityStateCells + int64 size * int64 current.initials.Length
+                    if probabilityStateCells > int64 Distributions.maximumValues then
+                        raise (ExecutionFailure("PROBABILITY_LIMIT", "Probability state vectors exceed 200000 population values per batch. Reduce sweeps or the state space."))
+                    let sim = current.settings.simulation
+                    let estimatedRows = if current.settings.simulator = Simulator.CMESundials && not sim.times.IsEmpty then sim.times.Length + 1 else sim.points + 5
+                    if probabilityValues + int64 estimatedRows * int64 size > int64 Distributions.maximumValues then
+                        raise (ExecutionFailure("PROBABILITY_LIMIT", "Probability output exceeds 200000 state values per batch. Reduce output points, sweeps or the state space."))
                     let cme = current.to_cme states
-                    if current.settings.simulator = Simulator.CMESundials then
-                        cme.simulate_sundials env (Crn.to_inlined_rates current.settings) |> snd
-                    else Cme.simulate env (Crn.to_inlined_rates current.settings) false cme |> snd
-            Conversion.statistical current instance table) |> List.toArray
+                    let solved, table =
+                        if current.settings.simulator = Simulator.CMESundials then cme.simulate_sundials env (Crn.to_inlined_rates current.settings)
+                        else Cme.simulate env (Crn.to_inlined_rates current.settings) false cme
+                    let data, table = Distributions.prepare current table.times solved.probabilities
+                    probabilityData <- data
+                    probabilityValues <- probabilityValues + int64 table.times.Length * int64 size
+                    table
+            let run = Conversion.statistical current instance table
+            SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, null, null, probabilityData)) |> List.toArray
 
     let moments (crn: Crn) =
         crn.get_instances() |> List.map (fun instance ->
@@ -204,7 +219,7 @@ module private CrnExecution =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.10.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+        EngineInfo("Visual DSD Rebooted", "0.11.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -269,8 +284,6 @@ type Engine private () =
                             failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
                         elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE; Simulator.Sundials; Simulator.CMESundials; Simulator.MC]) then
                             failure "UNSUPPORTED_SIMULATOR" "This build supports Oslo, SSA, LNA, CME, PDE, Sundials, CMESundials and Moment Closure."
-                        elif request.Operation = "analyze" && jit then
-                            failure "JIT_ANALYSIS" "State exploration requires a fully expanded model."
                         elif request.Operation = "infer" && jit then
                             failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
                         elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
@@ -285,7 +298,8 @@ type Engine private () =
                                 | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
                             let initialCrn = if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured
                             let crn, simulations, inference =
-                                if jit && request.Operation = "simulate" then
+                                if jit && (request.Operation = "simulate" || request.Operation = "analyze") then
+                                    let mutable stateCount, edgeCount = 0, 0
                                     let instances = initialCrn.get_instances()
                                     if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
                                     let run (instance: Instance<Functional>) =
@@ -305,15 +319,27 @@ type Engine private () =
                                             | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = runSettings classic.settings }
                                             | Dsd.Rules rules -> Dsd.Rules { rules with settings = runSettings rules.settings }
                                         let initial = Dsd.convert_unexpanded fresh
-                                        let expanded, table =
-                                            match Dsd.to_jit fresh with
-                                            | Choice1Of2 state ->
-                                                let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
-                                                Jit.to_crn finalState initial, table
-                                            | Choice2Of2 state ->
-                                                let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
-                                                Jit.to_crn finalState initial, table
-                                        expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
+                                        if request.Operation = "analyze" then
+                                            let expanded, graph =
+                                                match Dsd.to_jit fresh with
+                                                | Choice1Of2 state -> JitExploration.run initial state (Dsd.makeDsdCalculus fresh)
+                                                | Choice2Of2 state -> JitExploration.run initial state (Dsd.to_rules_calculus fresh)
+                                            stateCount <- stateCount + graph.States.Length
+                                            edgeCount <- edgeCount + graph.Transitions.Length
+                                            if stateCount > 5000 || edgeCount > 20000 then raise (ExecutionFailure("STATE_SPACE_LIMIT", "JIT state exploration exceeds 5000 states or 20000 transitions per batch."))
+                                            let network = Conversion.network "initial" expanded
+                                            let run = Conversion.simulation expanded network instance { Table.times = []; columns = [] }
+                                            expanded, SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, network, null, graph)
+                                        else
+                                            let expanded, table =
+                                                match Dsd.to_jit fresh with
+                                                | Choice1Of2 state ->
+                                                    let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
+                                                    Jit.to_crn finalState initial, table
+                                                | Choice2Of2 state ->
+                                                    let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
+                                                    Jit.to_crn finalState initial, table
+                                            expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
                                     let results = instances |> List.map run
                                     if results.IsEmpty then raise (ExecutionFailure("EMPTY_BATCH", "The selected sweeps contain no simulation runs."))
                                     fst results.Head, results |> List.map snd |> List.toArray, Unchecked.defaultof<InferenceData>

@@ -43,8 +43,9 @@ public sealed record SpatialSeriesData(string Name, double[][] Frames);
 public sealed record SpatialData(int Dimensions, string Boundary, double[] X, double[] Y, double Dt, SpatialSeriesData[] Series);
 public sealed record StateTransitionData(int Source, int Target, double Rate);
 public sealed record StateSpaceData(string[] SpeciesIds, int InitialState, int[][] States, StateTransitionData[] Transitions);
+public sealed record ProbabilityData(string[] SpeciesIds, int[][] States, double[][] Mass, double MaximumMassError);
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
-    SettingsData? Settings = null, NetworkData? Network = null, SpatialData? Spatial = null, StateSpaceData? StateSpace = null);
+    SettingsData? Settings = null, NetworkData? Network = null, SpatialData? Spatial = null, StateSpaceData? StateSpace = null, ProbabilityData? Probabilities = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
 public sealed record CrnSystemData(string Id, int SpeciesCount, int ReactionCount);
 public sealed record CrnNodeData(string Id, CrnSystemData[] Systems);

@@ -6,6 +6,8 @@
     <Compile Include="EngineError.fs" />
     <Compile Include="ParameterInference.fs" />
     <Compile Include="Exploration.fs" />
+    <Compile Include="Distributions.fs" />
+    <Compile Include="JitExploration.fs" />
     <Compile Include="CrnPrograms.fs" />
     <Compile Include="Engine.fs" />
     <ProjectReference Include="../VisualDsd.Contracts/VisualDsd.Contracts.csproj" />

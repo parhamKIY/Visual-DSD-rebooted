@@ -757,6 +757,43 @@ let to_ctmc (jit : t<'s>) (calc: Calculus<'s>) =
       svg        = match attr.svg        with Some x -> x | None -> ""}
   (ctmc_result, attributer)
 
+// Explore population states lazily, using the same reaction calculus as JIT simulation.
+let to_ctmc_bounded maximumStates (jit:t<'s>) (calc:Calculus<'s>) =
+  let finite x = not (System.Double.IsNaN x || System.Double.IsInfinity x)
+  if jit.stochastic.scale <> 1.0 then failwith "JIT state exploration requires stochastic scale=1."
+  if jit.spDict.Values |> Seq.exists (fun sp -> sp.isConstant || not (finite sp.population) || sp.population < 0.0 || sp.population > 1000000.0 || System.Math.Round sp.population <> sp.population) then
+    failwith "JIT state exploration requires nonconstant integer populations between 0 and 1000000."
+  if jit.events |> List.exists (fun ev -> match ev.target with Target.Species _ -> true | _ -> false) then
+    failwith "JIT state exploration does not support timed population inputs."
+  let env = Parameters.to_env jit.parameters
+  let eval = Expression.eval (Environment.find env)
+  let toKey = function Inlined.Species sp -> Key.Species sp | Inlined.Time -> Key.Time
+  let inlineRate = Expression.expand (Key.inline_keys env jit.rates >> Expression.map toKey)
+  let seed = jit.rxDict.Values |> Seq.map (fun r -> Reaction.map id Expression.Float (Expression.map toKey) r.payload) |> Seq.toList
+  let found = System.Collections.Generic.HashSet<reaction<'s>>()
+  let known = System.Collections.Generic.HashSet<'s>()
+  let addSpecies sp =
+    known.Add sp |> ignore
+    if known.Count > 128 then failwith "JIT state space exceeds 128 species."
+  let resolve reactions =
+    reactions |> Reaction.normalise_list |> List.map (fun r ->
+      let r = Reaction.map id (eval >> Expression.Float) inlineRate r
+      match r.rate with
+      | Rate.MassAction x -> if not (finite (eval x)) || eval x < 0.0 then failwith "JIT state exploration requires finite nonnegative rates."
+      | Rate.Function x -> if Expression.mentions x |> List.contains Key.Time then failwith "JIT state exploration requires time-independent rates."
+      r.allSpecies |> List.iter addSpecies
+      found.Add r |> ignore
+      if found.Count > 50000 then failwith "JIT state space exceeds 50000 reactions."
+      r)
+  let wrapped = { Calculus.react = fun ss sp -> resolve (seed @ calc.react ss sp) |> List.distinct }
+  let populations = jit.spDict.Values |> Seq.map (fun sp -> addSpecies sp.payload; sp.payload, int sp.population) |> Seq.toList
+  let initial, reactions, adapter = wrapped.initialise_ctmc populations
+  let result = wrapped.to_ctmc_limited maximumStates 20000 (Hashtable.empty()) 1.0 initial reactions adapter
+  let attributes sp =
+    let p = jit.printSpecies sp
+    { Attributes.name = p.name; structure = defaultArg p.structural ""; svg = defaultArg p.svg "" }
+  result, attributes, List.ofSeq found
+
 let to_crn (jit : t<'s>) (original : Crn): Crn =
   let attributer (x:'s) : Attributes =
     let attr = jit.printSpecies x
