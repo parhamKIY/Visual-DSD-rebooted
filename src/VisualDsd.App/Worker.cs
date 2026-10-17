@@ -80,6 +80,10 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
             if (response is null || (process.ExitCode != 0 && response.Success))
                 throw new WorkerFailure("WORKER_EXIT", "The model worker exited unexpectedly.");
             if (response.Operation != request.Operation || response.Dialect is not ("current" or "legacy") ||
+                (response.Success && ((request.Language == "crn") != (response.Model?.Kind == "crn") ||
+                    (request.Language == "crn" && (response.Model?.Program?.Source != request.Code ||
+                        (request.NodeId is not null && response.Model?.Program?.SelectedNodeId != request.NodeId) ||
+                        (request.SystemId is not null && response.Model?.Program?.SelectedSystemId != request.SystemId))))) ||
                 (request.Dialect != "auto" && response.Dialect != request.Dialect) || response.Diagnostics is null ||
                 response.Diagnostics.Any(diagnostic => diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || string.IsNullOrWhiteSpace(diagnostic.Message)) ||
                 (response.Success ? response.Model is null || response.Diagnostics.Length != 0 : response.Model is not null || response.Diagnostics.Length == 0))

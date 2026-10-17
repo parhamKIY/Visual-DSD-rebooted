@@ -12,16 +12,19 @@ public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
     [Theory]
     [InlineData("diffusion", "simulate")]
     [InlineData("state-switch", "analyze")]
+    [InlineData("crn-systems", "simulate")]
+    [InlineData("crn-graph", "simulate")]
     public async Task Spatial_and_state_examples_complete_through_the_isolated_worker(string id, string operation)
     {
         var example = (await host.Client.GetFromJsonAsync<ExampleModel>($"/api/examples/{id}"))!;
-        var response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest { Code = example.Code, Operation = operation });
+        var response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest { Code = example.Code, Language = example.Language, Operation = operation });
         Assert.True(response.IsSuccessStatusCode);
         var created = (await response.Content.ReadFromJsonAsync<JobView>())!;
         var finished = await host.FinishAsync(created.Id);
         Assert.Equal("succeeded", finished.State);
         var run = Assert.Single(finished.Result!.Model!.Simulations);
         if (operation == "analyze") { Assert.Equal(5, run.StateSpace!.States.Length); Assert.Equal(8, run.StateSpace.Transitions.Length); }
+        else if (example.Language == "crn") { Assert.NotNull(finished.Result.Model.Program); Assert.Equal("crn", finished.Result.Model.Kind); Assert.NotEmpty(run.Times); }
         else { Assert.Equal(2, run.Spatial!.Dimensions); Assert.Equal(41, run.Times.Length); Assert.Equal(441, run.Spatial.Series[0].Frames[0].Length); }
     }
 

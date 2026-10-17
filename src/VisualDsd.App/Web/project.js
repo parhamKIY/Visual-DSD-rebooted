@@ -17,8 +17,8 @@ function readDocument(raw) {
   const id = text(raw.id, 80), name = text(raw.name, 120), code = text(raw.code);
   if (!id || byteLength(code) > MAX_CODE_BYTES) fail('invalid model identifier or source size.');
   const options = {};
-  for (const key of Object.keys(optionDefaults)) options[key] = text(object(raw.options)[key], 100);
-  choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
+  for (const key of Object.keys(optionDefaults)) options[key] = ['language', 'nodeId', 'systemId'].includes(key) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
+  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
   const databases = {};
   const sourceDatabases = raw.databases === undefined ? {} : object(raw.databases);
   for (const key of ['toeholds', 'specificities']) if (sourceDatabases[key] !== undefined) {
@@ -31,9 +31,11 @@ function readDocument(raw) {
 export function normaliseRequest(raw) {
   object(raw);
   const options = { ...optionDefaults };
-  for (const key of ['dialect', 'compilation', 'simulator']) if (raw[key] !== undefined) options[key] = text(raw[key], 30);
-  choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
+  for (const key of ['language', 'dialect', 'compilation', 'simulator']) if (raw[key] !== undefined) options[key] = text(raw[key], 30);
+  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
   for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if (raw[key] !== undefined && raw[key] !== null) options[key] = String(finite(raw[key]));
+  if (raw.nodeId != null) options.nodeId = text(raw.nodeId, 128);
+  if (raw.systemId != null) options.systemId = raw.systemId === '' ? '$top' : text(raw.systemId, 128);
   const databases = {};
   for (const key of ['toeholds', 'specificities']) if (raw[key] !== undefined && raw[key] !== null) { const code = text(raw[key]); if (byteLength(code) > MAX_CODE_BYTES) fail('sequence database exceeds 256 KiB.'); databases[key] = { name: 'Custom database', code }; }
   return requestFor({ code: text(raw.code), options, databases, data: readDatasets(raw.data) }, choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze']));
@@ -131,6 +133,43 @@ function readStateSpace(raw, network, budget) {
   return graph;
 }
 
+export function readProgram(raw) {
+  object(raw); const source = text(raw.source);
+  if (byteLength(source) > MAX_CODE_BYTES) fail('CRN source exceeds 256 KiB.');
+  let systems = 0, mappings = 0;
+  const nodes = array(raw.nodes, 32).map(node => {
+    object(node); const items = array(node.systems, 65).map(system => {
+      object(system); systems++;
+      return { id: text(system.id, 128), speciesCount: integer(system.speciesCount, 0, 10000), reactionCount: integer(system.reactionCount, 0, 50000) };
+    });
+    if (!items.length || !items.some(item => item.id === '') || new Set(items.map(item => item.id)).size !== items.length) fail('duplicate or missing CRN systems.');
+    return { id: text(node.id, 128), systems: items };
+  });
+  if (!nodes.length || systems > 256 || new Set(nodes.map(node => node.id)).size !== nodes.length) fail('duplicate, missing or oversized model nodes.');
+  const location = raw => {
+    object(raw); const nodeId = text(raw.nodeId, 128), systemId = text(raw.systemId, 128);
+    if (!nodes.find(node => node.id === nodeId)?.systems.some(system => system.id === systemId)) fail('unknown model location.');
+    return { nodeId, systemId };
+  };
+  const edges = array(raw.edges, 128).map(edge => {
+    object(edge);
+    const parameters = array(edge.parameters, 1024).map(parameter => {
+      object(parameter); mappings++;
+      return { sourceParameter: text(parameter.sourceParameter, 128), targetParameter: text(parameter.targetParameter, 128), kind: choice(parameter.kind, ['Fixed', 'Normal', 'LogNormal', 'TruncatedNormal']) };
+    });
+    return { source: location(edge.source), target: location(edge.target), parameters };
+  });
+  if (mappings > 1024) fail('too many parameter mappings.');
+  const pending = new Set(nodes.map(node => node.id));
+  while (pending.size) {
+    const roots = [...pending].filter(id => edges.every(edge => edge.target.nodeId !== id || !pending.has(edge.source.nodeId)));
+    if (!roots.length) fail('cyclic model links.');
+    roots.forEach(id => pending.delete(id));
+  }
+  const selected = location({ nodeId: raw.selectedNodeId, systemId: raw.selectedSystemId });
+  return { source, nodes, edges, selectedNodeId: selected.nodeId, selectedSystemId: selected.systemId };
+}
+
 export function readResponse(raw) {
   object(raw);
   if (raw.success !== true) fail('only completed successful results can be restored.');
@@ -167,7 +206,10 @@ export function readResponse(raw) {
     return result;
   });
   if (operation === 'analyze' && !simulations.length) fail('missing state-space runs.');
-  const model = { kind: choice(source.kind, ['classic', 'rules']), compilation: choice(source.compilation, ['default', 'detailed', 'finite', 'infinite']), isJit: source.isJit, settings, species, reactions, simulations };
+  const model = { kind: choice(source.kind, ['classic', 'rules', 'crn']), compilation: choice(source.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']), isJit: source.isJit, settings, species, reactions, simulations };
+  if (source.crnCode !== undefined) model.crnCode = nullableText(source.crnCode);
+  if (source.program !== undefined) model.program = source.program === null ? null : readProgram(source.program);
+  if (model.kind === 'crn' && (!model.program || model.isJit || model.compilation !== 'source')) fail('invalid CRN program metadata.');
   if (source.inference !== undefined) model.inference = source.inference === null ? null : readInference(source.inference, simulations);
   if ((operation === 'infer') !== Boolean(model.inference)) fail('inference metadata does not match the operation.');
   return { success: true, operation, dialect, diagnostics: [], model };
@@ -177,6 +219,10 @@ function readSavedResult(raw, model) {
   object(raw); const request = normaliseRequest(raw.request), response = readResponse(raw.response);
   if (request.operation !== response.operation || (request.dialect !== 'auto' && request.dialect !== response.dialect)) fail('result does not match its request metadata.');
   if (!['simulate', 'infer', 'analyze'].includes(response.operation) && response.model.simulations.length) fail('unexpected simulation data.');
+  if (request.language === 'crn') {
+    const program = response.model.program;
+    if (response.model.kind !== 'crn' || program?.source !== request.code || (request.nodeId != null && program.selectedNodeId !== request.nodeId) || (request.systemId != null && program.selectedSystemId !== request.systemId)) fail('CRN result does not match its source or selection.');
+  } else if (response.model.kind === 'crn') fail('a DSD request cannot contain a CRN result.');
   const snapshot = { name: text(raw.name, 120), engineVersion: text(raw.engineVersion || 'unknown', 50), request };
   const networkFocus = text(raw.networkFocus ?? '', 512);
   const runIndex = integer(raw.runIndex ?? 0, 0, Math.max(0, response.model.simulations.length - 1));
@@ -185,7 +231,7 @@ function readSavedResult(raw, model) {
   const spatialSeries = integer(raw.spatialSeries ?? 0, 0, Math.max(0, (run?.spatial?.series.length || 0) - 1));
   const spatialFrame = integer(raw.spatialFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   const stateIndex = integer(raw.stateIndex ?? 0, 0, Math.max(0, (run?.stateSpace?.states.length || 0) - 1));
-  return { response, snapshot, spatialSeries, spatialFrame, stateIndex, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states']), networkFocus };
+  return { response, snapshot, spatialSeries, spatialFrame, stateIndex, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program']), networkFocus };
 }
 
 export function parseProject(input) {

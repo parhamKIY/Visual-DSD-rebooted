@@ -5,6 +5,8 @@ import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } fr
 import { readDatasets } from './observations.js';
 import { drawSpatial, spatialCsv, statesCsv, stateSummary, shortestPath } from './exploration.js';
 
+import { programSvg, locationLabel } from './program.js';
+
 const $ = id => document.getElementById(id);
 const editor = $('editor');
 const chart = new SimulationChart($('chart'), $('legend'), $('chart-tooltip'));
@@ -84,7 +86,7 @@ function renderExamples() {
   $('example-count').textContent = String(examples.length);
   $('examples').replaceChildren(...examples.map(example => {
     const button = element('button', 'example-button'); button.type = 'button'; button.title = example.description;
-    button.append(element('strong', '', example.name), element('small', '', example.dialect === 'legacy' ? 'Original syntax' : example.id === 'jit' ? 'Stochastic · just-in-time' : 'Visual DSD'));
+    button.append(element('strong', '', example.name), element('small', '', example.language === 'crn' ? 'Chemical reaction network' : example.dialect === 'legacy' ? 'Original syntax' : example.id === 'jit' ? 'Stochastic · just-in-time' : 'Visual DSD'));
     button.addEventListener('click', () => openExample(example.id).catch(showError)); return button;
   }));
 }
@@ -96,12 +98,13 @@ function selectDocument(id) {
   activeId = id;
   const model = current();
   $('model-name').value = model.name; editor.value = model.code;
+  renderProgramSelection();
   for (const key of Object.keys(optionDefaults)) $(key).value = model.options[key];
   for (const key of ['toeholds', 'specificities']) { $(`${key}-name`).textContent = model.databases[key]?.name || 'Default database'; $(`${key}-file`).value = ''; }
   renderDatasets();
   $('species-search').value = state().search;
   $('document-description').textContent = examples.find(example => example.id === model.exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
-  $('dialect-badge').textContent = model.options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD';
+  renderLanguage();
   renderDocuments(); renderEditor(); renderResults(); updateBusy(); persist();
   $('model-sidebar').classList.remove('mobile-open'); $('toggle-models').setAttribute('aria-expanded', 'false');
 }
@@ -119,7 +122,7 @@ async function openExample(id) {
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
   const loaded = documents.find(model => model.exampleId === id);
   if (loaded) return selectDocument(loaded.id);
-  addDocument(createDocument(`${example.name.replace(' · legacy', '')}.${example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id));
+  addDocument(createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id));
 }
 async function openFiles(files) {
   for (const file of files) {
@@ -128,6 +131,46 @@ async function openFiles(files) {
     catch (error) { toast(error.message); }
   }
   $('file-input').value = '';
+}
+
+function renderLanguage() {
+  const crn = current().options.language === 'crn';
+  $('dialect-badge').textContent = crn ? 'CRN' : current().options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD';
+  $('program-selection').hidden = !crn; $('edit-crn').hidden = crn;
+  $('dialect').disabled = $('compilation').disabled = crn;
+  document.querySelector('.sequence-settings').hidden = crn;
+}
+function renderProgramSelection() {
+  const options = current().options, program = state().response?.model.program;
+  const fill = (id, entries, value) => {
+    const automatic = element('option', '', 'Automatic'); automatic.value = '';
+    $(id).replaceChildren(automatic, ...entries.map(([id, label]) => { const option = element('option', '', label); option.value = id; return option; }));
+    if (value && ![...$(id).options].some(option => option.value === value)) { const missing = element('option', '', `${value} · check source`); missing.value = value; $(id).append(missing); }
+    $(id).value = value;
+  };
+  fill('nodeId', (program?.nodes || []).filter(node => node.id).map(node => [node.id, node.id]), options.nodeId);
+  const node = program?.nodes.find(node => node.id === (options.nodeId || program.selectedNodeId));
+  fill('systemId', (node?.systems || []).map(system => [system.id || '$top', system.id || 'Top-level network']), options.systemId);
+  renderLanguage();
+}
+function renderProgram() {
+  const program = state().response?.model.program;
+  if (!program) return;
+  $('program-summary').textContent = `${program.nodes.length} model node(s) · ${program.edges.length} parameter link(s) · selected: ${locationLabel({ nodeId: program.selectedNodeId, systemId: program.selectedSystemId })}`;
+  $('program-graph').innerHTML = programSvg(program);
+  $('program-systems').replaceChildren(...program.nodes.flatMap(node => node.systems.map(system => {
+    const button = element('button', 'program-system'); button.type = 'button'; button.disabled = Boolean(activeJob);
+    button.setAttribute('aria-current', String(node.id === program.selectedNodeId && system.id === program.selectedSystemId));
+    button.append(element('span', '', locationLabel({ nodeId: node.id, systemId: system.id })), element('small', '', `${system.speciesCount} species · ${system.reactionCount} reactions`));
+    button.addEventListener('click', () => { current().options.nodeId = node.id; current().options.systemId = system.id || '$top'; changed(); renderProgramSelection(); run('parse'); });
+    return button;
+  })));
+  const table = element('table'), head = element('tr');
+  for (const name of ['From', 'To', 'Parameter', 'Prior']) head.append(element('th', '', name)); table.append(head);
+  for (const edge of program.edges) for (const parameter of edge.parameters) {
+    const row = element('tr'); for (const value of [locationLabel(edge.source), locationLabel(edge.target), `${parameter.sourceParameter} → ${parameter.targetParameter}`, parameter.kind]) row.append(element('td', '', value)); table.append(row);
+  }
+  $('program-links').replaceChildren(program.edges.length ? table : element('p', 'exploration-note', 'No inference links. Systems can be simulated independently.'));
 }
 
 function renderEditor() {
@@ -204,8 +247,10 @@ async function importData(files, target) {
 
 function updateBusy() {
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
-  for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'empty-simulate']) $(id).disabled = busy;
+  for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
+  $('edit-crn').disabled = busy || current().options.language === 'crn' || !state().response?.model.crnCode || !resultIsCurrent(current(), state().snapshot);
+  for (const button of document.querySelectorAll('.program-system')) button.disabled = busy;
   $('save-project').disabled = busy; $('open-project').disabled = busy;
   $('run-state').textContent = busy && activeJob.documentId === activeId ? activeJob.message : busy ? `Running ${documents.find(model => model.id === activeJob.documentId)?.name || 'another model'}…` : state().status;
 }
@@ -222,7 +267,7 @@ async function run(operation) {
   state().diagnostics = []; renderDiagnostics(); renderEditor();
   const message = operation === 'analyze' ? 'Exploring reachable states…' : operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
   activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message, started: performance.now(), cancelling: false };
-  const task = activeJob; updateBusy();
+  const task = activeJob; task.tab = state().tab; updateBusy();
   try {
     const admitted = await api('/api/jobs', { method: 'POST', body: JSON.stringify(request) }); task.id = admitted.id; updateBusy();
     let failures = 0;
@@ -249,7 +294,7 @@ function finishJob(job, task) {
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
     view.spatialFrame = view.spatialSeries = view.stateIndex = 0;
-    view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : 'species';
+    view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : task.tab === 'program' && job.result.model.program ? 'program' : 'species';
     view.status = `${task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
   const model = documents.find(item => item.id === task.documentId);
@@ -271,15 +316,19 @@ function updateStamp() {
   const view = state(), response = view.response;
   const fresh = !response || resultIsCurrent(current(), view.snapshot);
   $('stale').hidden = fresh;
+  $('edit-crn').disabled = Boolean(activeJob) || current().options.language === 'crn' || !response?.model.crnCode || !fresh;
   $('export-json').disabled = !response;
   if (!response) return;
   const model = selectedModel();
   const contributions = model.species.filter(species => species.sourceId).length;
   $('result-summary').textContent = `${model.species.length - contributions} species${contributions ? ` · ${contributions} input entries` : ''} · ${model.reactions.length} reactions`;
-  $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.compilation} semantics${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
+  $('result-note').textContent = `${model.kind === 'crn' ? 'CRN · ' + locationLabel({ nodeId: model.program.selectedNodeId, systemId: model.program.selectedSystemId }) : response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.kind === 'crn' ? 'chemical reaction network' : model.compilation + ' semantics'}${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
 }
 function renderResults() {
   const view = state(), response = view.response;
+  renderProgramSelection(); renderProgram();
+  $('tab-program').hidden = !response?.model.program;
+  if (view.tab === 'program' && !response?.model.program) view.tab = 'plot';
   $('tab-fit').hidden = !response?.model.inference;
   if (view.tab === 'fit' && !response?.model.inference) view.tab = 'plot';
   $('tab-spatial').hidden = !selectedRun()?.spatial; $('tab-states').hidden = !selectedRun()?.stateSpace;
@@ -404,7 +453,12 @@ editor.addEventListener('scroll', syncScroll);
 for (const event of ['click', 'keyup', 'select']) editor.addEventListener(event, cursorPosition);
 editor.addEventListener('keydown', event => { if (event.key === 'Tab') { event.preventDefault(); editor.setRangeText('  ', editor.selectionStart, editor.selectionEnd, 'end'); editor.dispatchEvent(new Event('input')); } });
 $('model-name').addEventListener('input', () => { current().name = $('model-name').value || 'Untitled.dsd'; renderDocuments(); persist(); });
-for (const key of Object.keys(optionDefaults)) $(key).addEventListener('input', () => { current().options[key] = $(key).value; $('dialect-badge').textContent = current().options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD'; changed(); });
+for (const key of Object.keys(optionDefaults)) $(key).addEventListener('input', () => {
+  current().options[key] = $(key).value;
+  if (key === 'language') { current().options.nodeId = current().options.systemId = ''; renderProgramSelection(); }
+  if (key === 'nodeId') { current().options.systemId = ''; renderProgramSelection(); }
+  renderLanguage(); changed();
+});
 for (const key of ['toeholds', 'specificities']) {
   $(`${key}-file`).addEventListener('change', async event => {
     const file = event.target.files[0], model = current(); if (!file) return;
@@ -414,8 +468,11 @@ for (const key of ['toeholds', 'specificities']) {
   });
   $(`clear-${key}`).addEventListener('click', () => { delete current().databases[key]; $(`${key}-name`).textContent = 'Default database'; changed(); });
 }
-$('reset-settings').addEventListener('click', () => { current().options = { ...optionDefaults }; for (const key of Object.keys(optionDefaults)) $(key).value = optionDefaults[key]; $('dialect-badge').textContent = 'Visual DSD'; changed(); });
+$('reset-settings').addEventListener('click', () => { current().options = { ...optionDefaults }; for (const key of Object.keys(optionDefaults)) $(key).value = optionDefaults[key]; renderProgramSelection(); renderLanguage(); changed(); });
 $('toggle-models').addEventListener('click', () => { const open = $('model-sidebar').classList.toggle('mobile-open'); $('toggle-models').setAttribute('aria-expanded', String(open)); });
+$('new-crn').addEventListener('click', () => { try { addDocument(createDocument('Untitled.crn', 'directive simulator deterministic\ndirective simulation {final=10;plots=[A;B]}\n| 10 A\n| A ->{0.25} B\n')); $('settings-panel').open = true; } catch (error) { toast(error.message); } });
+$('edit-crn').addEventListener('click', () => { try { const model = state().response?.model; if (!model?.crnCode || !resultIsCurrent(current(), state().snapshot)) return; const draft = createDocument(`${stem()}.crn`, model.crnCode); draft.data = structuredClone(current().data); addDocument(draft); toast('Independent CRN opened. The strand model is kept separately.'); } catch (error) { toast(error.message); } });
+$('program-svg').addEventListener('click', () => { const program = state().response?.model.program; if (program) download(`${stem()}-models.svg`, programSvg(program), 'image/svg+xml'); });
 $('new-model').addEventListener('click', () => { try { addDocument(createDocument()); editor.focus(); } catch (error) { toast(error.message); } });
 $('open-model').addEventListener('click', () => $('file-input').click());
 $('file-input').addEventListener('change', event => openFiles(event.target.files));

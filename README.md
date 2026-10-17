@@ -22,6 +22,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 
 | Workflow | Available now |
 | --- | --- |
+| Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
 | Generate networks | Default, detailed, finite, and infinite compilation; species diagrams and reaction graphs |
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, and bounded 1D/2D reaction–diffusion |
@@ -81,6 +82,14 @@ The `^` marks a toehold domain and `*` its complement. Simulation options can co
 
 The example library also includes catalytic and AND circuits, a legacy model, a just-in-time model, a reversible state switch, and a 2D diffusion pulse.
 
+## Edit a reaction network
+
+Use **+ CRN** to start a reaction network directly, or expand a strand model and select **Open expanded network as editable CRN**. The new document is independent of the strand model. `.crn` files select the CRN language automatically; use the language setting for other file extensions.
+
+CRN programs use the original `system`, `node`, and `edge` syntax. Check the source, then select a model node and system to simulate or explore its states. The **Models** tab shows every system and parameter link. Shared and local parameters, functional rates, modules, sweeps, and system inheritance use the original model preparation. Project files preserve the complete source, graph, selection, and saved results.
+
+Simulation runs the selected system. Fitting linked or multi-system models is not available in this step; standalone CRN fitting uses the existing single-chain inference path.
+
 ## Command line
 
 The same executable supports structured JSON output for scripts. These examples use Linux shell notation; on Windows use `.\VisualDsd.exe`.
@@ -93,6 +102,8 @@ The same executable supports structured JSON output for scripts. These examples 
 ./VisualDsd simulate model.dsd --simulator ssa --seed 42
 ./VisualDsd infer model.dsd --data observations.csv --seed 42
 ./VisualDsd analyze model.dsd
+./VisualDsd simulate model.crn --node prediction --system reversible
+./VisualDsd parse model.txt --language crn
 ```
 
 Input may be a file or `-` for standard input. Use `--dialect legacy` explicitly when needed; `.vdsd` files select the legacy dialect automatically. Repeat `--data` for multiple CSV datasets: each file's stem identifies the dataset referenced by the model. Inference also requires the model's inference, prior, and data directives.
@@ -156,7 +167,7 @@ These checks establish compatibility for the cases they exercise. They do not es
 Current boundaries:
 
 - Just-in-time models use SSA; full-network expansion, inference, and state exploration are unavailable for that mode.
-- Inference uses a single MCMC chain and the Oslo solver.
+- Inference uses a single MCMC chain and the Oslo solver. Linked and multi-system inference is not yet exposed.
 - CME, LNA, spatial simulation, and state exploration enforce explicit size and work limits. Large models may require a smaller grid, state space, or output request.
 - Native Sundials solvers, moment-closure simulation, and temporal-logic model checking are not exposed by this application.
 

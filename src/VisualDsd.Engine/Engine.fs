@@ -157,7 +157,7 @@ module private CrnExecution =
             raise (ExecutionFailure("UNSUPPORTED_SIMULATOR", "This build supports Oslo, SSA, LNA, CME and PDE."))
         let crn, runs, inference = run request crn
         let network = Conversion.network "initial" crn
-        let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, crn.to_string(), program)
+        let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program)
         EngineResponse(true, request.Operation, "current", result, [||])
 
 type Engine private () =

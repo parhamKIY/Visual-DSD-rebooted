@@ -48,7 +48,16 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.8.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.9.0') { throw "Unexpected version: $version" }
+$crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
+$crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
+if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
+$crnFile = Join-Path $directory 'linked.crn'
+Set-Content -LiteralPath $crnFile -Value $crnSource -Encoding utf8NoBOM
+$detected = Invoke-Standalone @('parse', $crnFile, '--node', 'calibration', '--system', 'decay') | ConvertFrom-Json
+if (!$detected.success -or $detected.model.program.selectedSystemId -ne 'decay') { throw 'CRN file auto-detection failed.' }
+$badSelection = Invoke-Standalone @('simulate', $crnFile, '--node', 'missing') -ExpectedExit 1 | ConvertFrom-Json
+if ($badSelection.success -or $badSelection.diagnostics[0].code -ne 'CRN_SELECTION') { throw 'Invalid CRN selection was not rejected.' }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json

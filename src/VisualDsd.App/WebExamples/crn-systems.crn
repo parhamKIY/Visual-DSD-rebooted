@@ -1,0 +1,15 @@
+// Each system owns its species and reactions. The shared rate is inherited.
+directive simulator deterministic
+directive simulation { final=10; points=100; plots=[A; B] }
+directive parameters [k=0.25]
+
+system slow = {
+  | 10 A
+  | A ->{k} B
+}
+
+system fast = {
+  directive parameters [k=0.75]
+  | 20 A
+  | A ->{k} B
+}

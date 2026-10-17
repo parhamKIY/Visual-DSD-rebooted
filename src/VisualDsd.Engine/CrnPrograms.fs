@@ -75,11 +75,16 @@ module internal CrnPrograms =
             if not (isNull request.SystemId) then request.SystemId
             elif node.top.initials.IsEmpty && node.top.reactions.IsEmpty && not node.systems.IsEmpty then node.systems.Head.name
             else ""
+        // Match the original model preparation: expand local parameters/sweeps, lift names,
+        // and merge shared functional rates before selecting a system.
+        let prepared, _ = node.expandAndLift()
+        let prepared = prepared.merge_shared_settings()
         let selected =
-            if systemId = "" then node.top
-            else node.merge_shared_settings().systems |> List.tryFind (fun system -> system.name = systemId) |> Option.defaultWith (fun () -> fail "CRN_SELECTION" (sprintf "Unknown system %s.%s." nodeId systemId))
+            if systemId = "" then prepared.top
+            else prepared.systems |> List.tryFind (fun system -> system.name = systemId) |> Option.defaultWith (fun () -> fail "CRN_SELECTION" (sprintf "Unknown system %s.%s." nodeId systemId))
         let systemInfo id (crn: Crn) =
             let crn = crn.saturate_initials()
+            if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then fail "MODEL_TOO_LARGE" "A system exceeds the interactive network limit."
             CrnSystemData(id, crn.initials |> List.map (fun initial -> initial.species) |> List.distinct |> List.length, crn.reactions.Length)
         let nodes = graph.nodes |> Map.toArray |> Array.map (fun (id,model) ->
             CrnNodeData(id, Array.ofList (systemInfo "" model.top :: (model.systems |> List.map (fun system -> systemInfo system.name system)))))

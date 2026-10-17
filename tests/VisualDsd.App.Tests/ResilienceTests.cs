@@ -78,6 +78,13 @@ public class ResilienceTests
     }
 
     [Fact]
+    public async Task A_dsd_response_cannot_be_accepted_as_the_result_of_a_crn_request()
+    {
+        var error = await Assert.ThrowsAsync<WorkerFailure>(() => Probe.ExecuteAsync(new() { Code = "success", Language = "crn" }, CancellationToken.None));
+        Assert.Equal("WORKER_PROTOCOL", error.Code);
+    }
+
+    [Fact]
     public async Task Cancelled_requests_do_not_launch_another_process()
     {
         using var cancellation = new CancellationTokenSource(); cancellation.Cancel();

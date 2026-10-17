@@ -3,7 +3,7 @@ import { readDatasets } from './observations.js';
 export const MAX_CODE_BYTES = 256 * 1024;
 export const MAX_DOCUMENTS = 16;
 export const STORAGE_KEY = 'visual-dsd.workspace.v1';
-export const optionDefaults = Object.freeze({ dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30' });
+export const optionDefaults = Object.freeze({ language: 'dsd', nodeId: '', systemId: '', dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30' });
 export const byteLength = text => new TextEncoder().encode(text).length;
 export const escapeHtml = text => String(text).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
@@ -14,7 +14,7 @@ export function modelForRun(model, runIndex) {
 
 export function createDocument(name = 'Untitled.dsd', code = '// Your strand displacement model\n\n<a^ b>\n', dialect = 'auto', exampleId = null) {
   if (byteLength(code) > MAX_CODE_BYTES) throw new Error('Model files must be no larger than 256 KiB.');
-  return { id: crypto.randomUUID(), name, code: code.replace(/\r\n?/g, '\n'), options: { ...optionDefaults, dialect }, exampleId, revision: 0, databases: {}, data: [] };
+  return { id: crypto.randomUUID(), name, code: code.replace(/\r\n?/g, '\n'), options: { ...optionDefaults, dialect, language: /\.crn$/i.test(name) ? 'crn' : 'dsd' }, exampleId, revision: 0, databases: {}, data: [] };
 }
 
 export function restoreWorkspace(raw) {
@@ -42,7 +42,13 @@ export function restoreWorkspace(raw) {
 }
 
 export function requestFor(document, operation) {
+  if (!['dsd', 'crn'].includes(document.options.language ?? 'dsd')) throw new Error('Choose Visual DSD or CRN as the model language.');
   const request = { code: document.code, operation, dialect: document.options.dialect, compilation: document.options.compilation, simulator: document.options.simulator };
+  if (document.options.language === 'crn') {
+    request.language = 'crn'; request.dialect = 'current'; request.compilation = 'source';
+    if (document.options.nodeId) request.nodeId = document.options.nodeId;
+    if (document.options.systemId) request.systemId = document.options.systemId === '$top' ? '' : document.options.systemId;
+  }
   if (!request.code.trim()) throw new Error('Write a model before running it.');
   if (byteLength(request.code) > MAX_CODE_BYTES) throw new Error('The model exceeds 256 KiB.');
   for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) {
@@ -57,7 +63,7 @@ export function requestFor(document, operation) {
   if (request.seed !== undefined && (request.seed < -2147483648 || request.seed > 2147483647)) throw new Error('The random seed must fit in a 32-bit integer.');
   if (request.timeoutSeconds < 1 || request.timeoutSeconds > 120) throw new Error('The time limit must be between 1 and 120 seconds.');
   if (request.initial !== undefined && request.final !== undefined && request.final <= request.initial) throw new Error('Final time must be greater than initial time.');
-  for (const key of ['toeholds', 'specificities']) if (document.databases[key]) request[key] = document.databases[key].code;
+  for (const key of ['toeholds', 'specificities']) if (document.options.language !== 'crn' && document.databases[key]) request[key] = document.databases[key].code;
   if (operation === 'infer') {
     request.data = readDatasets(document.data);
     if (!request.data.length) throw new Error('Import observation CSV files before fitting parameters.');
