@@ -91,6 +91,11 @@ module private StatisticalSolvers =
                 else
                     if current.initials |> List.exists (fun initial -> initial.constant || let value = eval initial.value in not (Double.IsFinite value) || value < 0.0 || value > float Int32.MaxValue || Math.Round value <> value) then
                         raise (ExecutionFailure("CME_INITIALS", "CME requires finite nonnegative integer populations and does not support constant species."))
+                    // Resolve this run's parameters before enumerating states, including zero-rate transitions.
+                    let inlineParameters key = match key with Key.Parameter name -> Expression.Float (Environment.find env name) | other -> Expression.Key other
+                    let current = { current with reactions = current.reactions |> List.map (Reaction.map id (eval >> Expression.Float) (Expression.expand inlineParameters))
+                                                 settings = { current.settings with rates = current.settings.rates |> Map.map (fun _ expression -> Expression.expand inlineParameters expression) }
+                                                 initials = current.initials |> List.groupBy (fun initial -> initial.species) |> List.map (fun (_, entries) -> { entries.Head with value = Expression.Float (entries |> List.sumBy (fun initial -> eval initial.value)); time = None }) }
                     let calc, initial, reactions, adapter = current.initialise_ctmc()
                     let states =
                         try calc.to_ctmc_bounded 1000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter

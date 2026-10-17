@@ -93,12 +93,12 @@ export class SimulationChart {
     const x = value => left + (value - bounds.x0) / (bounds.x1 - bounds.x0) * (width - left - right);
     const y = value => height - bottom - (value - bounds.y0) / (bounds.y1 - bounds.y0) * (height - top - bottom);
     this.x = x; this.y = y;
-    svg.append(svgElement('title', {}, 'Concentration over time'), svgElement('rect', { x: 0, y: 0, width, height, fill: '#fff' }));
+    const population = this.settings.simulator === 'cme';
+    svg.append(svgElement('title', {}, population ? 'Population over time' : 'Concentration over time'), svgElement('rect', { x: 0, y: 0, width, height, fill: '#fff' }));
     for (const value of ticks(bounds.y0, bounds.y1)) { svg.append(svgElement('line', { x1: left, x2: width - right, y1: y(value), y2: y(value), class: 'chart-grid' }), svgElement('text', { x: left - 12, y: y(value) + 3, 'text-anchor': 'end', class: 'chart-label' }, numberLabel(value))); }
     for (const value of ticks(bounds.x0, bounds.x1)) { svg.append(svgElement('line', { x1: x(value), x2: x(value), y1: top, y2: height - bottom, class: 'chart-grid' }), svgElement('text', { x: x(value), y: height - bottom + 23, 'text-anchor': 'middle', class: 'chart-label' }, numberLabel(value))); }
     svg.append(svgElement('path', { d: `M${left} ${top}V${height - bottom}H${width - right}`, fill: 'none', class: 'chart-axis' }));
     svg.append(svgElement('text', { x: (width + left - right) / 2, y: height - 12, 'text-anchor': 'middle', class: 'chart-axis-title' }, `Time${this.settings.timeUnit ? ` (${this.settings.timeUnit})` : ''}`));
-    const population = this.settings.simulator === 'cme';
     svg.append(svgElement('text', { transform: `translate(16 ${(height - bottom + top) / 2}) rotate(-90)`, 'text-anchor': 'middle', class: 'chart-axis-title' }, population ? 'Population (molecules)' : `Concentration${this.settings.concentrationUnit ? ` (${this.settings.concentrationUnit})` : ''}`));
     run.series.forEach((series, index) => {
       if (!this.visible.has(index)) return;

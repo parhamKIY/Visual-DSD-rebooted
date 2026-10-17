@@ -160,7 +160,7 @@ function showError(error) { state().diagnostics = [{ code: 'WORKSPACE_ERROR', me
 function renderDatasets() {
   $('dataset-list').replaceChildren(...(current().data || []).map((dataset, index) => {
     const row = element('div', 'dataset-row'), input = element('input'); input.value = dataset.name; input.maxLength = 120; input.setAttribute('aria-label', `Dataset ${index + 1} name`);
-    input.addEventListener('change', () => { try { const data = structuredClone(current().data); data[index].name = input.value.trim(); current().data = readDatasets(data); changed(); } catch (error) { input.value = dataset.name; toast(error.message); } });
+    input.addEventListener('change', () => { try { const data = structuredClone(current().data); data[index].name = input.value.trim(); current().data = readDatasets(data); changed(); renderDatasets(); } catch (error) { input.value = dataset.name; toast(error.message); } });
     const count = dataset.tables.reduce((sum, table) => sum + table.times.length * table.series.length, 0);
     const remove = element('button', 'text-button', 'Remove'); remove.type = 'button'; remove.setAttribute('aria-label', `Remove dataset ${dataset.name}`);
     remove.addEventListener('click', () => { current().data.splice(index, 1); changed(); renderDatasets(); });
@@ -180,7 +180,8 @@ function renderDatasets() {
 }
 
 async function importData(files, target) {
-  const model = documents.find(document => document.id === target?.documentId) || current();
+  const model = target ? documents.find(document => document.id === target.documentId) : current();
+  if (!model) return;
   try {
     for (const file of files) {
       if (file.size > 512 * 1024) throw new Error('Observation CSV exceeds 512 KiB.');
@@ -289,13 +290,14 @@ function renderNetwork() {
 function selectedRun() { return state().response?.model.simulations[state().runIndex]; }
 function renderRuns() {
   const model = selectedModel(), runs = model.simulations, select = $('run-select');
-  select.replaceChildren(...runs.map((run, index) => { const option = element('option', '', [run.name || `Run ${index + 1}`, run.sweep, run.assignment].filter(Boolean).join(' · ')); option.value = index; return option; }));
+  select.replaceChildren(...runs.map((run, index) => { const option = element('option', '', [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `Run ${index + 1}`); option.value = index; return option; }));
   select.value = state().runIndex; select.hidden = runs.length < 2;
   $('run-toolbar').hidden = runs.length < 2;
   const run = selectedRun(), hasData = Boolean(run?.times.length);
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
-  $('plot-subtitle').textContent = run ? [run.name, run.sweep, run.assignment].filter(Boolean).join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
+  $('plot-heading').textContent = model.settings.simulator === 'cme' ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
+  $('plot-subtitle').textContent = model.inference ? 'Maximum-likelihood fit · circles: observations' : run ? [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
   if (hasData) chart.setRun(run, model.settings, model.inference?.observations[state().runIndex]);
   $('run-details').replaceChildren();
   if (hasData) {

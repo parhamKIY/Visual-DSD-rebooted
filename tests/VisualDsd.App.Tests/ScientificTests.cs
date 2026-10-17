@@ -64,6 +64,14 @@ public class ScientificTests
     }
 
     [Fact]
+    public void Zero_rate_CME_sweeps_do_not_enumerate_impossible_infinite_state_spaces()
+    {
+        var result = CoreEngine.Execute(new() { Code = "directive simulation {final=1;points=5}\ndirective parameters [k=1]\ndirective sweeps [off=[k=[0]]]\n(1 * <a> | rxn <a> ->{k} <a> + <a>)", Operation = "simulate", Simulator = "cme" });
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        Assert.All(Assert.Single(result.Model!.Simulations).Series[0].Values, value => Assert.Equal(1, value));
+    }
+
+    [Fact]
     public void Seeded_inference_recovers_the_known_rate_and_returns_observations_and_posterior_samples()
     {
         var request = new ModelRequest { Code = FitCode, Operation = "infer", Data = Data };
