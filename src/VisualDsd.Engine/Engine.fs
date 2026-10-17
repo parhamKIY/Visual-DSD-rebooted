@@ -109,144 +109,179 @@ module private StatisticalSolvers =
                     Cme.simulate env (Crn.to_inlined_rates current.settings) false cme |> snd
             Conversion.statistical current instance table) |> List.toArray
 
+module private CrnExecution =
+    let run (request: ModelRequest) (crn: Crn) =
+        let noInference = Unchecked.defaultof<InferenceData>
+        match request.Operation with
+        | "infer" ->
+            let fitted, results, details = ParameterInference.run request crn
+            fitted, results |> List.map (fun result -> Conversion.simulation fitted null result.instance result.table) |> List.toArray, details
+        | "analyze" ->
+            let runs = Exploration.analyze crn |> Array.map (fun (instance, states) ->
+                let run = Conversion.simulation crn null instance { Table.times = []; columns = [] }
+                SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, null, states))
+            crn, runs, noInference
+        | "simulate" ->
+            if crn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
+            let runs =
+                if crn.settings.simulator = Simulator.PDE then
+                    Exploration.spatial crn |> Array.map (fun (instance, table, data) ->
+                        let run = Conversion.simulation crn null instance table
+                        SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
+                elif crn.settings.simulator = Simulator.LNA || crn.settings.simulator = Simulator.CME then StatisticalSolvers.simulate crn
+                else crn.simulate_case() |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
+            crn, runs, noInference
+        | _ -> crn, [||], noInference
+
+    let executeProgram (request: ModelRequest) =
+        let original, program = CrnPrograms.parse request
+        let update (simulation: Simulation_settings<Functional>) =
+            { simulation with
+                initial = if request.Initial.HasValue then request.Initial.Value else simulation.initial
+                final = if request.Final.HasValue then request.Final.Value else simulation.final
+                points = if request.Points.HasValue then request.Points.Value else simulation.points
+                times = if request.Initial.HasValue || request.Final.HasValue || request.Points.HasValue then [] else simulation.times
+                seed = if request.Seed.HasValue then Some request.Seed.Value else simulation.seed }
+        let simulator =
+            match request.Simulator with
+            | "oslo" -> Simulator.Oslo | "ssa" -> Simulator.SSA | "lna" -> Simulator.LNA
+            | "cme" -> Simulator.CME | "pde" -> Simulator.PDE | _ -> original.settings.simulator
+        let crn = { original with settings = { original.settings with simulator = simulator; simulation = update original.settings.simulation; simulations = original.settings.simulations |> List.map update } }
+        let active = if crn.settings.simulations.IsEmpty then [crn.settings.simulation] else crn.settings.simulations
+        for sim in active do
+            if not (Double.IsFinite sim.initial && Double.IsFinite sim.final) then raise (ExecutionFailure("INVALID_TIME", "The model's time bounds must be finite."))
+            if request.Operation = "simulate" || request.Operation = "infer" then
+                if sim.final <= sim.initial then raise (ExecutionFailure("INVALID_TIME_RANGE", "Final time must be greater than initial time."))
+                if sim.points < 1 || sim.points > 100000 then raise (ExecutionFailure("INVALID_POINTS", "Output points must be between 1 and 100000."))
+        if request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
+            raise (ExecutionFailure("UNSUPPORTED_SIMULATOR", "This build supports Oslo, SSA, LNA, CME and PDE."))
+        let crn, runs, inference = run request crn
+        let network = Conversion.network "initial" crn
+        let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, crn.to_string(), program)
+        EngineResponse(true, request.Operation, "current", result, [||])
+
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.8.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
-                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"|])
+        EngineInfo("Visual DSD Rebooted", "0.9.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
         let validation = RequestValidation.Validate request
         if validation.Length > 0 then EngineResponse(false, "", "", null, validation)
         else
             let dialect =
-                if request.Dialect = "auto" then
+                if request.Language = "crn" then "current"
+                elif request.Dialect = "auto" then
                     if request.Code.Contains("//old_syntax", StringComparison.Ordinal) then "legacy" else "current"
                 else request.Dialect
             let failure code message = EngineResponse(false, request.Operation, dialect, null, [|Diagnostic(code, message)|])
             try
                 Globalization.CultureInfo.CurrentCulture <- Globalization.CultureInfo.InvariantCulture
                 Globalization.CultureInfo.CurrentUICulture <- Globalization.CultureInfo.InvariantCulture
-                let code = if dialect = "legacy" then SLConversion.convertSL request.Code else request.Code
-                let toeholds = if isNull request.Toeholds then Options.getToeholdsText Options.default_options else request.Toeholds
-                let specificities = if isNull request.Specificities then Options.getSpecificitiesText Options.default_options else request.Specificities
-                let original, _ = Dsd.parse_extended toeholds specificities code
-                let originalOptions = Dsd.get_options original
-                let compilation =
-                    match request.Compilation with
-                    | "default" -> Options.Default
-                    | "detailed" -> Options.Detailed
-                    | "finite" -> Options.Finite
-                    | "infinite" -> Options.Infinite
-                    | _ -> originalOptions.rules
-                let bundle = Dsd.set_options original (Options.setRules compilation originalOptions)
-                let jit = Dsd.is_jit bundle
-                if request.Operation = "expand" && jit then
-                    failure "JIT_EXPANSION" "This model requires just-in-time simulation and cannot be fully expanded."
+                if request.Language = "crn" then CrnExecution.executeProgram request
                 else
-                    let unexpanded = Dsd.convert_unexpanded bundle
-                    let simulator =
-                        match request.Simulator with
-                        | "oslo" -> Simulator.Oslo
-                        | "ssa" -> Simulator.SSA
-                        | "lna" -> Simulator.LNA
-                        | "cme" -> Simulator.CME
-                        | "pde" -> Simulator.PDE
-                        | _ -> unexpanded.settings.simulator
-                    let updateSimulation (current: Simulation_settings<'a>) = {
-                        current with
-                            initial = if request.Initial.HasValue then request.Initial.Value else current.initial
-                            final = if request.Final.HasValue then request.Final.Value else current.final
-                            points = if request.Points.HasValue then request.Points.Value else current.points
-                            times = if request.Initial.HasValue || request.Final.HasValue || request.Points.HasValue then [] else current.times
-                            seed = if request.Seed.HasValue then Some request.Seed.Value else current.seed
-                    }
-                    let simulation = updateSimulation unexpanded.settings.simulation
-                    let activeSimulations = if unexpanded.settings.simulations.IsEmpty then [simulation] else unexpanded.settings.simulations |> List.map updateSimulation
-                    if activeSimulations |> List.exists (fun sim -> not (Double.IsFinite sim.initial && Double.IsFinite sim.final)) then
-                        failure "INVALID_TIME" "The model's time bounds must be finite."
-                    elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.final <= sim.initial)) then
-                        failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
-                    elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
-                        failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
-                    elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
-                        failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA, CME and spatial PDE simulators."
-                    elif request.Operation = "analyze" && jit then
-                        failure "JIT_ANALYSIS" "State exploration requires a fully expanded model."
-                    elif request.Operation = "infer" && jit then
-                        failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
-                    elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
-                        failure "JIT_SIMULATOR" "Just-in-time models require the stochastic simulator."
+                    let code = if dialect = "legacy" then SLConversion.convertSL request.Code else request.Code
+                    let toeholds = if isNull request.Toeholds then Options.getToeholdsText Options.default_options else request.Toeholds
+                    let specificities = if isNull request.Specificities then Options.getSpecificitiesText Options.default_options else request.Specificities
+                    let original, _ = Dsd.parse_extended toeholds specificities code
+                    let originalOptions = Dsd.get_options original
+                    let compilation =
+                        match request.Compilation with
+                        | "default" -> Options.Default
+                        | "detailed" -> Options.Detailed
+                        | "finite" -> Options.Finite
+                        | "infinite" -> Options.Infinite
+                        | _ -> originalOptions.rules
+                    let bundle = Dsd.set_options original (Options.setRules compilation originalOptions)
+                    let jit = Dsd.is_jit bundle
+                    if request.Operation = "expand" && jit then
+                        failure "JIT_EXPANSION" "This model requires just-in-time simulation and cannot be fully expanded."
                     else
-                        let update (settings: Crn_settings<'a>) =
-                            { settings with simulator = simulator; simulation = updateSimulation settings.simulation
-                                            simulations = settings.simulations |> List.map updateSimulation }
-                        let configured =
-                            match bundle with
-                            | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = update classic.settings }
-                            | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
-                        let initialCrn = if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured
-                        let mutable inference = Unchecked.defaultof<InferenceData>
-                        let crn, simulations =
-                            if request.Operation = "infer" then
-                                let fitted, results, details = ParameterInference.run request initialCrn
-                                inference <- details
-                                fitted, results |> List.map (fun result -> Conversion.simulation fitted null result.instance result.table) |> List.toArray
-                            elif request.Operation = "analyze" then
-                                let runs = Exploration.analyze initialCrn |> Array.map (fun (instance, states) ->
-                                    let run = Conversion.simulation initialCrn null instance { Table.times = []; columns = [] }
-                                    SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, null, states))
-                                initialCrn, runs
-                            elif request.Operation <> "simulate" then initialCrn, [||]
-                            elif jit then
-                                let instances = initialCrn.get_instances()
-                                if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
-                                let run (instance: Instance<Functional>) =
-                                    if instance.environment |> Map.exists (fun _ value -> not (Double.IsFinite value)) then
-                                        raise (ExecutionFailure("INVALID_SWEEP", "Sweep parameter values must be finite."))
-                                    // Reparse before expansion: parameters can also change domain rates and module arguments.
-                                    // Each run owns its mutable species caches, reaction dictionaries and random generator.
-                                    let fresh, _ = Dsd.parse_extended_with_parameters instance.environment toeholds specificities code
-                                    let fresh = Dsd.set_options fresh (Options.setRules compilation (Dsd.get_options fresh))
-                                    let runSettings (settings: Crn_settings<'a>) =
-                                        let sim =
-                                            if settings.simulations.IsEmpty then settings.simulation
-                                            else settings.simulations |> List.find (fun sim -> sim.name = instance.settings.name)
-                                        { settings with simulator = simulator; simulation = updateSimulation sim; simulations = []; sweeps = [] }
-                                    let fresh =
-                                        match fresh with
-                                        | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = runSettings classic.settings }
-                                        | Dsd.Rules rules -> Dsd.Rules { rules with settings = runSettings rules.settings }
-                                    let initial = Dsd.convert_unexpanded fresh
-                                    let expanded, table =
-                                        match Dsd.to_jit fresh with
-                                        | Choice1Of2 state ->
-                                            let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
-                                            Jit.to_crn finalState initial, table
-                                        | Choice2Of2 state ->
-                                            let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
-                                            Jit.to_crn finalState initial, table
-                                    expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
-                                let results = instances |> List.map run
-                                if results.IsEmpty then raise (ExecutionFailure("EMPTY_BATCH", "The selected sweeps contain no simulation runs."))
-                                fst results.Head, results |> List.map snd |> List.toArray
-                            else
-                                if initialCrn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
-                                let runs =
-                                    if simulator = Simulator.PDE then
-                                        Exploration.spatial initialCrn |> Array.map (fun (instance, table, data) ->
-                                            let run = Conversion.simulation initialCrn null instance table
-                                            SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
-                                    elif simulator = Simulator.LNA || simulator = Simulator.CME then StatisticalSolvers.simulate initialCrn
-                                    else initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
-                                initialCrn, runs
-                        if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
-                            failure "MODEL_TOO_LARGE" "The expanded model exceeds the interactive result limit."
+                        let unexpanded = Dsd.convert_unexpanded bundle
+                        let simulator =
+                            match request.Simulator with
+                            | "oslo" -> Simulator.Oslo
+                            | "ssa" -> Simulator.SSA
+                            | "lna" -> Simulator.LNA
+                            | "cme" -> Simulator.CME
+                            | "pde" -> Simulator.PDE
+                            | _ -> unexpanded.settings.simulator
+                        let updateSimulation (current: Simulation_settings<'a>) = {
+                            current with
+                                initial = if request.Initial.HasValue then request.Initial.Value else current.initial
+                                final = if request.Final.HasValue then request.Final.Value else current.final
+                                points = if request.Points.HasValue then request.Points.Value else current.points
+                                times = if request.Initial.HasValue || request.Final.HasValue || request.Points.HasValue then [] else current.times
+                                seed = if request.Seed.HasValue then Some request.Seed.Value else current.seed
+                        }
+                        let simulation = updateSimulation unexpanded.settings.simulation
+                        let activeSimulations = if unexpanded.settings.simulations.IsEmpty then [simulation] else unexpanded.settings.simulations |> List.map updateSimulation
+                        if activeSimulations |> List.exists (fun sim -> not (Double.IsFinite sim.initial && Double.IsFinite sim.final)) then
+                            failure "INVALID_TIME" "The model's time bounds must be finite."
+                        elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.final <= sim.initial)) then
+                            failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
+                        elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
+                            failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
+                        elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
+                            failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA, CME and spatial PDE simulators."
+                        elif request.Operation = "analyze" && jit then
+                            failure "JIT_ANALYSIS" "State exploration requires a fully expanded model."
+                        elif request.Operation = "infer" && jit then
+                            failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
+                        elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
+                            failure "JIT_SIMULATOR" "Just-in-time models require the stochastic simulator."
                         else
-                            let network = Conversion.network (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn
-                            let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
-                                                  compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
-                                                  network.Species, network.Reactions, simulations, inference)
-                            EngineResponse(true, request.Operation, dialect, model, [||])
+                            let update (settings: Crn_settings<'a>) =
+                                { settings with simulator = simulator; simulation = updateSimulation settings.simulation
+                                                simulations = settings.simulations |> List.map updateSimulation }
+                            let configured =
+                                match bundle with
+                                | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = update classic.settings }
+                                | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
+                            let initialCrn = if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured
+                            let crn, simulations, inference =
+                                if jit && request.Operation = "simulate" then
+                                    let instances = initialCrn.get_instances()
+                                    if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
+                                    let run (instance: Instance<Functional>) =
+                                        if instance.environment |> Map.exists (fun _ value -> not (Double.IsFinite value)) then
+                                            raise (ExecutionFailure("INVALID_SWEEP", "Sweep parameter values must be finite."))
+                                        // Reparse before expansion: parameters can also change domain rates and module arguments.
+                                        // Each run owns its mutable species caches, reaction dictionaries and random generator.
+                                        let fresh, _ = Dsd.parse_extended_with_parameters instance.environment toeholds specificities code
+                                        let fresh = Dsd.set_options fresh (Options.setRules compilation (Dsd.get_options fresh))
+                                        let runSettings (settings: Crn_settings<'a>) =
+                                            let sim =
+                                                if settings.simulations.IsEmpty then settings.simulation
+                                                else settings.simulations |> List.find (fun sim -> sim.name = instance.settings.name)
+                                            { settings with simulator = simulator; simulation = updateSimulation sim; simulations = []; sweeps = [] }
+                                        let fresh =
+                                            match fresh with
+                                            | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = runSettings classic.settings }
+                                            | Dsd.Rules rules -> Dsd.Rules { rules with settings = runSettings rules.settings }
+                                        let initial = Dsd.convert_unexpanded fresh
+                                        let expanded, table =
+                                            match Dsd.to_jit fresh with
+                                            | Choice1Of2 state ->
+                                                let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
+                                                Jit.to_crn finalState initial, table
+                                            | Choice2Of2 state ->
+                                                let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
+                                                Jit.to_crn finalState initial, table
+                                        expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
+                                    let results = instances |> List.map run
+                                    if results.IsEmpty then raise (ExecutionFailure("EMPTY_BATCH", "The selected sweeps contain no simulation runs."))
+                                    fst results.Head, results |> List.map snd |> List.toArray, Unchecked.defaultof<InferenceData>
+                                else CrnExecution.run request initialCrn
+                            if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
+                                failure "MODEL_TOO_LARGE" "The expanded model exceeds the interactive result limit."
+                            else
+                                let network = Conversion.network (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn
+                                let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
+                                                      compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
+                                                      network.Species, network.Reactions, simulations, inference,
+                                                      (if jit || request.Operation = "parse" then null else initialCrn.to_string()))
+                                EngineResponse(true, request.Operation, dialect, model, [||])
             with
             | ExecutionFailure(code, message) -> failure code message
             | :? Errors.DSDException as error ->

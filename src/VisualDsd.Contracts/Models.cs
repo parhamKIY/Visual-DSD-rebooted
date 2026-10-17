@@ -7,6 +7,9 @@ namespace VisualDsd.Contracts;
 public sealed record ModelRequest
 {
     public string Code { get; init; } = "";
+    public string Language { get; init; } = "dsd";
+    public string? NodeId { get; init; }
+    public string? SystemId { get; init; }
     public string Dialect { get; init; } = "auto";
     public string Operation { get; init; } = "parse";
     public string Compilation { get; init; } = "source";
@@ -43,8 +46,14 @@ public sealed record StateSpaceData(string[] SpeciesIds, int InitialState, int[]
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
     SettingsData? Settings = null, NetworkData? Network = null, SpatialData? Spatial = null, StateSpaceData? StateSpace = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
+public sealed record CrnSystemData(string Id, int SpeciesCount, int ReactionCount);
+public sealed record CrnNodeData(string Id, CrnSystemData[] Systems);
+public sealed record CrnLocationData(string NodeId, string SystemId);
+public sealed record CrnPriorData(string SourceParameter, string TargetParameter, string Kind);
+public sealed record CrnEdgeData(CrnLocationData Source, CrnLocationData Target, CrnPriorData[] Parameters);
+public sealed record CrnProgramData(string Source, CrnNodeData[] Nodes, CrnEdgeData[] Edges, string SelectedNodeId, string SelectedSystemId);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
-    InferenceData? Inference = null);
+    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>
@@ -52,7 +61,7 @@ public sealed record EngineResponse(bool Success, string Operation, string Diale
 }
 
 public sealed record JobView(string Id, string State, DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? FinishedAt, EngineResponse? Result);
-public sealed record EngineInfo(string Name, string Version, string[] Operations, string[] Dialects, string[] CompilationModes, string[] Simulators);
+public sealed record EngineInfo(string Name, string Version, string[] Operations, string[] Dialects, string[] CompilationModes, string[] Simulators, string[]? Languages = null);
 
 public static class RequestValidation
 {
@@ -62,6 +71,11 @@ public static class RequestValidation
     {
         if (request is null) return [new("INVALID_REQUEST", "A model request is required.")];
         var errors = new List<Diagnostic>();
+        if (request.Language is not ("dsd" or "crn")) errors.Add(new("INVALID_LANGUAGE", "Language must be dsd or crn."));
+        if (request.NodeId?.Length > 128 || request.SystemId?.Length > 128) errors.Add(new("INVALID_SELECTION", "Node and system identifiers cannot exceed 128 characters."));
+        if (request.Language == "dsd" && (request.NodeId is not null || request.SystemId is not null)) errors.Add(new("INVALID_SELECTION", "Node and system selection requires CRN input."));
+        if (request.Language == "crn" && (request.Dialect == "legacy" || request.Compilation != "source" || request.Toeholds is not null || request.Specificities is not null))
+            errors.Add(new("CRN_OPTIONS", "CRN input uses current syntax and does not use DSD compilation or sequence databases."));
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));

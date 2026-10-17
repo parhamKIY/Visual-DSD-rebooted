@@ -19,7 +19,7 @@ public static class Program
         if (args.SequenceEqual(["--version"])) { Console.WriteLine(CoreEngine.Info.Version); return 0; }
         if (args.SequenceEqual(["--help"]) || args.SequenceEqual(["help"]))
         {
-            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze <file|-> [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
+            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
             return 0;
         }
         try
@@ -80,13 +80,16 @@ public static class Program
         if (args[1] != "-" && new FileInfo(args[1]).Length > RequestValidation.MaximumCodeBytes + 3)
             throw new ArgumentException("The model file exceeds 256 KiB.");
         string code = args[1] == "-" ? await ReadInputAsync(Console.In, RequestValidation.MaximumCodeBytes) : await File.ReadAllTextAsync(args[1]);
-        var request = new ModelRequest { Code = code, Operation = args[0], Dialect = Path.GetExtension(args[1]).Equals(".vdsd", StringComparison.OrdinalIgnoreCase) ? "legacy" : "auto" };
+        var request = new ModelRequest { Code = code, Operation = args[0], Language = Path.GetExtension(args[1]).Equals(".crn", StringComparison.OrdinalIgnoreCase) ? "crn" : "dsd", Dialect = Path.GetExtension(args[1]).Equals(".vdsd", StringComparison.OrdinalIgnoreCase) ? "legacy" : "auto" };
         for (int index = 2; index < args.Length; index += 2)
         {
             if (index + 1 >= args.Length) throw new ArgumentException($"Missing value for {args[index]}.");
             string value = args[index + 1];
             request = args[index] switch
             {
+                "--language" => request with { Language = value },
+                "--node" => request with { NodeId = value },
+                "--system" => request with { SystemId = value },
                 "--dialect" => request with { Dialect = value },
                 "--compilation" => request with { Compilation = value },
                 "--simulator" => request with { Simulator = value },
