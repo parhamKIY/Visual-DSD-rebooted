@@ -128,8 +128,15 @@ module private StatisticalSolvers =
                 raise (ExecutionFailure("STATISTICAL_EVENTS", "Moment closure does not support timed population inputs."))
             if current.reactions |> List.exists (fun reaction -> match reaction.rate, reaction.reverse with Rate.Function _, _ | _, Some (Rate.Function _) -> true | _ -> false) then
                 raise (ExecutionFailure("MC_RATES", "Moment closure supports mass-action reactions only."))
-            let _, table = current |> Moments.generateMoments |> Moments.generateClosure |> Moments.simulate
-            Conversion.statistical current instance table) |> List.toArray
+            let closure = current |> Moments.generateMoments |> Moments.generateClosure
+            let _, table = Moments.simulate closure
+            let run = Conversion.statistical current instance table
+            // Upstream fills uncomputed uncertainties with zero. Expose those as absent.
+            let series =
+                Array.map2 (fun (series: SeriesData) (_, secondMoment) ->
+                    if Option.isSome secondMoment then series else SeriesData(series.Name, series.Values))
+                    run.Series (closure.mc_settings.plots |> List.toArray)
+            SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, series, run.Seed, run.Settings, null)) |> List.toArray
 
 module private CrnExecution =
     let run (request: ModelRequest) (crn: Crn) =

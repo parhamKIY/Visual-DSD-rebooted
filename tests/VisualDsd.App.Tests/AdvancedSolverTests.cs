@@ -73,6 +73,7 @@ public class AdvancedSolverTests
         Assert.Equal(new[] { .5, 1, 2 }, run.Times);
         var mean = run.Series.Single(s => s.Name == "E[A]");
         var second = run.Series.Single(s => s.Name == "E[A^2]");
+        Assert.Null(second.StandardDeviation);
         for (int i = 0; i < run.Times.Length; i++)
         {
             double p = Math.Exp(-.5 * run.Times[i]), variance = 10 * p * (1 - p);
@@ -153,5 +154,13 @@ public class AdvancedSolverTests
         Assert.Equal(6, runs[0].Times[^1]); Assert.Equal(7, runs[3].Times[^1]);
         Assert.InRange(Math.Abs(runs[0].Series[0].Values[^1] - 10 * Math.Exp(-.1)), 0, .005);
         Assert.InRange(Math.Abs(runs[3].Series[0].Values[^1] - 10 * Math.Exp(-1.4)), 0, .005);
+    }
+
+    [Fact]
+    public void First_order_closure_does_not_report_a_fabricated_zero_uncertainty()
+    {
+        var run = Run("directive moments {order=1;plots=[<A>]}\n" + Decay, "mc");
+        Assert.Null(run.Series[0].StandardDeviation);
+        Assert.InRange(Math.Abs(run.Series[0].Values[^1] - 10 * Math.Exp(-1)), 0, .005);
     }
 }
