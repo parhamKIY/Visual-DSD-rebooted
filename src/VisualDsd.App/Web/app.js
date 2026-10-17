@@ -288,7 +288,7 @@ function renderResults() {
   $('empty-state').hidden = Boolean(response); $('results-content').hidden = !response;
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
-  $('species-count').textContent = model.species.length; $('reaction-count').textContent = model.reactions.length;
+  $('species-count').textContent = model.species.filter(species => !species.sourceId).length; $('reaction-count').textContent = model.reactions.length;
   renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration();
 }
 function renderNetwork() {
