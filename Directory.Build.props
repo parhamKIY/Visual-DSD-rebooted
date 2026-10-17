@@ -4,6 +4,8 @@
     <OtherFlags>$(OtherFlags) --strict-indentation-</OtherFlags>
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- SDK-bundled FSharp.Core archives vary by platform. Restore the signed NuGet package everywhere. -->
+    <DisableImplicitLibraryPacksFolder>true</DisableImplicitLibraryPacksFolder>
     <NuGetLockFilePath Condition="'$(RebootPublish)' == 'true'">$(MSBuildThisFileDirectory)artifacts/publish-restore/$(RuntimeIdentifier)/$(MSBuildProjectName)/packages.lock.json</NuGetLockFilePath>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
