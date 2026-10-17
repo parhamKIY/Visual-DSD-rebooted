@@ -106,8 +106,8 @@ module private StatisticalSolvers =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.6.0", [|"parse"; "expand"; "simulate"; "infer"|],
-                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"|])
+        EngineInfo("Visual DSD Rebooted", "0.7.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
         let validation = RequestValidation.Validate request
@@ -145,6 +145,7 @@ type Engine private () =
                         | "ssa" -> Simulator.SSA
                         | "lna" -> Simulator.LNA
                         | "cme" -> Simulator.CME
+                        | "pde" -> Simulator.PDE
                         | _ -> unexpanded.settings.simulator
                     let updateSimulation (current: Simulation_settings<'a>) = {
                         current with
@@ -162,8 +163,10 @@ type Engine private () =
                         failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
                     elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
                         failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
-                    elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME]) then
-                        failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA and CME simulators."
+                    elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
+                        failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA, CME and spatial PDE simulators."
+                    elif request.Operation = "analyze" && jit then
+                        failure "JIT_ANALYSIS" "State exploration requires a fully expanded model."
                     elif request.Operation = "infer" && jit then
                         failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
                     elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
@@ -183,6 +186,11 @@ type Engine private () =
                                 let fitted, results, details = ParameterInference.run request initialCrn
                                 inference <- details
                                 fitted, results |> List.map (fun result -> Conversion.simulation fitted null result.instance result.table) |> List.toArray
+                            elif request.Operation = "analyze" then
+                                let runs = Exploration.analyze initialCrn |> Array.map (fun (instance, states) ->
+                                    let run = Conversion.simulation initialCrn null instance { Table.times = []; columns = [] }
+                                    SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, null, states))
+                                initialCrn, runs
                             elif request.Operation <> "simulate" then initialCrn, [||]
                             elif jit then
                                 let instances = initialCrn.get_instances()
@@ -219,7 +227,11 @@ type Engine private () =
                             else
                                 if initialCrn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
                                 let runs =
-                                    if simulator = Simulator.LNA || simulator = Simulator.CME then StatisticalSolvers.simulate initialCrn
+                                    if simulator = Simulator.PDE then
+                                        Exploration.spatial initialCrn |> Array.map (fun (instance, table, data) ->
+                                            let run = Conversion.simulation initialCrn null instance table
+                                            SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
+                                    elif simulator = Simulator.LNA || simulator = Simulator.CME then StatisticalSolvers.simulate initialCrn
                                     else initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
                                 initialCrn, runs
                         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then

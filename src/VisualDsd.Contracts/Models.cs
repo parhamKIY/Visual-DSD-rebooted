@@ -35,8 +35,13 @@ public sealed record ParameterEstimateData(string Name, string Kind, double Mle,
 public sealed record InferenceData(long Seed, int BurnIn, int Iterations, int Thin, int RetainedSamples, int DataPoints,
     double MaxLogLikelihood, ParameterEstimateData[] Parameters, double[] LogLikelihood, ObservationData[] Observations);
 public sealed record NetworkData(SpeciesData[] Species, ReactionData[] Reactions);
+public sealed record SpatialSeriesData(string Name, double[][] Frames);
+// Frames are indexed by time, then x-major cells: x * Y.Length + y (or x in 1D).
+public sealed record SpatialData(int Dimensions, string Boundary, double[] X, double[] Y, double Dt, SpatialSeriesData[] Series);
+public sealed record StateTransitionData(int Source, int Target, double Rate);
+public sealed record StateSpaceData(string[] SpeciesIds, int InitialState, int[][] States, StateTransitionData[] Transitions);
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
-    SettingsData? Settings = null, NetworkData? Network = null);
+    SettingsData? Settings = null, NetworkData? Network = null, SpatialData? Spatial = null, StateSpaceData? StateSpace = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
     InferenceData? Inference = null);
@@ -60,10 +65,10 @@ public static class RequestValidation
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));
-        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, or infer."));
+        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, or analyze."));
         if (request.Dialect is not ("auto" or "current" or "legacy")) errors.Add(new("INVALID_DIALECT", "Dialect must be auto, current, or legacy."));
         if (request.Compilation is not ("source" or "default" or "detailed" or "finite" or "infinite")) errors.Add(new("INVALID_COMPILATION", "Unknown compilation mode."));
-        if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, or cme."));
+        if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme" or "pde")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, cme, or pde."));
         errors.AddRange(ObservationValidation.Validate(request.Data));
         if (request.Operation == "infer" && request.Data is { Length: 0 }) errors.Add(new("MISSING_DATA", "Import observation data before fitting parameters."));
         if (request.Initial.HasValue && !double.IsFinite(request.Initial.Value)) errors.Add(new("INVALID_TIME", "Initial time must be finite."));

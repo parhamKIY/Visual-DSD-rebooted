@@ -38,11 +38,11 @@ let solver (t0:float) (u0:float[][][]) (f:float -> float[] -> float[]) (nx:int) 
     seq {
         yield {t=timerec; u=uplot u}
 
-        while (timerec < settings.tmax) do
+        for outputStep in 1 .. int (ceil ((settings.tmax - t0) / (settings.dt * float settings.thin) - 1e-10)) do
 
-            for t in 0..(settings.thin-1) do
+            for innerStep in 0..(settings.thin-1) do
             
-                timerec <- timerec + settings.dt
+                timerec <- min settings.tmax (t0 + float ((outputStep - 1) * settings.thin + innerStep + 1) * settings.dt)
 
                 // Step 1 of ADI - Differentiate in the x-direction
                 for j in 0..(nx-1) do

@@ -32,9 +32,9 @@ let solver (t0:float) (u0:float[][]) (f:float -> float[] -> float[]) (nx:int) (n
     seq {
         yield {t=timerec; u=uplot u}
 
-        while timerec < settings.tmax do
-            for _ in 0..(settings.thin-1) do
-                timerec <- timerec + dt;
+        for outputStep in 1 .. int (ceil ((settings.tmax - t0) / (settings.dt * float settings.thin) - 1e-10)) do
+            for innerStep in 0..(settings.thin-1) do
+                timerec <- min settings.tmax (t0 + float ((outputStep - 1) * settings.thin + innerStep + 1) * dt);
 
                 for ix in 0..(nx-1) do
                     for j in 0..(numspecies-1) do

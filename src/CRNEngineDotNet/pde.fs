@@ -86,9 +86,14 @@ type Pde<'a> when 'a:equality =
         | None -> s.default_diffusion
       ) 
     let dx = float s.xmax / (float s.nx - 1.0)
-    let dt = if s.dt > 0.0 then s.dt else 0.2*dx*dx / (Array.max D)
+    let duration = pde.sim_settings.final - pde.sim_settings.initial
+    let maximumDiffusion = Array.max D
+    let requestedDt = if s.dt > 0.0 then s.dt elif maximumDiffusion > 0.0 then 0.2*dx*dx / maximumDiffusion else duration / (float pde.sim_settings.points * 10.0)
+    // Align integration steps with output times and the final boundary.
+    let thin = max 1 (int (ceil (duration / (float pde.sim_settings.points * requestedDt))))
+    let dt = duration / (float pde.sim_settings.points * float thin)
     { numspecies = numspecies
-      thin = ((pde.sim_settings.final - pde.sim_settings.initial) / dt / (pde.sim_settings.points |> float)) |> ceil |> int
+      thin = thin
       nx = s.nx
       xmin = 0.0
       xmax = s.xmax
