@@ -1,5 +1,6 @@
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, modelForRun } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, modelForRun, modelForNode } from './model.js';
 import { readDatasets, readObservations } from './observations.js';
+import { splitRHat } from './posterior.js';
 
 export const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const fail = message => { throw new Error(`Invalid project: ${message}`); };
@@ -70,22 +71,54 @@ function readNetwork(source, isJit, operation) {
 
 function readInference(raw, runs) {
   object(raw);
-  const retainedSamples = integer(raw.retainedSamples, 2, 500);
-  const likelihood = array(raw.logLikelihood, 500).map(finite);
+  const retainedSamples = integer(raw.retainedSamples, 2, 2000);
+  const likelihood = array(raw.logLikelihood, 2000).map(finite);
   if (likelihood.length !== retainedSamples) fail('posterior sample count mismatch.');
-  const parameters = array(raw.parameters, 100).map(parameter => {
-    object(parameter); const samples = array(parameter.samples, 500).map(finite);
-    if (samples.length !== retainedSamples || finite(parameter.variance) < 0 || finite(parameter.lower95) > finite(parameter.upper95)) fail('invalid posterior parameter summary.');
-    return { name: text(parameter.name, 512), kind: choice(parameter.kind, ['model', 'noise']), mle: finite(parameter.mle), mean: finite(parameter.mean), variance: parameter.variance, median: finite(parameter.median), lower95: parameter.lower95, upper95: parameter.upper95, samples };
+  const readParameters = (items,count) => array(items,100).map(parameter => {
+    object(parameter); const samples = array(parameter.samples,2000).map(finite);
+    if(samples.length!==count || finite(parameter.variance)<0 || finite(parameter.lower95)>finite(parameter.upper95)) fail('invalid posterior parameter summary.');
+    const result={name:text(parameter.name,512),kind:choice(parameter.kind,['model','noise']),mle:finite(parameter.mle),mean:finite(parameter.mean),variance:parameter.variance,median:finite(parameter.median),lower95:parameter.lower95,upper95:parameter.upper95,samples};
+    if(parameter.splitRHat!==undefined) {result.splitRHat=parameter.splitRHat===null?null:finite(parameter.splitRHat);if(result.splitRHat!==null && result.splitRHat<0)fail('invalid split R-hat.');}
+    return result;
   });
-  if (!parameters.length || new Set(parameters.map(p => p.name)).size !== parameters.length) fail('missing or duplicated inferred parameters.');
-  const observations = array(raw.observations, 32).map(readObservations);
-  if (observations.length !== runs.length || observations.some((table, i) => table.times.length !== runs[i].times.length || table.times.some((time, row) => time !== runs[i].times[row]) || table.series.length !== runs[i].series.length || table.series.some((column, j) => column.name !== runs[i].series[j].name))) fail('fit observations do not match the predicted tables.');
-  const dataPoints = integer(raw.dataPoints, 1, 20000);
-  if (dataPoints !== observations.reduce((sum, table) => sum + table.times.length * table.series.length, 0)) fail('observation count mismatch.');
-  const burnIn = integer(raw.burnIn, 0, 20000), iterations = integer(raw.iterations, 2, 20000), thin = integer(raw.thin, 1, 20000);
-  if (burnIn + iterations > 20000 || Math.floor(iterations / thin) !== retainedSamples) fail('invalid MCMC iteration counts.');
-  return { seed: integer(raw.seed, 0, 4294967295), burnIn, iterations, thin, retainedSamples, dataPoints, maxLogLikelihood: finite(raw.maxLogLikelihood), parameters, logLikelihood: likelihood, observations };
+  const parameters=readParameters(raw.parameters,retainedSamples);
+  if(!parameters.length || new Set(parameters.map(p=>p.name)).size!==parameters.length)fail('missing or duplicated inferred parameters.');
+  const observations=array(raw.observations,32).map(readObservations);
+  if(observations.length!==runs.length || observations.some((table,i)=>table.times.length!==runs[i].times.length || table.times.some((time,row)=>time!==runs[i].times[row]) || table.series.length!==runs[i].series.length || table.series.some((column,j)=>column.name!==runs[i].series[j].name)))fail('fit observations do not match the predicted tables.');
+  const dataPoints=integer(raw.dataPoints,1,20000);
+  if(dataPoints!==observations.reduce((sum,table)=>sum+table.times.length*table.series.length,0))fail('observation count mismatch.');
+  const burnIn=integer(raw.burnIn,0,20000),iterations=integer(raw.iterations,2,20000),thin=integer(raw.thin,1,20000),perChain=Math.floor(iterations/thin);
+  if(burnIn+iterations>20000 || perChain<2 || perChain>500)fail('invalid MCMC iteration counts.');
+  const result={seed:integer(raw.seed,0,4294967295),burnIn,iterations,thin,retainedSamples,dataPoints,maxLogLikelihood:finite(raw.maxLogLikelihood),parameters,logLikelihood:likelihood,observations};
+  if(raw.lowerBound!==undefined)result.lowerBound=raw.lowerBound===null?null:finite(raw.lowerBound);
+  if(raw.chains!=null){
+    const chains=array(raw.chains,4).map(c=>{
+      object(c);if(typeof c.included!=='boolean')fail('invalid chain inclusion flag.');
+      const ll=array(c.logLikelihood,500).map(finite),prior=array(c.logPrior,500).map(finite),stamps=array(c.iterations,500).map(v=>integer(v,0,20000));
+      if(ll.length!==perChain || prior.length!==perChain || stamps.length!==perChain)fail('incomplete chain samples.');
+      const p=readParameters(c.parameters,perChain);
+      if(p.length!==parameters.length || p.some((v,i)=>v.name!==parameters[i].name || v.kind!==parameters[i].kind))fail('chain parameters disagree.');
+      return {seed:integer(c.seed,0,4294967295),included:c.included,maxLogLikelihood:finite(c.maxLogLikelihood),parameters:p,logLikelihood:ll,iterations:stamps,logPrior:prior};
+    });
+    if(!chains.length || new Set(chains.map(c=>c.seed)).size!==chains.length || chains.some(c=>c.included!==(result.lowerBound==null || c.maxLogLikelihood>result.lowerBound)))fail('invalid chain selection.');
+    const included=chains.filter(c=>c.included);
+    if(!included.length || perChain*included.length!==retainedSamples || (burnIn+iterations)*chains.length>20000 || !included.some(c=>c.seed===result.seed && c.maxLogLikelihood===result.maxLogLikelihood) || result.maxLogLikelihood!==Math.max(...included.map(c=>c.maxLogLikelihood)))fail('invalid pooled chain metadata.');
+    if(included.flatMap(c=>c.logLikelihood).some((v,i)=>v!==likelihood[i]))fail('pooled likelihood does not preserve chain boundaries.');
+    for(const [i,p]of parameters.entries()){
+      if(included.flatMap(c=>c.parameters[i].samples).some((v,j)=>v!==p.samples[j]))fail('pooled posterior is inconsistent with chains.');
+      const expected=splitRHat(included.map(c=>c.parameters[i].samples));
+      if((p.splitRHat??null)!==expected && (expected===null || p.splitRHat==null || Math.abs(p.splitRHat-expected)>1e-9*Math.max(1,expected)))fail('split R-hat disagrees with chain samples.');
+    }
+    result.chains=chains;
+  }else{
+    if(raw.chains!==undefined)result.chains=null;
+    if(perChain!==retainedSamples)fail('legacy posterior sample count mismatch.');
+  }
+  if(raw.priors!==undefined){
+    result.priors=raw.priors===null?null:array(raw.priors,256).map(p=>{object(p);if(typeof p.variable!=='boolean')fail('invalid prior flag.');return{name:text(p.name,512),initial:finite(p.initial),distribution:text(p.distribution,2048),interval:choice(p.interval,['Fixed','Real','Log']),variable:p.variable};});
+    if(result.priors && new Set(result.priors.map(p=>p.name)).size!==result.priors.length)fail('duplicated effective priors.');
+  }
+  return result;
 }
 
 function readSpatial(raw, run, budget) {
@@ -202,7 +235,7 @@ export function readProgram(raw) {
   return { source, nodes, edges, selectedNodeId: selected.nodeId, selectedSystemId: selected.systemId };
 }
 
-export function readResponse(raw) {
+export function readResponse(raw, nested=false) {
   object(raw);
   if (raw.success !== true) fail('only completed successful results can be restored.');
   const operation = choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze']), dialect = choice(raw.dialect, ['current', 'legacy']);
@@ -246,6 +279,23 @@ export function readResponse(raw) {
   if (model.kind === 'crn' && (!model.program || model.isJit || model.compilation !== 'source')) fail('invalid CRN program metadata.');
   if (source.inference !== undefined) model.inference = source.inference === null ? null : readInference(source.inference, simulations);
   if ((operation === 'infer') !== Boolean(model.inference)) fail('inference metadata does not match the operation.');
+  if(source.inferenceNodes!==undefined){
+    model.inferenceNodes=source.inferenceNodes===null?null:array(source.inferenceNodes,8).map(node=>{
+      object(node);const nodeId=text(node.nodeId,128);
+      if(operation!=='infer' || !model.program?.nodes.some(n=>n.id===nodeId))fail('unknown fitted model node.');
+      const parsed=readResponse({success:true,operation,dialect,diagnostics:[],model:{...source,settings:node.settings,species:object(node.network).species,reactions:node.network.reactions,simulations:node.simulations,inference:node.inference,inferenceNodes:undefined}},true).model;
+      return {nodeId,settings:parsed.settings,network:{species:parsed.species,reactions:parsed.reactions},simulations:parsed.simulations,inference:parsed.inference};
+    });
+    if(model.inferenceNodes){
+      const nodes=model.inferenceNodes;
+      if(nodes.length!==model.program.nodes.length || new Set(nodes.map(n=>n.nodeId)).size!==nodes.length || nodes.reduce((s,n)=>s+n.inference.dataPoints,0)>20000 || nodes.reduce((s,n)=>s+(n.inference.burnIn+n.inference.iterations)*(n.inference.chains?.length||1),0)>20000)fail('invalid fitted model graph size or work.');
+      if(model.program.edges.some(edge=>nodes.findIndex(n=>n.nodeId===edge.source.nodeId)>=nodes.findIndex(n=>n.nodeId===edge.target.nodeId)))fail('fitted graph is not in dependency order.');
+      const chosen=nodes.find(n=>n.nodeId===model.program.selectedNodeId);
+      for(const [a,b]of [[chosen?.settings,model.settings],[chosen?.network.species,model.species],[chosen?.network.reactions,model.reactions],[chosen?.simulations,model.simulations],[chosen?.inference,model.inference]])if(JSON.stringify(a)!==JSON.stringify(b))fail('selected fitted model differs from its graph entry.');
+    }
+  }
+  if(!nested && operation==='infer' && model.program?.nodes.length>1 && !model.inferenceNodes?.length)fail('missing linked inference results.');
+
   return { success: true, operation, dialect, diagnostics: [], model };
 }
 
@@ -259,16 +309,21 @@ function readSavedResult(raw, model) {
   } else if (response.model.kind === 'crn') fail('a DSD request cannot contain a CRN result.');
   const snapshot = { name: text(raw.name, 120), engineVersion: text(raw.engineVersion || 'unknown', 50), request };
   const networkFocus = text(raw.networkFocus ?? '', 512);
-  const runIndex = integer(raw.runIndex ?? 0, 0, Math.max(0, response.model.simulations.length - 1));
-  if (networkFocus && !modelForRun(response.model, runIndex).species.some(species => species.id === networkFocus)) fail('network focus refers to an unknown species.');
-  const run = response.model.simulations[runIndex];
+  const fitNodeId=text(raw.fitNodeId??response.model.program?.selectedNodeId??'',128);
+  if(response.model.inferenceNodes?.length && !response.model.inferenceNodes.some(n=>n.nodeId===fitNodeId))fail('unknown selected inference node.');
+  const selected=modelForNode(response.model,fitNodeId);
+  const runIndex = integer(raw.runIndex ?? 0, 0, Math.max(0, selected.simulations.length - 1));
+  if (networkFocus && !modelForRun(selected, runIndex).species.some(species => species.id === networkFocus)) fail('network focus refers to an unknown species.');
+  const run = selected.simulations[runIndex];
+  const fitParameter=text(raw.fitParameter??'',512),fitPair=text(raw.fitPair??'',512);
+  if([fitParameter,fitPair].some(name=>name && !selected.inference?.parameters.some(p=>p.name===name)))fail('unknown selected posterior parameter.');
   const spatialSeries = integer(raw.spatialSeries ?? 0, 0, Math.max(0, (run?.spatial?.series.length || 0) - 1));
   const spatialFrame = integer(raw.spatialFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   const stateIndex = integer(raw.stateIndex ?? 0, 0, Math.max(0, (run?.stateSpace?.states.length || 0) - 1));
   const probabilitySpecies = integer(raw.probabilitySpecies ?? 0, 0, Math.max(0, (run?.probabilities?.speciesIds.length || 0) - 1));
   const probabilityFrame = integer(raw.probabilityFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   if (raw.probabilityLog !== undefined && typeof raw.probabilityLog !== 'boolean') fail('invalid probability palette.');
-  return { response, snapshot, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
+  return { response, snapshot, fitNodeId, fitParameter, fitPair, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
 }
 
 export function parseProject(input) {
@@ -288,7 +343,7 @@ export function serialiseProject(documents, activeId, views, engineVersion) {
   const raw = { format: 'visual-dsd-project', version: 1, engineVersion, savedAt: new Date().toISOString(), activeId, documents: documents.map(model => {
     const entry = { id: model.id, name: model.name, code: model.code, options: model.options, databases: model.databases, data: readDatasets(model.data), exampleId: model.exampleId };
     const view = views.get(model.id);
-    if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0, probabilitySpecies: view.probabilitySpecies || 0, probabilityFrame: view.probabilityFrame || 0, probabilityLog: Boolean(view.probabilityLog) };
+    if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, fitNodeId: view.fitNodeId, fitParameter: view.fitParameter, fitPair: view.fitPair, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0, probabilitySpecies: view.probabilitySpecies || 0, probabilityFrame: view.probabilityFrame || 0, probabilityLog: Boolean(view.probabilityLog) };
     return entry;
   }) };
   const json = JSON.stringify(raw);

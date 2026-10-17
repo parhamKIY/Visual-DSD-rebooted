@@ -1,10 +1,12 @@
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using VisualDsd.Contracts;
 
 namespace VisualDsd.App;
 
 public sealed record ExampleInfo(string Id, string Name, string Description, string Dialect, string Language = "dsd");
-public sealed record ExampleModel(string Id, string Name, string Description, string Dialect, string Code, string Language = "dsd");
+public sealed record ExampleModel(string Id, string Name, string Description, string Dialect, string Code, string Language = "dsd", DatasetData[]? Data = null);
 
 internal static class WebAssets
 {
@@ -14,11 +16,12 @@ internal static class WebAssets
         ["index.html"] = "text/html; charset=utf-8", ["app.css"] = "text/css; charset=utf-8",
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
-        ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
+        ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
     };
 
     public static readonly ExampleInfo[] Examples =
     [
+        new("inference-linked", "CRN · linked inference", "Synthetic observations included: two chains per node and posterior transfer between fitted models.", "current", "crn"),
         new("lna-covariance", "CRN · covariance and scale", "Scaled copy populations and uncertainty of sums and differences, including cross-species covariance.", "current", "crn"),
         new("cme-distribution", "CRN · probability distribution", "Inspect joint CME probabilities, population heatmaps and marginal distributions.", "current", "crn"),
         new("jit-states", "JIT · reachable binding states", "Generate reachable population states lazily for a strand displacement model.", "current"),
@@ -50,7 +53,10 @@ internal static class WebAssets
         if (info is null) return Results.NotFound();
         using Stream stream = Assembly.GetManifestResourceStream($"VisualDsd.Examples.{id}") ?? throw new InvalidOperationException("An embedded example is missing.");
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        return Results.Json(new ExampleModel(info.Id, info.Name, info.Description, info.Dialect, reader.ReadToEnd(), info.Language));
+        using Stream? dataStream = Assembly.GetManifestResourceStream($"VisualDsd.Examples.{id}.data");
+        using StreamReader? dataReader = dataStream is null ? null : new StreamReader(dataStream, Encoding.UTF8);
+        DatasetData[]? data = dataReader is null ? null : JsonSerializer.Deserialize<DatasetData[]>(dataReader.ReadToEnd(), ProcessEngineWorker.Json);
+        return Results.Json(new ExampleModel(info.Id, info.Name, info.Description, info.Dialect, reader.ReadToEnd(), info.Language, data));
     }
 
     public static void Map(WebApplication app)

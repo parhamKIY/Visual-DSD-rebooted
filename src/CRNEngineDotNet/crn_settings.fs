@@ -119,7 +119,8 @@ type Crn_settings<'e> when 'e:equality =
         | nd, ns -> if nd <> ns then failwithf "Incompatible number of sweeps and data in simulation %s" simulation.name
         let simulations:Simulation_settings<'e> list = 
           List.map (fun (table:Table<float>) -> simulation.update_times table.times) tables
-        simulations,tables,sweeps
+        // Each simulation without an explicit sweep still has one inference instance.
+        simulations,tables,(if sweeps.IsEmpty then [Sweep.create()] else sweeps)
       let simulations = if s.simulations = [] then [s.simulation] else s.simulations
       let simulations_list,tables_list,sweeps_list = List.unzip3 (List.map f2 simulations)
       List.concat simulations_list, List.concat tables_list, List.concat sweeps_list

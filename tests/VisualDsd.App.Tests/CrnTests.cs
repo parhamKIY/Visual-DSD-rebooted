@@ -178,6 +178,6 @@ public class CrnTests
     public void Graph_inference_is_never_presented_as_an_independent_fit_of_one_selected_system()
     {
         var response = CoreEngine.Execute(new() { Code = Graph, Language = "crn", Operation = "infer", Data = [new("data", [new([0,1], [new("A", [10,5])])])] });
-        Assert.False(response.Success); Assert.Equal("INFERENCE_SCOPE", Assert.Single(response.Diagnostics).Code);
+        Assert.False(response.Success); Assert.Equal("INFERENCE_DATA", Assert.Single(response.Diagnostics).Code);
     }
 }

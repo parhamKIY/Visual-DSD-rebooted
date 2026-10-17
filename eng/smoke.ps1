@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.12.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.13.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -140,6 +140,23 @@ directive moments {order=2;plots=[<A>]}
 $momentResult = Invoke-Standalone -Arguments @('simulate', '-', '--language', 'crn') -InputText $momentSource | ConvertFrom-Json
 $momentTrace = $momentResult.model.simulations[0].series[0]
 if (!$momentResult.success -or $momentResult.model.settings.simulator -ne 'mc' -or $momentTrace.standardDeviation.Count -ne $momentTrace.values.Count -or [Math]::Abs($momentTrace.values[-1] - 10 * [Math]::Exp(-1)) -gt 0.01) { throw 'Standalone moment closure differs from the analytic solution.' }
+$linkedSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/inference-linked.crn') -Raw
+$linkedData = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/inference-linked.data.json') -Raw | ConvertFrom-Json
+$linkedArguments = @('infer','-','--language','crn','--node','prediction')
+foreach ($dataset in $linkedData) {
+    $table=$dataset.tables[0]
+    $csvLines=@('Time (s),A,C')
+    for($i=0;$i -lt $table.times.Count;$i++) {
+        $csvLines+=(@($table.times[$i],$table.series[0].values[$i],$table.series[1].values[$i]) | ForEach-Object { ([double]$_).ToString('R',[Globalization.CultureInfo]::InvariantCulture) }) -join ','
+    }
+    $csvPath=Join-Path $directory ($dataset.name+'.csv')
+    [IO.File]::WriteAllLines($csvPath,$csvLines,[Text.UTF8Encoding]::new($false))
+    $linkedArguments+=@('--data',$csvPath)
+}
+$linked=Invoke-Standalone -Arguments $linkedArguments -InputText $linkedSource | ConvertFrom-Json
+if(!$linked.success -or $linked.model.inferenceNodes.Count -ne 2 -or $linked.model.inference.chains.Count -ne 2 -or $linked.model.inference.retainedSamples -ne 80) { throw 'Standalone linked multichain inference failed.' }
+$linkedRate=$linked.model.inference.parameters | Where-Object name -eq 'k'
+if([Math]::Abs($linkedRate.mle-0.35) -gt 0.03) { throw 'Standalone linked fit differs from the synthetic known rate.' }
 $spatialSource = @'
 directive simulator pde
 directive simulation {initial=2;final=3;points=10;plots=[<a>]}
@@ -178,7 +195,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -197,4 +214,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, seeded and multichain linked inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

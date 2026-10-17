@@ -196,7 +196,7 @@ let create_with_dependencies (settings:Inference_settings) (simulate:(bool -> En
   let sigmas = generate_sigmas settings.noise_parameter unique_plottables
   let sigma_dependencies = 
     match settings.noise_parameter with 
-    | Fixed _ -> []
+    | Fixed _ -> [Parameters.All]
     | Random -> [Parameters.All]
     | Multiple -> List.replicate sigmas.Length Parameters.All
   let simfn with_times ids aa = simulate with_times (env_of_aa aa Map.empty) ids  

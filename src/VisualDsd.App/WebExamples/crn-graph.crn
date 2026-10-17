@@ -1,5 +1,5 @@
-// Links describe how fitted parameter distributions would be passed between models.
-// Select a node and system to run its simulation independently.
+// Links pass fitted parameter summaries between models.
+// Select a node and system to simulate independently. The linked inference example includes fitting data.
 directive simulator deterministic
 directive simulation { final=10; points=100; plots=[A; B] }
 directive parameters [k=0.25]

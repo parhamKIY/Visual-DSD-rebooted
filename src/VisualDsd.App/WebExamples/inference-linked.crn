@@ -1,0 +1,19 @@
+// Synthetic noiseless observations are included with this example.
+// True rates: k=0.35, h=0.15. Each node uses two independent MCMC chains.
+directive simulator deterministic
+directive simulation { final=2; points=20; plots=[A; C] }
+directive inference { burnin=200; samples=400; thin=10; seeds=[11;29]; noise_parameter=Fixed(0.1) }
+directive parameters [k=0.25,{interval=Real; distribution=Uniform(0.05,0.8); variation=Random}; h=0.1,{interval=Real; distribution=Uniform(0.03,0.5); variation=Random}]
+system low = {
+  directive data [low]
+  | 10 A | 5 C
+  | A ->{k} B | C ->{h} D
+}
+system high = {
+  directive data [high]
+  | 20 A | 8 C
+  | A ->{k} B | C ->{h} D
+}
+node calibration { systems=[low] }
+node prediction { systems=[high] }
+edge calibration -> [k=TruncatedNormal; h=TruncatedNormal] prediction

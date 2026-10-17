@@ -29,6 +29,22 @@ public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
     }
 
     [Fact]
+    public async Task Linked_inference_example_includes_synthetic_data_and_completes_every_node_in_the_worker()
+    {
+        var example=(await host.Client.GetFromJsonAsync<ExampleModel>("/api/examples/inference-linked"))!;
+        Assert.Equal(2,example.Data!.Length);
+        var response=await host.Client.PostAsJsonAsync("/api/jobs",new ModelRequest{Code=example.Code,Language=example.Language,Operation="infer",NodeId="prediction",Data=example.Data});
+        var created=(await response.Content.ReadFromJsonAsync<JobView>())!;
+        var finished=await host.FinishAsync(created.Id);
+        Assert.Equal("succeeded",finished.State);
+        var model=finished.Result!.Model!;
+        Assert.Equal(2,model.InferenceNodes!.Length);Assert.Equal(2,model.Inference!.Chains!.Length);
+        Assert.Equal(80,model.Inference.RetainedSamples);
+        Assert.InRange(model.Inference.Parameters.Single(p=>p.Name=="k").Mle,.32,.38);
+        Assert.InRange(model.Inference.Parameters.Single(p=>p.Name=="h").Mle,.12,.18);
+    }
+
+    [Fact]
     public async Task CSV_import_and_parameter_inference_use_the_real_worker()
     {
         var data = ScientificTests.Data[0].Tables[0];

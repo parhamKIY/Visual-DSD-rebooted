@@ -1,4 +1,4 @@
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, populationLabel } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
@@ -8,6 +8,7 @@ import { drawSpatial, spatialCsv, statesCsv, stateSummary, shortestPath } from '
 import { drawProbabilities, probabilityCsv } from './probabilities.js';
 
 import { programSvg, locationLabel } from './program.js';
+import { drawTrace, drawMarginal, drawPair, posteriorCsv } from './posterior.js';
 
 const $ = id => document.getElementById(id);
 const editor = $('editor');
@@ -18,7 +19,8 @@ let documents = [], activeId, activeJob = null, examples = [], persistTimer, toa
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
-const selectedModel = () => modelForRun(state().response.model, state().runIndex);
+const fittedModel = () => state().response ? modelForNode(state().response.model,state().fitNodeId) : null;
+const selectedModel = () => modelForRun(fittedModel(), state().runIndex);
 
 function element(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
 function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').hidden = false; toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500); }
@@ -124,7 +126,8 @@ async function openExample(id) {
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
   const loaded = documents.find(model => model.exampleId === id);
   if (loaded) return selectDocument(loaded.id);
-  addDocument(createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id));
+  const document=createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id);
+  document.data=readDatasets(example.data??[]);addDocument(document);
 }
 async function openFiles(files) {
   for (const file of files) {
@@ -295,7 +298,7 @@ function finishJob(job, task) {
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
-    view.spatialFrame = view.spatialSeries = view.stateIndex = view.probabilitySpecies = view.probabilityFrame = 0; view.probabilityLog = false;
+    view.spatialFrame = view.spatialSeries = view.stateIndex = view.probabilitySpecies = view.probabilityFrame = 0; view.probabilityLog = false; view.fitNodeId = job.result.model.program?.selectedNodeId || ''; view.fitParameter = view.fitPair = '';
     view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : task.tab === 'program' && job.result.model.program ? 'program' : 'species';
     view.status = `${task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
@@ -324,7 +327,10 @@ function updateStamp() {
   const model = selectedModel();
   const contributions = model.species.filter(species => species.sourceId).length;
   $('result-summary').textContent = `${model.species.length - contributions} species${contributions ? ` · ${contributions} input entries` : ''} · ${model.reactions.length} reactions`;
-  $('result-note').textContent = `${model.kind === 'crn' ? 'CRN · ' + locationLabel({ nodeId: model.program.selectedNodeId, systemId: model.program.selectedSystemId }) : response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.kind === 'crn' ? 'chemical reaction network' : model.compilation + ' semantics'}${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
+  const fitNodeId=view.fitNodeId??model.program?.selectedNodeId;
+  const fitSystem=selectedRun()?.name.split(' · ')[0];
+  const fitSystemId=model.program?.nodes.find(n=>n.id===fitNodeId)?.systems.some(s=>s.id===fitSystem)?fitSystem:(fitNodeId===model.program?.selectedNodeId?model.program.selectedSystemId:'');
+  $('result-note').textContent = `${model.kind === 'crn' ? 'CRN · ' + locationLabel({ nodeId: fitNodeId, systemId: response.operation==='infer'?fitSystemId:model.program.selectedSystemId }) : response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.kind === 'crn' ? 'chemical reaction network' : model.compilation + ' semantics'}${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
 }
 function renderResults() {
   const view = state(), response = view.response;
@@ -342,6 +348,10 @@ function renderResults() {
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
   $('species-count').textContent = model.species.filter(species => !species.sourceId).length; $('reaction-count').textContent = model.reactions.length;
+  const nodes=response.model.inferenceNodes || [];
+  $('fit-node-toolbar').hidden=!nodes.length;
+  $('fit-node').replaceChildren(...nodes.map(n=>{const option=element('option','',n.nodeId||'Model');option.value=n.nodeId;return option;}));
+  $('fit-node').value=state().fitNodeId ?? response.model.program?.selectedNodeId ?? '';
   renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration(); renderProbabilities();
 }
 function renderNetwork() {
@@ -353,7 +363,7 @@ function renderNetwork() {
   try { network.render(model, view.networkFocus); $('network-export').disabled = false; }
   catch (error) { $('network-caption').textContent = error.message; $('network').replaceChildren(); $('network-export').disabled = true; }
 }
-function selectedRun() { return state().response?.model.simulations[state().runIndex]; }
+function selectedRun() { return fittedModel()?.simulations[state().runIndex]; }
 function renderRuns() {
   const model = selectedModel(), runs = model.simulations, select = $('run-select');
   select.replaceChildren(...runs.map((run, index) => { const option = element('option', '', [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `Run ${index + 1}`); option.value = index; return option; }));
@@ -363,7 +373,7 @@ function renderRuns() {
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
   $('plot-heading').textContent = run?.spatial ? 'GRID MEAN CONCENTRATION OVER TIME' : ['cme', 'cmesundials', 'lna', 'mc', 'ssa'].includes(model.settings.simulator) ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
-  $('plot-subtitle').textContent = model.inference ? 'Maximum-likelihood fit · circles: observations' : run ? [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
+  $('plot-subtitle').textContent = model.inference ? 'Maximum-likelihood fit · circles: observations' : run ? [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `${run.series.length} plotted traces` : 'The source has been checked; simulation is a separate step.';
   if (hasData) chart.setRun(run, model.settings, model.inference?.observations[state().runIndex]);
   $('run-details').replaceChildren();
   if (hasData) {
@@ -449,19 +459,28 @@ function renderData() {
 function exportCsv() { const run = selectedRun(); if (run) download(`${stem()}-run-${state().runIndex + 1}.csv`, csvFor(run, selectedModel().settings.timeUnit), 'text/csv;charset=utf-8'); }
 
 function renderFit() {
-  const fit = state().response.model.inference;
+  const fit = fittedModel().inference;
   $('fit-table').replaceChildren(); $('fit-trace').replaceChildren();
   if (!fit) return;
-  $('fit-summary').textContent = `${fit.dataPoints} measurements · seed ${fit.seed} · ${fit.burnIn} burn-in + ${fit.iterations} sampling iterations · thinning ${fit.thin} · ${fit.retainedSamples} retained samples · maximum log likelihood ${numberLabel(fit.maxLogLikelihood)}`;
+  const chains=fit.chains || [],included=chains.filter(c=>c.included);
+  $('fit-summary').textContent = `${fit.dataPoints} measurements · ${chains.length||1} chains (${included.length||1} pooled) · ${fit.burnIn} burn-in + ${fit.iterations} sampling iterations per chain · thinning ${fit.thin} · ${fit.retainedSamples} pooled draws · maximum log likelihood ${numberLabel(fit.maxLogLikelihood)}`;
+  $('fit-chains').replaceChildren(...(chains.length?chains:[{seed:fit.seed,included:true}]).map((c,i)=>element('span','',`Chain ${i+1} · seed ${c.seed} · ${c.included?'included':'excluded by likelihood bound'}`)));
   const table = element('table'), header = element('tr');
-  for (const name of ['Parameter', 'Kind', 'Maximum likelihood', 'Posterior mean', 'Median', '95% lower', '95% upper']) header.append(element('th', '', name));
+  for (const name of ['Parameter', 'Kind', 'Maximum likelihood', 'Posterior mean', 'Median', '95% lower', '95% upper','Split R-hat']) header.append(element('th', '', name));
   table.append(header);
-  for (const parameter of fit.parameters) { const row = element('tr'); for (const value of [parameter.name, parameter.kind, parameter.mle, parameter.mean, parameter.median, parameter.lower95, parameter.upper95]) { const cell = element('td', '', typeof value === 'number' ? numberLabel(value) : value); cell.title = String(value); row.append(cell); } table.append(row); }
+  for (const parameter of fit.parameters) { const row = element('tr'); for (const value of [parameter.name, parameter.kind, parameter.mle, parameter.mean, parameter.median, parameter.lower95, parameter.upper95,parameter.splitRHat??'Unavailable']) { const cell = element('td', '', typeof value === 'number' ? numberLabel(value) : value); cell.title = String(value); row.append(cell); } table.append(row); }
   $('fit-table').append(table);
-  const values = fit.logLikelihood, low = Math.min(...values), high = Math.max(...values), range = high - low || 1;
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  line.setAttribute('d', values.map((value, index) => `${index ? 'L' : 'M'}${30 + index * 740 / Math.max(1, values.length - 1)} ${140 - (value - low) / range * 110}`).join('')); line.setAttribute('fill', 'none'); line.setAttribute('stroke', '#158779'); line.setAttribute('stroke-width', '1.7');
-  const label = document.createElementNS('http://www.w3.org/2000/svg', 'text'); label.setAttribute('x', '30'); label.setAttribute('y', '173'); label.textContent = 'Retained posterior log likelihood · sample order'; label.setAttribute('fill', '#677d6e'); label.setAttribute('font-size', '12'); $('fit-trace').append(line, label);
+  const view=state();
+  if(!fit.parameters.some(p=>p.name===view.fitParameter))view.fitParameter=fit.parameters[0].name;
+  if(!fit.parameters.some(p=>p.name===view.fitPair) || view.fitPair===view.fitParameter)view.fitPair=fit.parameters.find(p=>p.name!==view.fitParameter)?.name||'';
+  for(const [id,value,items]of [['fit-parameter',view.fitParameter,fit.parameters],['fit-pair',view.fitPair,fit.parameters.filter(p=>p.name!==view.fitParameter)]]){
+    $(id).replaceChildren(...items.map(p=>{const option=element('option','',p.name);option.value=p.name;return option;}));$(id).value=value;$(id).disabled=!items.length;
+  }
+  drawTrace($('fit-trace'),fit);drawTrace($('fit-parameter-trace'),fit,view.fitParameter);
+  const parameter=fit.parameters.find(p=>p.name===view.fitParameter),pair=fit.parameters.find(p=>p.name===view.fitPair);
+  drawMarginal($('fit-density'),parameter);drawPair($('fit-scatter'),parameter,pair);
+  const priors=fit.priors || [];
+  $('fit-priors').replaceChildren(...priors.map(p=>element('p','exploration-note',`${p.name}: ${p.distribution} · ${p.interval} · initial ${numberLabel(p.initial)} · ${p.variable?'variable':'fixed'}`)));
 }
 
 editor.addEventListener('input', () => { current().code = editor.value; changed(); renderEditor(); });
@@ -496,10 +515,7 @@ $('save-model').addEventListener('click', saveModel);
 $('save-project').addEventListener('click', saveProject);
 $('import-data').addEventListener('click', () => { importTarget = null; $('data-input').click(); });
 $('data-input').addEventListener('change', event => { const target = importTarget; importTarget = null; importData(event.target.files, target); });
-$('export-posterior').addEventListener('click', () => {
-  const fit = state().response.model.inference;
-  download(`${stem()}-posterior.csv`, csvFor({ times: fit.logLikelihood.map((_, i) => i + 1), series: [{ name: 'logLikelihood', values: fit.logLikelihood }, ...fit.parameters.map(parameter => ({ name: parameter.name, values: parameter.samples }))] }).replace(/^Time,/, 'Retained sample,'), 'text/csv;charset=utf-8');
-});
+$('export-posterior').addEventListener('click', () => download(`${stem()}-posterior.csv`,posteriorCsv(fittedModel().inference),'text/csv;charset=utf-8'));
 $('open-project').addEventListener('click', () => $('project-input').click());
 $('project-input').addEventListener('change', event => openProject(event.target.files[0]));
 $('network-focus').addEventListener('change', () => { state().networkFocus = $('network-focus').value; renderNetwork(); });
@@ -555,3 +571,12 @@ $('probability-time').addEventListener('input', () => { state().probabilityFrame
 $('probability-log').addEventListener('change', () => { state().probabilityLog = $('probability-log').checked; renderProbabilities(); });
 $('probability-csv').addEventListener('click', () => download(`${stem()}.probabilities.csv`, probabilityCsv(selectedRun(), state().probabilitySpecies, selectedModel().settings.timeUnit), 'text/csv'));
 $('probability-svg').addEventListener('click', () => download(`${stem()}.probabilities.svg`, new XMLSerializer().serializeToString($('probability-chart')), 'image/svg+xml'));
+
+$('fit-node').addEventListener('change',()=>{Object.assign(state(),{fitNodeId:$('fit-node').value,runIndex:0,speciesPage:0,reactionPage:0,dataPage:0,networkFocus:'',fitParameter:'',fitPair:''});renderResults();});
+$('fit-parameter').addEventListener('change',()=>{state().fitParameter=$('fit-parameter').value;renderFit();});
+$('fit-pair').addEventListener('change',()=>{state().fitPair=$('fit-pair').value;renderFit();});
+$('fit-svg').addEventListener('click',()=>{
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('viewBox','0 0 800 660');
+  for(const [id,y]of [['fit-parameter-trace',0],['fit-density',200],['fit-scatter',200],['fit-trace',460]]){const item=$(id).cloneNode(true);item.setAttribute('x',id==='fit-scatter'?400:0);item.setAttribute('y',y);item.setAttribute('width',id==='fit-density'||id==='fit-scatter'?400:800);item.setAttribute('height',id==='fit-density'||id==='fit-scatter'?260:200);svg.append(item);}
+  download(`${stem()}-posterior.svg`,new XMLSerializer().serializeToString(svg),'image/svg+xml');
+});

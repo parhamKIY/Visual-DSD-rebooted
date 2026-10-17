@@ -111,5 +111,5 @@ type ParameterSummary =
   member ps.toLogNormalDist () = 
     // See https://en.wikipedia.org/wiki/Log-normal_distribution)
     let b = 1.0 + ps.variance/ps.mean/ps.mean
-    Distribution.LogNormal { mu = log (ps.mean / sqrt b); sigma = log b }
+    Distribution.LogNormal { mu = log (ps.mean / sqrt b); sigma = sqrt (log b) }
   member ps.toTruncatedNormalDist () = Distribution.TruncatedNormal { mean = ps.mean; stdev = sqrt ps.variance; min=ps.lb; max=ps.ub } 

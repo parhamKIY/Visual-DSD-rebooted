@@ -34,9 +34,11 @@ public sealed record ObservationData(double[] Times, SeriesData[] Series, string
 public sealed record DatasetData(string Name, ObservationData[] Tables);
 public sealed record CsvDataRequest(string Name, string Csv);
 public sealed record ParameterEstimateData(string Name, string Kind, double Mle, double Mean, double Variance, double Median,
-    double Lower95, double Upper95, double[] Samples);
+    double Lower95, double Upper95, double[] Samples, double? SplitRHat = null);
+public sealed record InferenceChainData(long Seed, bool Included, double MaxLogLikelihood, ParameterEstimateData[] Parameters, double[] LogLikelihood, int[] Iterations, double[] LogPrior);
+public sealed record ParameterPriorData(string Name, double Initial, string Distribution, string Interval, bool Variable);
 public sealed record InferenceData(long Seed, int BurnIn, int Iterations, int Thin, int RetainedSamples, int DataPoints,
-    double MaxLogLikelihood, ParameterEstimateData[] Parameters, double[] LogLikelihood, ObservationData[] Observations);
+    double MaxLogLikelihood, ParameterEstimateData[] Parameters, double[] LogLikelihood, ObservationData[] Observations, InferenceChainData[]? Chains = null, double? LowerBound = null, ParameterPriorData[]? Priors = null);
 public sealed record NetworkData(SpeciesData[] Species, ReactionData[] Reactions);
 public sealed record SpatialSeriesData(string Name, double[][] Frames);
 // Frames are indexed by time, then x-major cells: x * Y.Length + y (or x in 1D).
@@ -47,6 +49,7 @@ public sealed record ProbabilityData(string[] SpeciesIds, int[][] States, double
 public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
     SettingsData? Settings = null, NetworkData? Network = null, SpatialData? Spatial = null, StateSpaceData? StateSpace = null, ProbabilityData? Probabilities = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
+public sealed record InferenceNodeData(string NodeId, SettingsData Settings, NetworkData Network, SimulationData[] Simulations, InferenceData Inference);
 public sealed record CrnSystemData(string Id, int SpeciesCount, int ReactionCount);
 public sealed record CrnNodeData(string Id, CrnSystemData[] Systems);
 public sealed record CrnLocationData(string NodeId, string SystemId);
@@ -54,7 +57,7 @@ public sealed record CrnPriorData(string SourceParameter, string TargetParameter
 public sealed record CrnEdgeData(CrnLocationData Source, CrnLocationData Target, CrnPriorData[] Parameters);
 public sealed record CrnProgramData(string Source, CrnNodeData[] Nodes, CrnEdgeData[] Edges, string SelectedNodeId, string SelectedSystemId);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
-    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null);
+    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>

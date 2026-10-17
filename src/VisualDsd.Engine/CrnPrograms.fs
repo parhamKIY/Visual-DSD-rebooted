@@ -88,6 +88,4 @@ module internal CrnPrograms =
             CrnSystemData(id, crn.initials |> List.map (fun initial -> initial.species) |> List.distinct |> List.length, crn.reactions.Length)
         let nodes = graph.nodes |> Map.toArray |> Array.map (fun (id,model) ->
             CrnNodeData(id, Array.ofList (systemInfo "" model.top :: (model.systems |> List.map (fun system -> systemInfo system.name system)))))
-        if request.Operation = "infer" && (graph.nodes.Count > 1 || not node.systems.IsEmpty || edges.Length > 0) then
-            fail "INFERENCE_SCOPE" "Linked and multi-system inference is not available yet. Fit a standalone CRN; simulation and state exploration can select individual systems."
-        selected.saturate_initials(), CrnProgramData(request.Code, nodes, edges, nodeId, systemId)
+        selected.saturate_initials(), CrnProgramData(request.Code, nodes, edges, nodeId, systemId), graph

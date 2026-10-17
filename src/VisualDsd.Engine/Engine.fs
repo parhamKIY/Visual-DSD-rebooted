@@ -227,7 +227,7 @@ module private CrnExecution =
         | _ -> crn, [||], noInference
 
     let executeProgram (request: ModelRequest) =
-        let original, program = CrnPrograms.parse request
+        let original, program, graph = CrnPrograms.parse request
         let update (simulation: Simulation_settings<Functional>) =
             { simulation with
                 initial = if request.Initial.HasValue then request.Initial.Value else simulation.initial
@@ -250,14 +250,49 @@ module private CrnExecution =
                 if sim.points < 1 || sim.points > 100000 then raise (ExecutionFailure("INVALID_POINTS", "Output points must be between 1 and 100000."))
         if request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE; Simulator.Sundials; Simulator.CMESundials; Simulator.MC]) then
             raise (ExecutionFailure("UNSUPPORTED_SIMULATOR", "This build supports Oslo, SSA, LNA, CME, PDE, Sundials, CMESundials and Moment Closure."))
-        let crn, runs, inference = run request crn
-        let network = Conversion.network "initial" crn
-        let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program)
-        EngineResponse(true, request.Operation, "current", result, [||])
+        if request.Operation = "infer" then
+            if graph.nodes.Count > 8 then raise (ExecutionFailure("INFERENCE_LIMIT", "Inference supports at most eight model nodes per request."))
+            let expanded = Microsoft.Research.CRNEngine.InferenceSiteGraph.expandAndLift graph
+            let expanded = expanded |> Microsoft.Research.CRNEngine.InferenceSiteGraph.mapNodes (fun _ model ->
+                model.merge_shared_settings().map_crns (fun item ->
+                    let simulator = match request.Simulator with "source" -> model.top.settings.simulator | _ -> simulator
+                    {item with settings={item.settings with simulator=simulator; simulation=update item.settings.simulation; simulations=item.settings.simulations |> List.map update}} |> fun crn -> crn.saturate_initials().saturate_plots()))
+            let declared = expanded.nodes |> Map.toList |> List.collect (fun (_,model) -> model.top::model.systems |> List.filter (fun crn -> not crn.initials.IsEmpty || not crn.reactions.IsEmpty) |> List.collect (fun crn -> crn.settings.data |> List.map (fun data -> data.file))) |> Set.ofList
+            let imported = request.Data |> Array.map (fun data -> data.Name) |> Set.ofArray
+            if not declared.IsEmpty && declared <> imported then raise (ExecutionFailure("INFERENCE_DATA", "Imported datasets must match the datasets used by the complete fitted program."))
+            if expanded.nodes.Count > 1 && declared.IsEmpty then raise (ExecutionFailure("INFERENCE_DATA", "Linked model nodes require explicit dataset declarations."))
+            if expanded.nodes.Count > 1 && expanded.nodes |> Map.exists (fun _ model -> model.systems.IsEmpty && model.top.settings.data.IsEmpty) then
+                raise (ExecutionFailure("INFERENCE_DATA", "Every standalone linked node must declare its own observation datasets."))
+            let assignments = expanded.edges |> Map.toList |> List.collect (fun (_,targets) -> targets |> List.collect (fun (target,props) -> props |> List.map (fun (_,parameter,_) -> target.to_string,parameter)))
+            if List.distinct assignments |> List.length <> assignments.Length then raise (ExecutionFailure("INFERENCE_LINK", "A linked parameter cannot receive more than one incoming prior."))
+            let work = ParameterInference.budget()
+            let nodes = ResizeArray<InferenceNodeData>()
+            let mutable pending = expanded
+            while not pending.nodes.IsEmpty do
+                for id in Microsoft.Research.CRNEngine.InferenceSiteGraph.getNextCandidates pending do
+                    let fitted, results, details, summary = ParameterInference.runModel request pending.nodes.[id] work
+                    let runs = results |> List.map (fun (source,result) ->
+                        let network = Conversion.network "initial" source
+                        let instance = if fitted.systems.IsEmpty then result.instance else {result.instance with name=source.name + (if result.instance.name = "" then "" else " · " + result.instance.name)}
+                        Conversion.simulation source network instance result.table) |> List.toArray
+                    let selected = if id = program.SelectedNodeId && program.SelectedSystemId <> "" then fitted.systems |> List.tryFind (fun crn -> crn.name = program.SelectedSystemId) |> Option.defaultValue crn
+                                   elif not fitted.top.initials.IsEmpty || not fitted.top.reactions.IsEmpty then fitted.top
+                                   else fitted.systems.Head
+                    nodes.Add(InferenceNodeData(id,Conversion.settings selected,Conversion.network "initial" selected,runs,details))
+                    try pending <- Microsoft.Research.CRNEngine.InferenceSiteGraph.updateGraph pending (id,summary)
+                    with error -> raise (ExecutionFailure("INFERENCE_LINK", error.Message))
+            let selected = nodes |> Seq.find (fun node -> node.NodeId = program.SelectedNodeId)
+            let result = ModelData("crn","source",false,selected.Settings,selected.Network.Species,selected.Network.Reactions,selected.Simulations,selected.Inference,request.Code,program,(if nodes.Count > 1 then nodes.ToArray() else null))
+            EngineResponse(true,request.Operation,"current",result,[||])
+        else
+            let crn, runs, inference = run request crn
+            let network = Conversion.network "initial" crn
+            let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program)
+            EngineResponse(true, request.Operation, "current", result, [||])
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.12.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+        EngineInfo("Visual DSD Rebooted", "0.13.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =

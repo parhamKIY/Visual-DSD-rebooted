@@ -7,6 +7,11 @@ export const optionDefaults = Object.freeze({ language: 'dsd', nodeId: '', syste
 export const byteLength = text => new TextEncoder().encode(text).length;
 export const escapeHtml = text => String(text).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
+export function modelForNode(model, nodeId) {
+  const node=model.inferenceNodes?.find(n=>n.nodeId===nodeId);
+  return node ? {...model, settings:node.settings, species:node.network.species, reactions:node.network.reactions, simulations:node.simulations, inference:node.inference} : model;
+}
+
 export function modelForRun(model, runIndex) {
   const run = model.simulations[runIndex];
   return { ...model, settings: run?.settings ?? model.settings, species: run?.network?.species ?? model.species, reactions: run?.network?.reactions ?? model.reactions };
