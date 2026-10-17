@@ -81,6 +81,7 @@ type t<'s> when 's : equality =
   ; mutable totalProp     : float
   ; mutable nextSID       : int (* next species ID *)
   ; mutable nextRID       : int (* next reaction ID *) 
+  ; mutable plottedSpecies : SID list
   ; mutable dataPoints    : Row<float> list} (* plotted data points. The number of columns in each rows is variable,
                                                   depending on the number of new species created during the simulation. 
                                                   For efficiency reasons, data points are stored in reverse order. *)
@@ -115,6 +116,7 @@ let empty printSpecies equalsSpecies matchesSpecies : t<'s> when 's : equality =
   ; totalProp       = 0.0
   ; nextSID         = 0
   ; nextRID         = 0
+  ; plottedSpecies  = []
   ; dataPoints      = [] }
 
 let newSID jit = 
@@ -262,11 +264,7 @@ let executeReaction (jit : t<'s>) (r : JitReaction<'s, float, Expression.t<Inlin
 
 let evaluatePlots (jit:t<'s>) =
   if jit.mustPlotAll
-    then jit.spDict.Values 
-          // (FP): do not output unexplored species, because the outputplottable callback has not reported them yet.
-          |> Seq.where (fun x -> x.isExplored)
-          |> Seq.map (fun x -> x.population)
-          |> Seq.toArray
+    then jit.plottedSpecies |> List.map (fun sid -> jit.spDict.[sid].population) |> List.toArray
     else 
       (* in ClassicDSD, a plot might match more than one species. 
          For example, plot "<_ x y>" matches both "<a x y>" and "<b x y>".
@@ -288,13 +286,13 @@ let evaluatePlots (jit:t<'s>) =
 (* Inner loop for testing if the next step surpasses any events, and processes them in case. *)
 let rec enactEvents lu1 (output:output) (jit: t<'s>) = 
   // get elapsed time
-  let dt  = lu1 / jit.totalProp
+  let dt = if jit.totalProp > 0.0 then lu1 / jit.totalProp else infinity
 
   // handle next event
   match jit.events with  
   | [] -> dt
   | (next_event: Event<'s, float, float>) :: events ->
-    if next_event.time >= jit.now + dt
+    if next_event.time > jit.simulation.final || next_event.time >= jit.now + dt
       then dt // events are sorted by time, so there is no need to checked 'events'
       else
         jit.events <- events
@@ -315,6 +313,7 @@ let rec enactEvents lu1 (output:output) (jit: t<'s>) =
         (* Run simulation until the event, and keep track of how much of the random number has been used up. *)
         let dt1      = next_event.time - jit.now
         let old_prop = jit.totalProp
+        jit.now <- next_event.time
         
         (* Enact the event *)
         match next_event.target with
@@ -323,12 +322,15 @@ let rec enactEvents lu1 (output:output) (jit: t<'s>) =
                 do 
                   let sid = jit.sidDict.[pi.species]
                   let entry = jit.spDict.[sid]
-                  jit.spDict.[sid] <- {entry with population = entry.population + pi.value}
+                  let amount = pi.value * jit.stochastic.scale
+                  if amount < 0.0 || (not pi.constant && round amount <> amount) then
+                    failwith "Timed populations must be nonnegative integers unless constant."
+                  jit.spDict.[sid] <- {entry with population = entry.population + amount}
                 done
           | Target.OutputPoint -> ()
         
         (* Compute the new total propensity - side effect is to update propensities of reactions as necessary. *)
-        // TODO: update prop?
+        jit.totalProp <- update_props_direct jit (jit.rxDict.Keys |> Seq.toList)
 
         (* Run for the remaining portion of the random number *)
         let new_lu1          = lu1 - dt1 * old_prop
@@ -442,6 +444,8 @@ let create
   let jit = { empty printSpecies equalsSpecies matchesSpecies  
                 with simulation=simulation; stochastic=stochastic; rates=rates; parameters=parameters
                      events      = evs
+                     now         = simulation.initial
+                     nextPrintTime = simulation.initial
                      // plot all species if no plots are specified
                      mustPlotAll = simulation.plots.IsEmpty }
   // set the random seed, if required
@@ -468,9 +472,12 @@ let create
                                        when reactions are converted           *)
   
   // populate spDict
-  initials 
-    |> List.filter (fun i -> match i.time with Some t -> eval t = 0.0 | None -> true)
+  initials
+    |> List.distinctBy (fun i -> i.species)
     |> List.iter (makeJitSpecies >> (fun sp -> jit.spDict.Add (sp.id, sp))) 
+  jit.plottedSpecies <- jit.spDict.Values |> Seq.filter (fun sp -> sp.isExplored) |> Seq.map (fun sp -> sp.id) |> Seq.toList
+  if evs |> List.exists (fun event -> event.time < simulation.initial) then
+    failwith "Timed inputs cannot precede the simulation's initial time."
   
   // populate sidDict
   jit.spDict 
@@ -571,6 +578,7 @@ let simulate_callback   (cancel          : cancel    )
   // prepare an environment to inline parameters later, when new reactions are discovered
   let env  = Parameters.to_env jit.parameters //jit.settings.parameters
   let eval = Expression.eval (Environment.find env) 
+  let finalStep = jit.stochastic.steps |> Option.map (fun steps -> jit.stepsDone + steps)
   
   (* MAIN SIMULATOR LOOP. *)
   let rec loop (first_loop:bool) =
@@ -595,8 +603,15 @@ let simulate_callback   (cancel          : cancel    )
       else ()
       
     (* Stop if we reach the endpoint, the "cancel flag" is triggered or no simulation is applicable (adjusted to numerical drift). *)
-    if isStopTime jit cancel || jit.totalProp = 0.0
+    if Simulator.shouldStop jit.simulation.final jit.now jit.stepsDone cancel finalStep
       then jit // returns the simulation
+      elif nextNow > jit.simulation.final || jit.totalProp = 0.0 then
+        // A sampled reaction after the horizon must never change the terminal population.
+        jit.now <- jit.simulation.final
+        let last = createRow jit.now (evaluatePlots jit)
+        output last
+        jit.dataPoints <- last :: jit.dataPoints
+        jit
       else
         // update the simulation time
         jit.now <- nextNow
@@ -620,7 +635,9 @@ let simulate_callback   (cancel          : cancel    )
           
           // extend plots with new species
           if jit.mustPlotAll then
-            freshSpecies |> List.map (fun sp -> jit.printSpecies sp.payload) |> List.iter outputplottable
+            for sp in freshSpecies do
+              jit.plottedSpecies <- jit.plottedSpecies @ [sp.id]
+              outputplottable (jit.printSpecies sp.payload)
           elif not freshSpecies.IsEmpty 
             then extendPlotPatterns jit (freshSpecies |> List.map (fun sp -> sp.payload))
 
@@ -702,10 +719,7 @@ let createResultsTable (jit:t<'s>) : Table<float> =
 
   let (columnNames:string list) = 
     if jit.mustPlotAll
-      then jit.spDict.Values
-            |> Seq.toList
-            |> List.take (min speciesTotal jit.spDict.Values.Count)
-            |> List.map (fun z -> (jit.printSpecies z.payload).name)
+      then jit.plottedSpecies |> List.map (fun sid -> (jit.printSpecies jit.spDict.[sid].payload).name)
       else jit.simulation.plots 
             |> List.map (Expression.to_string (Inlined.to_string (fun s->(jit.printSpecies s).name)))
                           

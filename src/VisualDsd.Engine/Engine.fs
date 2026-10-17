@@ -5,6 +5,8 @@ open Microsoft.Research.DNA
 open Microsoft.Research.CRNEngine
 open VisualDsd.Contracts
 
+exception private ExecutionFailure of string * string
+
 module private Conversion =
     let value (expression: Value) = Expression.to_string id expression
     let rate (r: Rate<Value, Functional>) =
@@ -38,8 +40,14 @@ module private Conversion =
 
     let network valueKind (crn: Crn) =
         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
-            invalidOp "The expanded model exceeds the interactive result limit."
-        NetworkData(crn.initials |> List.map (species valueKind crn) |> List.toArray,
+            raise (ExecutionFailure("MODEL_TOO_LARGE", "The expanded model exceeds the interactive result limit."))
+        let entries = crn.initials |> List.mapi (fun index initial ->
+            let entry = species valueKind crn initial
+            if entry.ValueKind = "scheduledInput" then
+                SpeciesData(sprintf "scheduled:%d:%s" index entry.Id, entry.Name, entry.Structure, entry.Svg,
+                            entry.Initial, entry.Constant, entry.Time, entry.ValueKind)
+            else entry)
+        NetworkData(entries |> List.toArray,
                     crn.reactions |> List.map reaction |> List.toArray)
 
     let simulation (crn: Crn) network (instance: Instance<Functional>) (table: Table<float>) =
@@ -130,10 +138,10 @@ type Engine private () =
                             if request.Operation <> "simulate" then initialCrn, [||]
                             elif jit then
                                 let instances = initialCrn.get_instances()
-                                if instances.Length > 256 then invalidOp "A simulation batch cannot exceed 256 runs."
+                                if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
                                 let run (instance: Instance<Functional>) =
                                     if instance.environment |> Map.exists (fun _ value -> not (Double.IsFinite value)) then
-                                        invalidOp "Sweep parameter values must be finite."
+                                        raise (ExecutionFailure("INVALID_SWEEP", "Sweep parameter values must be finite."))
                                     // Reparse before expansion: parameters can also change domain rates and module arguments.
                                     // Each run owns its mutable species caches, reaction dictionaries and random generator.
                                     let fresh, _ = Dsd.parse_extended_with_parameters instance.environment toeholds specificities code
@@ -158,21 +166,22 @@ type Engine private () =
                                             Jit.to_crn finalState initial, table
                                     expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
                                 let results = instances |> List.map run
-                                if results.IsEmpty then invalidOp "The selected sweeps contain no simulation runs."
+                                if results.IsEmpty then raise (ExecutionFailure("EMPTY_BATCH", "The selected sweeps contain no simulation runs."))
                                 fst results.Head, results |> List.map snd |> List.toArray
                             else
-                                if initialCrn.get_instances().Length > 256 then invalidOp "A simulation batch cannot exceed 256 runs."
+                                if initialCrn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
                                 let runs = initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
                                 initialCrn, runs
                         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
                             failure "MODEL_TOO_LARGE" "The expanded model exceeds the interactive result limit."
                         else
+                            let network = Conversion.network (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn
                             let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
                                                   compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
-                                                  crn.initials |> List.map (Conversion.species (if jit && request.Operation = "simulate" then "finalPopulation" else "initial") crn) |> List.toArray,
-                                                  crn.reactions |> List.map Conversion.reaction |> List.toArray, simulations)
+                                                  network.Species, network.Reactions, simulations)
                             EngineResponse(true, request.Operation, dialect, model, [||])
             with
+            | ExecutionFailure(code, message) -> failure code message
             | :? Errors.DSDException as error ->
                 let diagnostics = error.Errors |> Array.map (fun position -> Diagnostic("MODEL_ERROR", position.text, Nullable (position.row + 1), Nullable (position.column + 1)))
                 EngineResponse(false, request.Operation, dialect, null,

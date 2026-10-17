@@ -88,6 +88,58 @@ public class JitBatchTests
         var response = CoreEngine.Execute(new() { Code = (jit ? Header : "directive simulator stochastic\n") +
             $"directive parameters [N=1]\ndirective sweeps [s=[N=[{values}]]]\n<a>", Operation = "simulate" });
         Assert.False(response.Success);
-        Assert.Contains("256", Assert.Single(response.Diagnostics).Message);
+        Assert.Equal("BATCH_TOO_LARGE", Assert.Single(response.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Dynamically_discovered_species_are_kept_in_the_result_table()
+    {
+        var model = Simulate(Header + "directive simulation {final=2;points=20;seed=42}\n" +
+            "directive parameters [pol=10]\ndirective rules { reaction([P],\"pol\",Q) :- P = C [b>], Q = C [b b>]. }\n( 2 * [<tb^ b>] )");
+        var run = Assert.Single(model.Simulations);
+        Assert.True(run.Network!.Species.Length > 2);
+        foreach (var species in run.Network.Species.Where(species => double.Parse(species.Initial, System.Globalization.CultureInfo.InvariantCulture) > 0))
+            Assert.Contains(run.Series, series => series.Name == species.Name);
+        Assert.All(run.Series, series => Assert.Equal(run.Times.Length, series.Values.Length));
+    }
+
+    [Theory]
+    [InlineData(0, 0.000001)]
+    [InlineData(5, 6)]
+    public void JIT_respects_time_bounds_and_does_not_execute_a_reaction_after_final_time(double initial, double final)
+    {
+        var response = CoreEngine.Execute(new() { Code = Header + "directive parameters [N=2;k=0.01]\n" + Body,
+            Operation = "simulate", Initial = initial, Final = final, Points = 10, Seed = 42 });
+        Assert.True(response.Success, JsonSerializer.Serialize(response));
+        var run = Assert.Single(response.Model!.Simulations);
+        Assert.Equal(initial, run.Times[0]);
+        Assert.Equal(final, run.Times[^1]);
+        Assert.All(run.Times, time => Assert.InRange(time, initial, final));
+        if (initial == 0)
+            Assert.Equal(2, double.Parse(run.Network!.Species.Single(species => species.Structure == "<a^ b>").Initial, System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void Timed_inputs_are_applied_at_their_own_time_and_future_inputs_remain_scheduled()
+    {
+        var model = Simulate(Header + "directive simulation {initial=5;final=10;points=10;seed=42}\n" +
+            "( 1 * <a> | 3 * <a> @ 7 | 9 * <a> @ 20 )");
+        var run = Assert.Single(model.Simulations);
+        Assert.Equal(5, run.Times[0]); Assert.Equal(10, run.Times[^1]);
+        var series = Assert.Single(run.Series);
+        Assert.Equal(1, series.Values[0]); Assert.Equal(4, series.Values[^1]);
+        Assert.All(run.Times.Select((time, index) => (time, value: series.Values[index])), pair =>
+            Assert.Equal(pair.time < 7 ? 1 : 4, pair.value));
+        Assert.Contains(run.Network!.Species, species => species.ValueKind == "scheduledInput" && species.Initial == "9" && species.Time == "10");
+    }
+
+    [Fact]
+    public void A_timed_input_restarts_reaction_propensities()
+    {
+        var model = Simulate(Header + "directive simulation {final=1;points=20;seed=42}\n" +
+            "directive parameters [N=2;k=100]\ndom a = {bind=k;unbind=0.1}\n( 0 * <a^ b> | 2 * <a^ b> @ 0.5 | 2 * {a^*}[b] )");
+        var run = Assert.Single(model.Simulations);
+        Assert.Equal(1, run.Times[^1]);
+        Assert.Contains(run.Network!.Species, species => species.Structure == "<a^ b>" && species.Initial == "0");
     }
 }
