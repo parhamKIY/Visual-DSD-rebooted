@@ -56,7 +56,8 @@ public class ResilienceTests
             // Kill only the owner; killing its tree would conceal a broken ownership monitor.
             owner.Kill(); await owner.WaitForExitAsync();
             await worker.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.NotEqual(0, worker.ExitCode);
+            // Unix cannot report an exit code for a process started by another parent.
+            Assert.True(worker.HasExited);
         }
         finally
         {
