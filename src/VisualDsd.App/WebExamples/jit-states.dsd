@@ -1,0 +1,5 @@
+directive jit
+directive simulator stochastic
+directive simulation { final=20; points=100; seed=42 }
+dom a = { bind=0.1; unbind=0.2 }
+( 2 * <a^ b> | 2 * {a^*}[b] )

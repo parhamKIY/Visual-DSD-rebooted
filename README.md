@@ -28,7 +28,8 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
 | Fit parameters | Seeded, single-chain MCMC with the Oslo solver and imported observation CSV files |
-| Explore states | Finite population state graphs, reachable-state inspection, and shortest paths |
+| Inspect probabilities | Joint CME probabilities, marginal population distributions, time heatmaps, logarithmic colors, and exact distribution CSV |
+| Explore states | Finite population state graphs, lazy JIT state generation, reachable-state inspection, and shortest paths |
 | Keep your work | Model files, project files with saved results, and CSV, SVG, and JSON exports |
 
 Each calculation runs in a separate worker process with cancellation, a deadline, and memory limits. The workspace listens on localhost and serves its own assets; it needs no account or cloud service.
@@ -172,11 +173,12 @@ These checks establish compatibility for the cases they exercise. They do not es
 
 Current boundaries:
 
-- Just-in-time models use SSA; full-network expansion, inference, and state exploration are unavailable for that mode.
+- Just-in-time models use SSA; full-network expansion and inference are unavailable for that mode. State exploration uses the same reaction calculus lazily, including Rules DSD and explicit reactions; it requires nonconstant integer populations, time-independent rates, scale=1, and no timed population inputs.
 - Inference uses a single MCMC chain and the Oslo solver. Linked and multi-system inference is not yet exposed.
 - CME, LNA, spatial simulation, and state exploration enforce explicit size and work limits. Large models may require a smaller grid, state space, or output request.
 - Native `sundials` uses CVODE 3.1.2, preserving the original Adams/BDF selection through `directive deterministic {stiff=false}` / `stiff=true`. `cmesundials` uses the same bounded state enumeration as managed CME (at most 1000 states).
 - Moment closure uses the original symbolic equations, derivative-matching closure, and Oslo integration. Configure it with `directive simulator mc` and `directive moments {order=2; plots=[<A>; <A^2>]; initial_minimum=1e-16; log_evaluation=false}`. It supports mass-action reactions, order 1–8 and at most 256 moments; constant species, timed inputs and stochastic scale other than 1 are rejected. Standard deviations are available for first moments when order is at least 2; uncomputed uncertainties are omitted. It approximates nonlinear networks, and the original visualization clamps negative variance estimates to zero. Output interpolation can introduce additional error between solver steps.
+- CME and CMESundials return the full joint state distribution, including species correlations. The probability view computes marginals from those states; its slider and CSV use exact output samples. The heatmap averages adjacent samples when needed for display. Solver roundoff corrections are limited to a mass residual of `1e-5`; invalid distributions fail explicitly. Probability results are limited to 200000 state values per batch. Older projects without probability output remain readable.
 - Temporal-logic model checking is not yet exposed by this application.
 
 ## Origins & license

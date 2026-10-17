@@ -5,6 +5,8 @@ import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } fr
 import { readDatasets } from './observations.js';
 import { drawSpatial, spatialCsv, statesCsv, stateSummary, shortestPath } from './exploration.js';
 
+import { drawProbabilities, probabilityCsv } from './probabilities.js';
+
 import { programSvg, locationLabel } from './program.js';
 
 const $ = id => document.getElementById(id);
@@ -293,7 +295,7 @@ function finishJob(job, task) {
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
-    view.spatialFrame = view.spatialSeries = view.stateIndex = 0;
+    view.spatialFrame = view.spatialSeries = view.stateIndex = view.probabilitySpecies = view.probabilityFrame = 0; view.probabilityLog = false;
     view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : task.tab === 'program' && job.result.model.program ? 'program' : 'species';
     view.status = `${task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
@@ -331,6 +333,8 @@ function renderResults() {
   if (view.tab === 'program' && !response?.model.program) view.tab = 'plot';
   $('tab-fit').hidden = !response?.model.inference;
   if (view.tab === 'fit' && !response?.model.inference) view.tab = 'plot';
+  $('tab-probabilities').hidden = !selectedRun()?.probabilities;
+  if (view.tab === 'probabilities' && $('tab-probabilities').hidden) view.tab = 'plot';
   $('tab-spatial').hidden = !selectedRun()?.spatial; $('tab-states').hidden = !selectedRun()?.stateSpace;
   if ((view.tab === 'spatial' && $('tab-spatial').hidden) || (view.tab === 'states' && $('tab-states').hidden)) view.tab = 'plot';
   renderDiagnostics(); updateStamp(); selectTab(view.tab);
@@ -338,7 +342,7 @@ function renderResults() {
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
   $('species-count').textContent = model.species.filter(species => !species.sourceId).length; $('reaction-count').textContent = model.reactions.length;
-  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration(); renderProbabilities();
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
@@ -365,6 +369,18 @@ function renderRuns() {
   if (hasData) {
     for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME', pde: 'Reaction diffusion · PDE', sundials: 'Deterministic · Sundials', cmesundials: 'Master equation · Sundials', mc: 'Moment closure · MC' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
   }
+}
+function renderProbabilities() {
+  const run = selectedRun(); if (!run?.probabilities) return;
+  const view = state(), model = selectedModel(), data = run.probabilities;
+  view.probabilitySpecies = Math.min(view.probabilitySpecies || 0, data.speciesIds.length - 1);
+  view.probabilityFrame = Math.min(view.probabilityFrame || 0, run.times.length - 1);
+  $('probability-species').replaceChildren(...data.speciesIds.map((id, i) => { const option = element('option', '', model.species.find(item => item.id === id)?.structure || id); option.value = i; return option; }));
+  $('probability-species').value = view.probabilitySpecies; $('probability-log').checked = Boolean(view.probabilityLog);
+  $('probability-time').max = run.times.length - 1; $('probability-time').value = view.probabilityFrame;
+  $('probability-time-label').textContent = `${numberLabel(run.times[view.probabilityFrame])} ${model.settings.timeUnit}`;
+  $('probability-summary').textContent = `${data.states.length} joint states · ${run.times.length} output times · maximum numerical mass residual ${numberLabel(data.maximumMassError)}`;
+  drawProbabilities($('probability-chart'), run, view.probabilitySpecies, view.probabilityFrame, view.probabilityLog, model.settings.timeUnit);
 }
 function renderExploration() {
   const run = selectedRun(), view = state(), model = selectedModel();
@@ -497,7 +513,7 @@ for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
   tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = [...document.querySelectorAll('[data-tab]')].filter(button => !button.hidden).map(button => button.dataset.tab), index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? tabs.at(-1) : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
 }
-$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; state().spatialFrame = state().spatialSeries = state().stateIndex = 0; renderResults(); });
+$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; state().spatialFrame = state().spatialSeries = state().stateIndex = state().probabilitySpecies = state().probabilityFrame = 0; renderResults(); });
 $('spatial-series').addEventListener('change', () => { state().spatialSeries = Number($('spatial-series').value); renderExploration(); });
 $('spatial-time').addEventListener('input', () => { state().spatialFrame = Number($('spatial-time').value); renderExploration(); });
 $('spatial-csv').addEventListener('click', () => download(`${stem()}-grid.csv`, spatialCsv(selectedRun(), selectedModel().settings.timeUnit), 'text/csv;charset=utf-8'));
@@ -533,3 +549,9 @@ async function initialize() {
   } catch (error) { connection(false); toast(error.message); }
 }
 initialize().catch(error => toast(error.message));
+
+$('probability-species').addEventListener('change', () => { state().probabilitySpecies = Number($('probability-species').value); renderProbabilities(); });
+$('probability-time').addEventListener('input', () => { state().probabilityFrame = Number($('probability-time').value); renderProbabilities(); });
+$('probability-log').addEventListener('change', () => { state().probabilityLog = $('probability-log').checked; renderProbabilities(); });
+$('probability-csv').addEventListener('click', () => download(`${stem()}.probabilities.csv`, probabilityCsv(selectedRun(), state().probabilitySpecies, selectedModel().settings.timeUnit), 'text/csv'));
+$('probability-svg').addEventListener('click', () => download(`${stem()}.probabilities.svg`, new XMLSerializer().serializeToString($('probability-chart')), 'image/svg+xml'));

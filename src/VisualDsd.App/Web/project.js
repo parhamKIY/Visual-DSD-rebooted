@@ -133,6 +133,38 @@ function readStateSpace(raw, network, budget) {
   return graph;
 }
 
+function readProbabilities(raw, run, network, budget) {
+  object(raw);
+  const speciesIds = array(raw.speciesIds, 128).map(id => text(id, 512));
+  if (!speciesIds.length || new Set(speciesIds).size !== speciesIds.length || speciesIds.some(id => !network.species.some(sp => sp.id === id))) fail('invalid probability species.');
+  const states = array(raw.states, 1000).map(row => {
+    const values = array(row, 128).map(n => integer(n, 0, 1000000));
+    if (values.length !== speciesIds.length) fail('probability state width mismatch.');
+    return values;
+  });
+  budget.probabilityStates += states.length * speciesIds.length;
+  if (!states.length || budget.probabilityStates > 200000 || new Set(states.map(row => row.join(','))).size !== states.length) fail('empty, oversized or duplicated probability states.');
+  const mass = array(raw.mass, 1000000).map(row => {
+    const values = array(row, 1000).map(finite);
+    budget.probabilities += values.length;
+    if (values.length !== states.length || budget.probabilities > 200000 || values.some(p => p < 0 || p > 1) || Math.abs(values.reduce((sum, p) => sum + p, 0) - 1) > 1e-8) fail('invalid or oversized probability mass.');
+    return values;
+  });
+  if (!run.times.length || mass.length !== run.times.length) fail('probability time count mismatch.');
+  const maximumMassError = finite(raw.maximumMassError);
+  if (maximumMassError < 0 || maximumMassError > 1e-5) fail('invalid probability residual.');
+  // The same joint distribution must reproduce the exported single-species moments.
+  for (const series of run.series) {
+    const column = speciesIds.indexOf(series.name); if (column < 0) fail('probability plot refers to an unknown species.');
+    for (let t = 0; t < mass.length; t++) {
+      const mean = mass[t].reduce((sum, p, i) => sum + p * states[i][column], 0);
+      const variance = mass[t].reduce((sum, p, i) => sum + p * (states[i][column] - mean) ** 2, 0);
+      if (Math.abs(mean - series.values[t]) > 1e-8 * Math.max(1, Math.abs(mean)) || !series.standardDeviation || Math.abs(Math.sqrt(variance) - series.standardDeviation[t]) > 1e-8 * Math.max(1, Math.sqrt(variance))) fail('probabilities disagree with their mean or uncertainty.');
+    }
+  }
+  return { speciesIds, states, mass, maximumMassError };
+}
+
 export function readProgram(raw) {
   object(raw); const source = text(raw.source);
   if (byteLength(source) > MAX_CODE_BYTES) fail('CRN source exceeds 256 KiB.');
@@ -177,7 +209,7 @@ export function readResponse(raw) {
   const source = object(raw.model), settings = readSettings(source.settings);
   if (typeof source.isJit !== 'boolean') fail('invalid JIT flag.');
   const { species, reactions } = readNetwork(source, source.isJit, operation);
-  let samples = 0; const budget = { cells: 0, states: 0, edges: 0 };
+  let samples = 0; const budget = { cells: 0, states: 0, edges: 0, probabilities: 0, probabilityStates: 0 };
   const simulations = array(source.simulations, 256).map(run => {
     object(run);
     const times = array(run.times, 1000000).map(finite);
@@ -201,6 +233,8 @@ export function readResponse(raw) {
     if (run.spatial !== undefined) result.spatial = run.spatial === null ? null : readSpatial(run.spatial, result, budget);
     if (run.stateSpace !== undefined) result.stateSpace = run.stateSpace === null ? null : readStateSpace(run.stateSpace, result.network || { species }, budget);
     const simulator = result.settings?.simulator || settings.simulator;
+    if (run.probabilities !== undefined) result.probabilities = run.probabilities === null ? null : readProbabilities(run.probabilities, result, result.network || { species }, budget);
+    if (result.probabilities && (operation !== 'simulate' || !['cme', 'cmesundials'].includes(simulator))) fail('probability output does not match its simulator.');
     if (Boolean(result.spatial) !== (operation === 'simulate' && simulator === 'pde')) fail('spatial output does not match its simulator.');
     if (Boolean(result.stateSpace) !== (operation === 'analyze') || (result.stateSpace && (times.length || series.length))) fail('state-space output does not match its operation.');
     return result;
@@ -231,7 +265,10 @@ function readSavedResult(raw, model) {
   const spatialSeries = integer(raw.spatialSeries ?? 0, 0, Math.max(0, (run?.spatial?.series.length || 0) - 1));
   const spatialFrame = integer(raw.spatialFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   const stateIndex = integer(raw.stateIndex ?? 0, 0, Math.max(0, (run?.stateSpace?.states.length || 0) - 1));
-  return { response, snapshot, spatialSeries, spatialFrame, stateIndex, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program']), networkFocus };
+  const probabilitySpecies = integer(raw.probabilitySpecies ?? 0, 0, Math.max(0, (run?.probabilities?.speciesIds.length || 0) - 1));
+  const probabilityFrame = integer(raw.probabilityFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
+  if (raw.probabilityLog !== undefined && typeof raw.probabilityLog !== 'boolean') fail('invalid probability palette.');
+  return { response, snapshot, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
 }
 
 export function parseProject(input) {
@@ -251,7 +288,7 @@ export function serialiseProject(documents, activeId, views, engineVersion) {
   const raw = { format: 'visual-dsd-project', version: 1, engineVersion, savedAt: new Date().toISOString(), activeId, documents: documents.map(model => {
     const entry = { id: model.id, name: model.name, code: model.code, options: model.options, databases: model.databases, data: readDatasets(model.data), exampleId: model.exampleId };
     const view = views.get(model.id);
-    if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0 };
+    if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0, probabilitySpecies: view.probabilitySpecies || 0, probabilityFrame: view.probabilityFrame || 0, probabilityLog: Boolean(view.probabilityLog) };
     return entry;
   }) };
   const json = JSON.stringify(raw);
