@@ -168,10 +168,11 @@ public class EngineTests
     [Theory]
     [InlineData("directive simulations [a={final=10};b={final=20}]")]
     [InlineData("directive parameters [N=1]\ndirective sweeps [s=[N=[1;2]]]")]
-    public void JIT_batch_settings_are_not_silently_ignored(string directive)
+    public void JIT_batch_settings_create_independent_runs(string directive)
     {
-        EngineResponse response = CoreEngine.Execute(new() { Code = "directive jit\ndirective simulator stochastic\n" + directive + "\n<a>", Operation = "simulate" });
-        Assert.False(response.Success);
-        Assert.Equal("JIT_BATCH_UNSUPPORTED", Assert.Single(response.Diagnostics).Code);
+        EngineResponse response = CoreEngine.Execute(new() { Code = "directive jit\ndirective simulator stochastic\n" + directive + "\n<a>", Operation = "simulate", Seed = 42 });
+        Assert.True(response.Success, JsonSerializer.Serialize(response));
+        Assert.Equal(2, response.Model!.Simulations.Length);
+        Assert.All(response.Model.Simulations, run => Assert.NotNull(run.Network));
     }
 }

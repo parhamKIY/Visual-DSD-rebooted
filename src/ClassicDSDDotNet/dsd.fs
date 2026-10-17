@@ -341,9 +341,11 @@ let toLogicProcess (g:FlatGate) : RulesDSD.Syntax.Process<SiteT> =
   | Single s, acc -> acc.Add s |> Set.toList |> Process.OfList
   | Double (s1, s2), acc -> acc.Add s1 |> Set.add s2 |> Set.toList |> Process.OfList
 
-let parse_extended toeholds specificities code =
+let parse_extended_with_parameters (parameters:Environment.t) toeholds specificities code =
   match code |> Parser.from_string DSDParser.parser with
   | ((task, z, opts, maybeRules), s ) ->
+    let overrides = parameters |> Map.toList |> List.map (fun (name,value) -> Parameter.create(name,value,None))
+    let z = { z with parameters = Parameters.merge z.parameters overrides }
     let opts = Options.setToeholdsText toeholds opts
     let opts = Options.setSpecificitiesText specificities opts
     let mod_plots : Syntax.t_plot_base list = [] 
@@ -472,6 +474,9 @@ let parse_extended toeholds specificities code =
                                       :> System.Collections.Generic.IDictionary<_,_>
                                       |> System.Collections.Generic.Dictionary }
     bundle,task
+
+let parse_extended toeholds specificities code =
+  parse_extended_with_parameters Environment.empty toeholds specificities code
   
 let parse code = let (bundle,_) = parse_extended (Options.getToeholdsText Options.default_options) (Options.getSpecificitiesText Options.default_options) code in bundle
 

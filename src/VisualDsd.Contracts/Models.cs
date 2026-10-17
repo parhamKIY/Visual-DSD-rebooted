@@ -26,7 +26,9 @@ public sealed record RateData(string Kind, string Expression);
 public sealed record ReactionData(Participant[] Reactants, Participant[] Products, Participant[] Catalysts, RateData Rate, RateData? ReverseRate);
 public sealed record SpeciesData(string Id, string Name, string Structure, string Svg, string Initial, bool Constant, string? Time, string ValueKind);
 public sealed record SeriesData(string Name, double[] Values);
-public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed);
+public sealed record NetworkData(SpeciesData[] Species, ReactionData[] Reactions);
+public sealed record SimulationData(string Name, string Sweep, string Assignment, double[] Times, SeriesData[] Series, int? Seed,
+    SettingsData? Settings = null, NetworkData? Network = null);
 public sealed record SettingsData(string Simulator, double Initial, double Final, int Points, int? Seed, string TimeUnit, string ConcentrationUnit);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)

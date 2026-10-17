@@ -29,7 +29,20 @@ module private Conversion =
                     initial.time |> Option.map value |> Option.defaultValue null,
                     if valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind)
 
-    let simulation (instance: Instance<Functional>) (table: Table<float>) =
+    let settings (crn: Crn) =
+        let simulation = crn.settings.simulation
+        let simulator = match crn.settings.simulator with Simulator.Oslo -> "oslo" | Simulator.SSA -> "ssa" | other -> other.to_string
+        SettingsData(simulator, simulation.initial, simulation.final, simulation.points,
+                     simulation.seed |> Option.map Nullable |> Option.defaultValue (Nullable()),
+                     crn.settings.units.time.to_string, crn.settings.units.concentration.to_string)
+
+    let network valueKind (crn: Crn) =
+        if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
+            invalidOp "The expanded model exceeds the interactive result limit."
+        NetworkData(crn.initials |> List.map (species valueKind crn) |> List.toArray,
+                    crn.reactions |> List.map reaction |> List.toArray)
+
+    let simulation (crn: Crn) network (instance: Instance<Functional>) (table: Table<float>) =
         let times = table.times |> List.toArray
         if times |> Array.exists (Double.IsFinite >> not) then failwith "Simulation produced a nonfinite time."
         if times |> Array.pairwise |> Array.exists (fun (a, b) -> b < a) then failwith "Simulation times are not ordered."
@@ -39,19 +52,14 @@ module private Conversion =
                 if values.Length <> times.Length || (values |> Array.exists (Double.IsFinite >> not)) then
                     failwith "Simulation returned invalid series data."
                 SeriesData(column.name, values)) |> List.toArray
-        SimulationData(instance.name, instance.sweep, instance.assignment, times, series,
-                       instance.settings.seed |> Option.map Nullable |> Option.defaultValue (Nullable()))
-
-    let settings (crn: Crn) =
-        let simulation = crn.settings.simulation
-        let simulator = match crn.settings.simulator with Simulator.Oslo -> "oslo" | Simulator.SSA -> "ssa" | other -> other.to_string
-        SettingsData(simulator, simulation.initial, simulation.final, simulation.points,
-                     simulation.seed |> Option.map Nullable |> Option.defaultValue (Nullable()),
-                     crn.settings.units.time.to_string, crn.settings.units.concentration.to_string)
+        let name = if String.IsNullOrEmpty instance.settings.name then instance.name else instance.settings.name
+        SimulationData(name, instance.sweep, instance.assignment, times, series,
+                       instance.settings.seed |> Option.map Nullable |> Option.defaultValue (Nullable()),
+                       settings { crn with settings = { crn.settings with simulation = instance.settings } }, network)
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.4.0", [|"parse"; "expand"; "simulate"|],
+        EngineInfo("Visual DSD Rebooted", "0.5.0", [|"parse"; "expand"; "simulate"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -109,8 +117,6 @@ type Engine private () =
                         failure "UNSUPPORTED_SIMULATOR" "This build supports the managed deterministic (Oslo) and stochastic (SSA) simulators."
                     elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
                         failure "JIT_SIMULATOR" "Just-in-time models require the stochastic simulator."
-                    elif request.Operation = "simulate" && jit && (not unexpanded.settings.simulations.IsEmpty || not unexpanded.settings.sweeps.IsEmpty) then
-                        failure "JIT_BATCH_UNSUPPORTED" "Named simulations and parameter sweeps are not yet supported for just-in-time models. Run each setting as a separate model."
                     else
                         let update (settings: Crn_settings<'a>) =
                             { settings with simulator = simulator; simulation = updateSimulation settings.simulation
@@ -123,17 +129,40 @@ type Engine private () =
                         let crn, simulations =
                             if request.Operation <> "simulate" then initialCrn, [||]
                             elif jit then
-                                match Dsd.to_jit configured with
-                                | Choice1Of2 state ->
-                                    let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus configured)
-                                    let expanded = Jit.to_crn finalState initialCrn
-                                    expanded, [|Conversion.simulation { Instance<Functional>.empty with settings = initialCrn.settings.simulation } table|]
-                                | Choice2Of2 state ->
-                                    let finalState, table = Jit.simulate state (Dsd.to_rules_calculus configured)
-                                    let expanded = Jit.to_crn finalState initialCrn
-                                    expanded, [|Conversion.simulation { Instance<Functional>.empty with settings = initialCrn.settings.simulation } table|]
+                                let instances = initialCrn.get_instances()
+                                if instances.Length > 256 then invalidOp "A simulation batch cannot exceed 256 runs."
+                                let run (instance: Instance<Functional>) =
+                                    if instance.environment |> Map.exists (fun _ value -> not (Double.IsFinite value)) then
+                                        invalidOp "Sweep parameter values must be finite."
+                                    // Reparse before expansion: parameters can also change domain rates and module arguments.
+                                    // Each run owns its mutable species caches, reaction dictionaries and random generator.
+                                    let fresh, _ = Dsd.parse_extended_with_parameters instance.environment toeholds specificities code
+                                    let fresh = Dsd.set_options fresh (Options.setRules compilation (Dsd.get_options fresh))
+                                    let runSettings (settings: Crn_settings<'a>) =
+                                        let sim =
+                                            if settings.simulations.IsEmpty then settings.simulation
+                                            else settings.simulations |> List.find (fun sim -> sim.name = instance.settings.name)
+                                        { settings with simulator = simulator; simulation = updateSimulation sim; simulations = []; sweeps = [] }
+                                    let fresh =
+                                        match fresh with
+                                        | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = runSettings classic.settings }
+                                        | Dsd.Rules rules -> Dsd.Rules { rules with settings = runSettings rules.settings }
+                                    let initial = Dsd.convert_unexpanded fresh
+                                    let expanded, table =
+                                        match Dsd.to_jit fresh with
+                                        | Choice1Of2 state ->
+                                            let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
+                                            Jit.to_crn finalState initial, table
+                                        | Choice2Of2 state ->
+                                            let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
+                                            Jit.to_crn finalState initial, table
+                                    expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
+                                let results = instances |> List.map run
+                                if results.IsEmpty then invalidOp "The selected sweeps contain no simulation runs."
+                                fst results.Head, results |> List.map snd |> List.toArray
                             else
-                                let runs = initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation result.instance result.table) |> List.toArray
+                                if initialCrn.get_instances().Length > 256 then invalidOp "A simulation batch cannot exceed 256 runs."
+                                let runs = initialCrn.simulate_case() |> List.map (fun result -> Conversion.simulation initialCrn null result.instance result.table) |> List.toArray
                                 initialCrn, runs
                         if crn.initials.Length > 10000 || crn.reactions.Length > 50000 then
                             failure "MODEL_TOO_LARGE" "The expanded model exceeds the interactive result limit."
