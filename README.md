@@ -27,7 +27,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Generate networks | Default, detailed, finite, and infinite compilation; species diagrams and reaction graphs |
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
-| Fit parameters | Seeded, single-chain MCMC with the Oslo solver and imported observation CSV files |
+| Fit parameters | Seeded MCMC with Oslo / Sundials, multiple chains, joint system fits, linked model inference, and imported observation CSV files |
 | Inspect probabilities | Joint CME probabilities, marginal population distributions, time heatmaps, logarithmic colors, and exact distribution CSV |
 | Explore states | Finite population state graphs, lazy JIT state generation, reachable-state inspection, and shortest paths |
 | Keep your work | Model files, project files with saved results, and CSV, SVG, and JSON exports |
@@ -89,7 +89,7 @@ Use **+ CRN** to start a reaction network directly, or expand a strand model and
 
 CRN programs use the original `system`, `node`, and `edge` syntax. Check the source, then select a model node and system to simulate or explore its states. The **Models** tab shows every system and parameter link. Shared and local parameters, functional rates, modules, sweeps, and system inheritance use the original model preparation. Project files preserve the complete source, graph, selection, and saved results.
 
-Simulation runs the selected system. Fitting linked or multi-system models is not available in this step; standalone CRN fitting uses the existing single-chain inference path.
+Simulation runs the selected system. Fitting jointly uses each node's observed systems and follows parameter links across the whole graph. Choose a completed node in the result view to inspect its chains, fitted curves and effective priors.
 
 ## Command line
 
@@ -174,7 +174,11 @@ These checks establish compatibility for the cases they exercise. They do not es
 Current boundaries:
 
 - Just-in-time models use SSA; full-network expansion and inference are unavailable for that mode. State exploration uses the same reaction calculus lazily, including Rules DSD and explicit reactions; it requires nonconstant integer populations, time-independent rates, scale=1, and no timed population inputs.
-- Inference uses a single MCMC chain and the Oslo solver. Linked and multi-system inference is not yet exposed.
+- Inference supports Oslo and Sundials, 1–4 distinct chain seeds per node, joint fitting of observed systems within a node, and sequential fitting of linked model nodes. Use the **CRN · linked inference** example to try the complete flow with included synthetic observations. Fitting executes the whole graph; the selected node controls the initial result view. Use **Fitted model node** to inspect other completed fits.
+- Configure multiple chains using the original syntax, for example `directive inference {burnin=200; samples=400; thin=10; seeds=[11;29]}`. Clear the UI seed override when using a seed list. `lowerbound` includes only chains whose maximum log likelihood is strictly greater than the bound; excluded chains remain available in result JSON, traces and CSV. Pooled means, variances and intervals are recomputed from retained draws, and the fit curve comes from the best included chain. Different random seeds share the declared initial parameter values.
+- Posterior views include chain traces, marginal density histograms and joint parameter draws. CSV exports preserve each chain seed, inclusion flag, recorded iteration, log likelihood, log prior and parameter draws. Saved projects preserve the selected node and posterior parameters. The displayed [classical split R-hat](https://mc-stan.org/docs/2_31/reference-manual/notation-for-samples-chains-and-draws.html) uses the unranked draws; it is not the modern rank-normalized diagnostic or a convergence guarantee, and is omitted when it is undefined.
+- Parameter links preserve the original `Fixed`, `Normal`, `LogNormal` and `TruncatedNormal` syntax. They transfer posterior summaries, not the full joint distribution between nodes. Effective priors are retained in each result. Log-normal transfer reconstructs the source mean and variance using the corrected log-scale standard deviation. Ambiguous multiple incoming priors are rejected. At least one variable model or noise parameter is required at every fitted node.
+- Each inference request is bounded to eight nodes, four chains per node, 20000 total burn-in plus sampling iterations, 20000 selected measurements and 200000 posterior values. Each chain retains 2–500 draws. Dataset declarations must account for every imported dataset; each observed system keeps its own plots, units, simulation settings and network. Long calculations remain subject to the worker deadline.
 - CME, LNA, spatial simulation, and state exploration enforce explicit size and work limits. Large models may require a smaller grid, state space, or output request.
 - Native `sundials` uses CVODE 3.1.2, preserving the original Adams/BDF selection through `directive deterministic {stiff=false}` / `stiff=true`. `cmesundials` uses the same bounded state enumeration as managed CME (at most 4096 states, or 2048 with a dense stiff solver).
 - Moment closure uses the original symbolic equations, derivative-matching closure, and Oslo integration. Configure it with `directive simulator mc` and `directive moments {order=2; plots=[<A>; <A^2>]; initial_minimum=1e-16; log_evaluation=false}`. It supports mass-action reactions, order 1–8 and at most 256 moments; constant species, timed inputs and stochastic scale other than 1 are rejected. Standard deviations are available for first moments when order is at least 2; uncomputed uncertainties are omitted. It approximates nonlinear networks, and the original visualization clamps negative variance estimates to zero. Output interpolation can introduce additional error between solver steps.
