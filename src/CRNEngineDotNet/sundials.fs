@@ -52,13 +52,15 @@ module internal external_sundials =
                             reltol:double) : (int*(float array)) = 1030,[||] // Getting exit code 1030 means that you are executing a WebSharper intended file with .NET CLR. Reference "CRNEngine" instead of "CRNEngingJS". 
 #else
     //The pointer is to a C allocated array... take care! It's to be allocation-free for perf. CG
+    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type FunctionalRates = delegate of float * nativeptr<float> * nativeptr<float> -> unit
 
+    [<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
     type SundialsOutput = delegate of float * nativeptr<float> -> unit
 
     //DLL must be discoverable for this to work e.g. copy it to your exe's directory
     [<SuppressUnmanagedCodeSecurityAttribute>]
-    [<DllImport("SundialsSolver15.dll", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport("visualdsd_sundials", CallingConvention = CallingConvention.Cdecl)>]
     extern int fnSundialsSolver(
         int speciesNumber,
         int massActionRatesNumber,
@@ -72,12 +74,12 @@ module internal external_sundials =
         double[] timesToReturn,
         int timesToReturnNumber,
         SundialsOutput sundialsOutput,
-        bool stiff,
+        [<MarshalAs(UnmanagedType.I1)>] bool stiff,
         double abstol,
         double reltol)
 
     [<SuppressUnmanagedCodeSecurityAttribute>]
-    [<DllImport("SundialsSolver15.dll", CallingConvention = CallingConvention.Cdecl)>]
+    [<DllImport("visualdsd_sundials", CallingConvention = CallingConvention.Cdecl)>]
     extern int fnSundialsCMESolver(
         int stateN,
         int transN,
@@ -89,7 +91,7 @@ module internal external_sundials =
         double[] timesToReturn,
         int numTimesToReturn,
         SundialsOutput sundialsOutput,
-        bool stiff,
+        [<MarshalAs(UnmanagedType.I1)>] bool stiff,
         double abstol,
         double reltol)
 

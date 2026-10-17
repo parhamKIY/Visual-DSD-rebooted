@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/microsoft/CRN",
+  "sourceTreeCommit": null,
+  "files": {
+    "SundialsSolver/SundialsSolver15/SundialsSolver.cpp": "331890336e468dc454b7f087d84c05a855d061838420abbc55eebffe51f75383",
+    "SundialsSolver/SundialsSolver15/SundialsSolver.h": "b5d1332d161a0cdd5b6346131f6462129bb565118e046b08ad52b09958b4ce24",
+    "MomentClosure/MomentClosure/moments.fs": "150883a4aac5fe67b723689dbfbcd71a3050565cd5865c8e8f084f21e487d111",
+    "MomentClosure/MomentClosure/mc_utils.fs": "4d2318bfad561142b92cf25c50e6262afe106d7847f59bd5370ece44e51833cf"
+  },
+  "changes": [
+    "Portable native build, callback ABI and allocation/error handling.",
+    "Moment coefficient conversion uses arbitrary-precision decimal fractions."
+  ]
+}

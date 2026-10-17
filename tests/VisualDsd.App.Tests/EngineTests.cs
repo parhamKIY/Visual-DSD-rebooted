@@ -99,11 +99,11 @@ public class EngineTests
     }
 
     [Fact]
-    public void Unsupported_native_simulation_is_not_silently_replaced()
+    public void Source_native_simulator_is_executed_without_an_override()
     {
         EngineResponse response = CoreEngine.Execute(new() { Code = "directive simulator sundials\n<a>", Operation = "simulate" });
-        Assert.False(response.Success);
-        Assert.Equal("UNSUPPORTED_SIMULATOR", Assert.Single(response.Diagnostics).Code);
+        Assert.True(response.Success, JsonSerializer.Serialize(response));
+        Assert.Equal("sundials", response.Model!.Settings.Simulator);
     }
 
     [Theory]

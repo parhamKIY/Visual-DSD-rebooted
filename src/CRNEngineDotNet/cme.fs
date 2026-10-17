@@ -107,7 +107,7 @@ type Cme =
     then Table.from_rows plots sim_data
     else 
       let int_data:Row<Point> list = Row.interpolate_reverse Point.interpolate sim_data times 
-      Table.from_rows plots int_data
+      Table.from_rows_reverse plots int_data
   static member simulate 
     (env            : Environment.t) 
     (ratesEnv       : Map<string,Expression.t<Inlined<Species>>>)
@@ -146,6 +146,10 @@ type Cme =
        (fun i -> 
          Array.init (stoichiometry |> Matrix.numCols) (fun j -> System.Math.Pow (stoichiometry.[i,j], 2.0)) |> Vector.ofArray)) 
 
+    let requested_times = times_list
+    let times_list =
+      if not times_list.IsEmpty && times_list.Head > sim_settings.initial
+      then sim_settings.initial :: times_list else times_list
     let times:float[] = Array.ofList times_list      
     let num_states = Array.length P0
 
@@ -216,6 +220,7 @@ type Cme =
           species = simulator.populations.species_to_index |> Hashtable.map_key (fun s -> s.name) 
         }
     let meanstd = List.map2 datapoint times_list probs
+    let meanstd = if requested_times = times_list then meanstd else List.tail meanstd
     List.iter output meanstd
     
     { s with probabilities = probabilities }, s.process_simulation meanstd  

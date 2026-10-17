@@ -10,5 +10,6 @@
     <Compile Include="Engine.fs" />
     <ProjectReference Include="../VisualDsd.Contracts/VisualDsd.Contracts.csproj" />
     <ProjectReference Include="../ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
+    <ProjectReference Include="../MomentClosure/MomentClosure.fsproj" />
   </ItemGroup>
 </Project>

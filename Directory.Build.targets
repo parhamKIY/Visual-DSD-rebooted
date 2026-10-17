@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <RebootNativeRuntime Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RebootNativeRuntime>
+    <RebootNativeRuntime Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</RebootNativeRuntime>
+    <RebootNativeRuntime Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</RebootNativeRuntime>
+    <RebootNativeName Condition="$([MSBuild]::IsOSPlatform('Windows'))">visualdsd_sundials.dll</RebootNativeName>
+    <RebootNativeName Condition="$([MSBuild]::IsOSPlatform('Linux'))">libvisualdsd_sundials.so</RebootNativeName>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'VisualDsd.App'">
+    <Content Include="$(MSBuildThisFileDirectory)artifacts/native/$(RebootNativeRuntime)/$(RebootNativeName)"
+             Link="$(RebootNativeName)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="BuildRebootNativeSolvers" BeforeTargets="PrepareForBuild" Condition="'$(MSBuildProjectName)' == 'VisualDsd.App' and '$(DesignTimeBuild)' != 'true'">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)eng/native.ps1&quot; -Runtime &quot;$(RebootNativeRuntime)&quot;" />
+  </Target>
+</Project>

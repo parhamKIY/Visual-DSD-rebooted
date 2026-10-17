@@ -29,6 +29,14 @@ let defaults = { order = 3
                }
 
 let rec initAllOrders (maxSpecies: int) (degree:int) =
+  // Bound symbolic work before allocating the combinatorial moment system.
+  if degree < 1 || degree > 8 || maxSpecies < 1 || maxSpecies > 128 then
+    failwith "Moment closure requires order 1..8 and 1..128 species."
+  let mutable count = 1L
+  for k in 1..degree do
+    count <- count * int64 (maxSpecies + k) / int64 k
+    if count > 257L then failwith "Moment closure exceeds the interactive limit of 256 moments."
+
   let indices = [0..maxSpecies-1]
   let rec init indices deg=
     match indices with

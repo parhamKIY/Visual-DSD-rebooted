@@ -111,6 +111,7 @@ type Simulation_settings<'e> when 'e:equality =
     Parser.record defaults [ 
       "initial", Parser.pfloat .>> Parser.spaces |>> fun d (s:Simulation_settings<'e>) -> { s with initial = d }
       "final",   Parser.pfloat .>> Parser.spaces |>> fun d (s:Simulation_settings<'e>) -> { s with final = d }
+      "times",   Parser.list_of (Parser.pfloat .>> Parser.spaces) |>> fun d (s:Simulation_settings<'e>) -> { s with times = d }
       "points",  Parser.pint32 .>> Parser.spaces |>> fun d (s:Simulation_settings<'e>) -> { s with points = d }
       "plots",   Parser.list_of (pe .>> Parser.spaces) |>> fun d (s:Simulation_settings<'e>) -> { s with plots = d }
       "plotcolours", Parser.list_of (Parser.pcolour .>> Parser.spaces) |>> fun d (s:Simulation_settings<'e>) -> { s with plotcolours = d }

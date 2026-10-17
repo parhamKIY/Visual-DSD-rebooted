@@ -31,6 +31,7 @@ public class CompatibilityTests
 
     [Theory]
     [InlineData("oslo")]
+    [InlineData("sundials")]
     [InlineData("ssa")]
     public void Timed_inputs_keep_unique_ids_and_absolute_event_times_without_changing_the_population(string simulator)
     {

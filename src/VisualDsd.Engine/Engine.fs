@@ -83,14 +83,14 @@ module private StatisticalSolvers =
         if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
         instances |> List.map (fun instance ->
             let current = { crn with settings = { crn.settings with simulation = instance.settings } } |> fun model -> model.substitute instance.environment
-            if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "LNA and CME currently require stochastic scale=1."))
+            if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "LNA and CME solvers currently require stochastic scale=1."))
             if current.initials.Length > 128 then raise (ExecutionFailure("MODEL_TOO_LARGE", "Statistical solvers currently support at most 128 species."))
             if current.settings.simulation.plots |> List.exists (function Expression.Key (Key.Species _) -> false | _ -> true) then
-                raise (ExecutionFailure("STATISTICAL_PLOTS", "LNA and CME require single-species plots; statistics for compound expressions are not supported."))
+                raise (ExecutionFailure("STATISTICAL_PLOTS", "LNA and CME solvers require single-species plots; statistics for compound expressions are not supported."))
             let env = Parameters.to_env current.settings.parameters
             let eval = Expression.eval (Environment.find env)
             if current.initials |> List.exists (fun initial -> initial.time |> Option.exists (fun time -> eval time <> current.settings.simulation.initial)) then
-                raise (ExecutionFailure("STATISTICAL_EVENTS", "Timed population inputs are not supported by LNA and CME."))
+                raise (ExecutionFailure("STATISTICAL_EVENTS", "Timed population inputs are not supported by LNA and CME solvers."))
             let table =
                 if current.settings.simulator = Simulator.LNA then current.to_lna().simulate()
                 else
@@ -106,7 +106,29 @@ module private StatisticalSolvers =
                         try calc.to_ctmc_bounded 1000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter
                         with error when error.Message.StartsWith("State space exceeds", StringComparison.Ordinal) -> raise (ExecutionFailure("STATE_SPACE_LIMIT", error.Message))
                     let cme = current.to_cme states
-                    Cme.simulate env (Crn.to_inlined_rates current.settings) false cme |> snd
+                    if current.settings.simulator = Simulator.CMESundials then
+                        cme.simulate_sundials env (Crn.to_inlined_rates current.settings) |> snd
+                    else Cme.simulate env (Crn.to_inlined_rates current.settings) false cme |> snd
+            Conversion.statistical current instance table) |> List.toArray
+
+    let moments (crn: Crn) =
+        crn.get_instances() |> List.map (fun instance ->
+            let current = { crn with settings = { crn.settings with simulation = instance.settings } } |> fun model -> model.substitute instance.environment
+            let env = Parameters.to_env current.settings.parameters
+            let eval = Expression.eval (Environment.find env)
+            let mc = current.settings.moment_closure
+            if not (Double.IsFinite mc.initial_minimum) || mc.initial_minimum <= 0.0 then
+                raise (ExecutionFailure("MC_INITIAL_MINIMUM", "Moment closure initial_minimum must be finite and positive."))
+            if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "Moment closure requires stochastic scale=1."))
+            if current.initials |> List.exists (fun initial -> initial.constant) then
+                raise (ExecutionFailure("MC_CONSTANTS", "Moment closure does not support constant species."))
+            if current.initials |> List.exists (fun initial -> let value = eval initial.value in not (Double.IsFinite value) || value < 0.0) then
+                raise (ExecutionFailure("MC_INITIALS", "Moment closure requires finite nonnegative initial populations."))
+            if current.initials |> List.exists (fun initial -> initial.time |> Option.exists (fun time -> eval time <> current.settings.simulation.initial)) then
+                raise (ExecutionFailure("STATISTICAL_EVENTS", "Moment closure does not support timed population inputs."))
+            if current.reactions |> List.exists (fun reaction -> match reaction.rate, reaction.reverse with Rate.Function _, _ | _, Some (Rate.Function _) -> true | _ -> false) then
+                raise (ExecutionFailure("MC_RATES", "Moment closure supports mass-action reactions only."))
+            let _, table = current |> Moments.generateMoments |> Moments.generateClosure |> Moments.simulate
             Conversion.statistical current instance table) |> List.toArray
 
 module private CrnExecution =
@@ -123,12 +145,23 @@ module private CrnExecution =
             crn, runs, noInference
         | "simulate" ->
             if crn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
+            if List.contains crn.settings.simulator [Simulator.Sundials; Simulator.CMESundials; Simulator.MC] then
+                let ode = crn.settings.deterministic
+                if not (Double.IsFinite ode.abstolerance && Double.IsFinite ode.reltolerance) || ode.abstolerance <= 0.0 || ode.reltolerance <= 0.0 then
+                    raise (ExecutionFailure("INVALID_TOLERANCE", "Solver tolerances must be finite and positive."))
+                for instance in crn.get_instances() do
+                    let sim = instance.settings
+                    if sim.times |> List.exists (fun t -> not (Double.IsFinite t) || t < sim.initial || t > sim.final) then
+                        raise (ExecutionFailure("INVALID_OUTPUT_TIMES", "Output times must be finite and within the simulation interval."))
+                    if sim.times |> List.pairwise |> List.exists (fun (a,b) -> b < a) then
+                        raise (ExecutionFailure("INVALID_OUTPUT_TIMES", "Output times must be nondecreasing."))
             let runs =
                 if crn.settings.simulator = Simulator.PDE then
                     Exploration.spatial crn |> Array.map (fun (instance, table, data) ->
                         let run = Conversion.simulation crn null instance table
                         SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
-                elif crn.settings.simulator = Simulator.LNA || crn.settings.simulator = Simulator.CME then StatisticalSolvers.simulate crn
+                elif crn.settings.simulator = Simulator.LNA || crn.settings.simulator = Simulator.CME || crn.settings.simulator = Simulator.CMESundials then StatisticalSolvers.simulate crn
+                elif crn.settings.simulator = Simulator.MC then StatisticalSolvers.moments crn
                 else crn.simulate_case() |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
             crn, runs, noInference
         | _ -> crn, [||], noInference
@@ -145,7 +178,8 @@ module private CrnExecution =
         let simulator =
             match request.Simulator with
             | "oslo" -> Simulator.Oslo | "ssa" -> Simulator.SSA | "lna" -> Simulator.LNA
-            | "cme" -> Simulator.CME | "pde" -> Simulator.PDE | _ -> original.settings.simulator
+            | "cme" -> Simulator.CME | "pde" -> Simulator.PDE
+            | "sundials" -> Simulator.Sundials | "cmesundials" -> Simulator.CMESundials | "mc" -> Simulator.MC | _ -> original.settings.simulator
         let crn = { original with settings = { original.settings with simulator = simulator; simulation = update original.settings.simulation; simulations = original.settings.simulations |> List.map update } }
         let active = if crn.settings.simulations.IsEmpty then [crn.settings.simulation] else crn.settings.simulations
         for sim in active do
@@ -153,8 +187,8 @@ module private CrnExecution =
             if request.Operation = "simulate" || request.Operation = "infer" then
                 if sim.final <= sim.initial then raise (ExecutionFailure("INVALID_TIME_RANGE", "Final time must be greater than initial time."))
                 if sim.points < 1 || sim.points > 100000 then raise (ExecutionFailure("INVALID_POINTS", "Output points must be between 1 and 100000."))
-        if request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
-            raise (ExecutionFailure("UNSUPPORTED_SIMULATOR", "This build supports Oslo, SSA, LNA, CME and PDE."))
+        if request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE; Simulator.Sundials; Simulator.CMESundials; Simulator.MC]) then
+            raise (ExecutionFailure("UNSUPPORTED_SIMULATOR", "This build supports Oslo, SSA, LNA, CME, PDE, Sundials, CMESundials and Moment Closure."))
         let crn, runs, inference = run request crn
         let network = Conversion.network "initial" crn
         let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program)
@@ -162,8 +196,8 @@ module private CrnExecution =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.9.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
-                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"|], [|"dsd"; "crn"|])
+        EngineInfo("Visual DSD Rebooted", "0.10.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+                   [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
         let validation = RequestValidation.Validate request
@@ -205,6 +239,9 @@ type Engine private () =
                             | "lna" -> Simulator.LNA
                             | "cme" -> Simulator.CME
                             | "pde" -> Simulator.PDE
+                            | "sundials" -> Simulator.Sundials
+                            | "cmesundials" -> Simulator.CMESundials
+                            | "mc" -> Simulator.MC
                             | _ -> unexpanded.settings.simulator
                         let updateSimulation (current: Simulation_settings<'a>) = {
                             current with
@@ -222,8 +259,8 @@ type Engine private () =
                             failure "INVALID_TIME_RANGE" "The model's final time must be finite and greater than its initial time."
                         elif (request.Operation = "simulate" || request.Operation = "infer") && (activeSimulations |> List.exists (fun sim -> sim.points < 1 || sim.points > 100000)) then
                             failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
-                        elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE]) then
-                            failure "UNSUPPORTED_SIMULATOR" "This build supports the managed Oslo, SSA, LNA, CME and spatial PDE simulators."
+                        elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE; Simulator.Sundials; Simulator.CMESundials; Simulator.MC]) then
+                            failure "UNSUPPORTED_SIMULATOR" "This build supports Oslo, SSA, LNA, CME, PDE, Sundials, CMESundials and Moment Closure."
                         elif request.Operation = "analyze" && jit then
                             failure "JIT_ANALYSIS" "State exploration requires a fully expanded model."
                         elif request.Operation = "infer" && jit then

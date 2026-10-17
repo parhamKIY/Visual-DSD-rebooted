@@ -1,0 +1,7 @@
+{
+  "version": "3.1.2",
+  "source": "https://github.com/llnl/sundials/releases/download/v3.1.2/sundials-3.1.2.tar.gz",
+  "sourceSha256": "a8985bb1e851d90e24260450667b134bc13d71f5c6effc9e1d7183bd874fe116",
+  "archiveSha256": "e1b6d6bb1e5a93acf426dbd7cf5f7fc5f9407a30acbf7c80e8bc50294cedacae",
+  "contents": "Unmodified top-level files, config/, include/, src/; examples and documentation omitted."
+}

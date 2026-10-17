@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.9.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.10.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -64,7 +64,7 @@ $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
 if (!$expanded.success -or $expanded.model.species.Count -ne 9 -or $expanded.model.reactions.Count -ne 4) { throw 'Standalone expansion differs from the reference.' }
 $converted = Invoke-Standalone @('expand', $legacy) | ConvertFrom-Json
 if (!$converted.success -or $converted.dialect -ne 'legacy' -or $converted.model.species.Count -ne 7) { throw 'Standalone legacy conversion failed.' }
-foreach ($simulator in @('oslo', 'ssa')) {
+foreach ($simulator in @('oslo', 'ssa', 'sundials')) {
     $simulated = Invoke-Standalone @('simulate', $catalytic, '--simulator', $simulator, '--final', '100', '--points', '20', '--seed', '42') | ConvertFrom-Json
     if (!$simulated.success -or $simulated.model.settings.simulator -ne $simulator -or $simulated.model.simulations.Count -lt 1) { throw "Standalone $simulator simulation failed." }
 }
@@ -91,11 +91,20 @@ directive simulation {final=5;points=20;plots=[<a>]}
 directive parameters [k=0.35]
 (10 * <a> | rxn <a> ->{k} <b>)
 '@
-foreach ($statisticalSolver in @('lna', 'cme')) {
+foreach ($statisticalSolver in @('lna', 'cme', 'cmesundials')) {
     $statistics = Invoke-Standalone -Arguments @('simulate', '-', '--simulator', $statisticalSolver) -InputText $decaySource | ConvertFrom-Json
     $trace = $statistics.model.simulations[0].series[0]
     if (!$statistics.success -or $trace.standardDeviation.Count -ne $trace.values.Count -or [Math]::Abs($trace.values[-1] - 10 * [Math]::Exp(-1.75)) -gt 0.01) { throw "Standalone $statisticalSolver differs from the analytic decay solution." }
 }
+$momentSource = @'
+directive simulator mc
+directive simulation {final=2;points=20}
+directive moments {order=2;plots=[<A>]}
+| 10 A | A ->{0.5}
+'@
+$momentResult = Invoke-Standalone -Arguments @('simulate', '-', '--language', 'crn') -InputText $momentSource | ConvertFrom-Json
+$momentTrace = $momentResult.model.simulations[0].series[0]
+if (!$momentResult.success -or $momentResult.model.settings.simulator -ne 'mc' -or $momentTrace.standardDeviation.Count -ne $momentTrace.values.Count -or [Math]::Abs($momentTrace.values[-1] - 10 * [Math]::Exp(-1)) -gt 0.01) { throw 'Standalone moment closure differs from the analytic solution.' }
 $spatialSource = @'
 directive simulator pde
 directive simulation {initial=2;final=3;points=10;plots=[<a>]}
@@ -153,4 +162,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, spatial PDE, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

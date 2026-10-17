@@ -18,6 +18,7 @@ public class ScientificTests
     [Theory]
     [InlineData("lna")]
     [InlineData("cme")]
+    [InlineData("cmesundials")]
     public void Statistical_solvers_match_the_analytic_binomial_decay_mean_and_standard_deviation(string simulator)
     {
         var result = CoreEngine.Execute(new() { Code = Decay, Operation = "simulate", Simulator = simulator });
@@ -36,6 +37,7 @@ public class ScientificTests
     [Theory]
     [InlineData("lna")]
     [InlineData("cme")]
+    [InlineData("cmesundials")]
     public void Statistical_sweep_instances_honor_their_parameters_and_named_time_ranges(string simulator)
     {
         var result = CoreEngine.Execute(new() { Code = Decay.Replace("directive parameters [k=0.35]", "directive parameters [k=0.35]\ndirective sweeps [rates=[k=[0.1;0.7]]]\ndirective simulations [early={final=1};late={final=2}]") , Operation = "simulate", Simulator = simulator });
@@ -50,23 +52,28 @@ public class ScientificTests
     [Theory]
     [InlineData("lna")]
     [InlineData("cme")]
+    [InlineData("cmesundials")]
     public void Compound_statistical_plots_are_rejected_instead_of_reporting_incorrect_uncertainty(string simulator)
     {
         var result = CoreEngine.Execute(new() { Code = Decay.Replace("plots=[<a>]", "plots=[([<a>] + [<b>])]"), Operation = "simulate", Simulator = simulator });
         Assert.False(result.Success); Assert.Equal("STATISTICAL_PLOTS", Assert.Single(result.Diagnostics).Code);
     }
 
-    [Fact]
-    public void Unbounded_CME_networks_stop_at_the_state_limit()
+    [Theory]
+    [InlineData("cme")]
+    [InlineData("cmesundials")]
+    public void Unbounded_CME_networks_stop_at_the_state_limit(string simulator)
     {
-        var result = CoreEngine.Execute(new() { Code = "(1 * <a> | rxn <a> ->{1} <a> + <a>)", Operation = "simulate", Simulator = "cme" });
+        var result = CoreEngine.Execute(new() { Code = "(1 * <a> | rxn <a> ->{1} <a> + <a>)", Operation = "simulate", Simulator = simulator });
         Assert.False(result.Success); Assert.Contains("1000 states", Assert.Single(result.Diagnostics).Message);
     }
 
-    [Fact]
-    public void Zero_rate_CME_sweeps_do_not_enumerate_impossible_infinite_state_spaces()
+    [Theory]
+    [InlineData("cme")]
+    [InlineData("cmesundials")]
+    public void Zero_rate_CME_sweeps_do_not_enumerate_impossible_infinite_state_spaces(string simulator)
     {
-        var result = CoreEngine.Execute(new() { Code = "directive simulation {final=1;points=5}\ndirective parameters [k=1]\ndirective sweeps [off=[k=[0]]]\n(1 * <a> | rxn <a> ->{k} <a> + <a>)", Operation = "simulate", Simulator = "cme" });
+        var result = CoreEngine.Execute(new() { Code = "directive simulation {final=1;points=5}\ndirective parameters [k=1]\ndirective sweeps [off=[k=[0]]]\n(1 * <a> | rxn <a> ->{k} <a> + <a>)", Operation = "simulate", Simulator = simulator });
         Assert.True(result.Success, JsonSerializer.Serialize(result));
         Assert.All(Assert.Single(result.Model!.Simulations).Series[0].Values, value => Assert.Equal(1, value));
     }

@@ -92,6 +92,7 @@ type OdeSundials =
         | Rate.Function lambda -> functionalRateFunctions.[ri] <- lambda
         | _ -> failwith "Unexpected reaction type"
         )
+    let mutable callbackError : exn option = None
     //Called back from the native Sundials code to calculate functional rates
 #if JavaScript
     let functionRatesApplyer (time:float) (conc:float[]) =
@@ -106,7 +107,7 @@ type OdeSundials =
         fluxesResult.[r] <- functionalRateFunctions.[r].key conc
       fluxesResult
  #else
-    let functionRatesApplyer (time:float) (fluxes:nativeptr<float>) (nativeconc:nativeptr<float>) =    
+    let applyFunctionalRates (time:float) (fluxes:nativeptr<float>) (nativeconc:nativeptr<float>) =
       // compute rate
       for r in 0..(numReactionsF-1) do
       let conc index =
@@ -115,6 +116,11 @@ type OdeSundials =
         | Inlined.Time      -> time
         //| Inlined.IRate    r -> resolvedRatesEnv.[r]
       NativePtr.set fluxes r (functionalRateFunctions.[r].key conc)
+    let functionRatesApplyer time fluxes conc =
+      try applyFunctionalRates time fluxes conc
+      with error ->
+        callbackError <- Some error
+        for r in 0..(numReactionsF-1) do NativePtr.set fluxes r Double.NaN
  #endif
     let functionRatesApplyerDelegate = new FunctionalRates(functionRatesApplyer)
 
@@ -175,7 +181,10 @@ type OdeSundials =
                   specieslookup 
                     |> Array.iteri (fun index ip -> storage.[index].Add(ip.key keySolver))
               ()          
-          let sundialsOutputDelegate = new SundialsOutput(sundialsOutput)      
+          let guardedOutput time conc =
+              try sundialsOutput time conc
+              with error -> callbackError <- Some error
+          let sundialsOutputDelegate = new SundialsOutput(guardedOutput)
           // during this function, output() will be called back into          
           #if JavaScript
           // we need explicit return of "conc" here
@@ -185,6 +194,7 @@ type OdeSundials =
           let sundialsOutputCode =
           #endif
             fnSundialsSolver(numSpecies, numReactionsM, stoichM, powersM, ratesMassAction, numReactionsF, stoichF,functionRatesApplyerDelegate, concs, times, numtimes, sundialsOutputDelegate, s.settings.stiff, s.settings.abstolerance, s.settings.reltolerance)          
+          match callbackError with Some error -> raise error | None -> ()
           if sundialsOutputCode <> 0 then raise (Errors.SimulatorErrorException (sprintf "Sundials solver failed with code: %i" sundialsOutputCode))
           (* Enact the event *)
           let concs =

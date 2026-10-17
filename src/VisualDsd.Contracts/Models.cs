@@ -82,7 +82,7 @@ public static class RequestValidation
         if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, or analyze."));
         if (request.Dialect is not ("auto" or "current" or "legacy")) errors.Add(new("INVALID_DIALECT", "Dialect must be auto, current, or legacy."));
         if (request.Compilation is not ("source" or "default" or "detailed" or "finite" or "infinite")) errors.Add(new("INVALID_COMPILATION", "Unknown compilation mode."));
-        if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme" or "pde")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, cme, or pde."));
+        if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme" or "pde" or "sundials" or "cmesundials" or "mc")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, cme, pde, sundials, cmesundials, or mc."));
         errors.AddRange(ObservationValidation.Validate(request.Data));
         if (request.Operation == "infer" && request.Data is { Length: 0 }) errors.Add(new("MISSING_DATA", "Import observation data before fitting parameters."));
         if (request.Initial.HasValue && !double.IsFinite(request.Initial.Value)) errors.Add(new("INVALID_TIME", "Initial time must be finite."));

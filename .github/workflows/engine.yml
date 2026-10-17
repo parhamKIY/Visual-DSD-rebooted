@@ -42,6 +42,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
+      - name: Build portable native solvers from verified sources
+        run: ./eng/native.ps1 -Runtime '${{ matrix.runtime }}'
       - name: Verify original reference and rebooted engine
         run: ./eng/test.ps1 -Locked
       - name: Verify workspace data handling and plots
