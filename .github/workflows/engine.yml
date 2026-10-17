@@ -4,42 +4,82 @@ on:
   push:
     branches: [master]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: engine-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
   verify:
+    name: Verify (${{ matrix.runtime }})
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            runtime: win-x64
+          - os: ubuntu-latest
+            runtime: linux-x64
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-dotnet@v6.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
       - name: Verify original reference and rebooted engine
-        shell: pwsh
         run: ./eng/test.ps1 -Locked
       - name: Verify workspace data handling and plots
-        shell: pwsh
         run: ./eng/test-ui.ps1
       - name: Publish and verify standalone application
-        shell: pwsh
         run: |
-          $runtime = if ($IsWindows) { 'win-x64' } else { 'linux-x64' }
-          ./eng/publish.ps1 -Runtime $runtime
-          ./eng/smoke.ps1 -Runtime $runtime
+          ./eng/publish.ps1 -Runtime '${{ matrix.runtime }}'
+          ./eng/smoke.ps1 -Runtime '${{ matrix.runtime }}'
           git diff --exit-code
           if ($LASTEXITCODE -ne 0) { throw 'Build or publish changed tracked files.' }
           if (git ls-files --others --exclude-standard) { throw 'Build or publish created untracked files.' }
+      - name: Package verified application
+        run: |
+          $runtime = '${{ matrix.runtime }}'
+          $name = "visual-dsd-rebooted-$runtime"
+          $stage = Join-Path 'artifacts/packages' $name
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item -Path "artifacts/publish/$runtime/*" -Destination $stage
+          Copy-Item -LiteralPath LICENSE, NOTICE -Destination $stage
+          $zip = Join-Path 'artifacts/packages' "$name.zip"
+          Compress-Archive -Path "$stage/*" -DestinationPath $zip
+          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name.zip" | Set-Content -LiteralPath "$zip.sha256" -Encoding utf8NoBOM
+      - name: Upload verified application
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-dsd-rebooted-${{ matrix.runtime }}
+          path: |
+            artifacts/packages/*.zip
+            artifacts/packages/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
       - name: Save test evidence
         if: always()
-        uses: actions/upload-artifact@v7.0.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: engine-tests-${{ matrix.os }}
+          name: engine-tests-${{ matrix.runtime }}
           path: artifacts/test-results
+          retention-days: 7
           if-no-files-found: ignore

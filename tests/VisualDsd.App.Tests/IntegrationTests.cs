@@ -73,6 +73,7 @@ public sealed class LocalHost : IAsyncLifetime
     }
 }
 
+[Collection("Process integration")]
 public class ApiTests(LocalHost host) : IClassFixture<LocalHost>
 {
     [Fact]
@@ -163,6 +164,7 @@ public class ApiTests(LocalHost host) : IClassFixture<LocalHost>
     }
 }
 
+[Collection("Process integration")]
 public class WorkerTests
 {
     internal static ModelRequest SlowRequest => new()

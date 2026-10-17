@@ -1,7 +1,25 @@
 using System.Text.Json;
+using System.Diagnostics;
+using System.IO.Pipes;
+using VisualDsd.App;
 using VisualDsd.Contracts;
 
-if (args.Contains("--lifetime")) { await Task.Delay(TimeSpan.FromSeconds(30)); return 0; }
+if (args.Length == 3 && args[0] == "--owner")
+{
+    string pipeName = "visual-dsd-test-" + Guid.NewGuid().ToString("N");
+    using var ownerPipe = new NamedPipeServerStream(pipeName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+    var start = new ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+    start.ArgumentList.Add(args[1]); start.ArgumentList.Add("--worker"); start.Environment[WorkerLifetime.OwnerVariable] = pipeName;
+    using var worker = Process.Start(start)!;
+    var connected = ownerPipe.WaitForConnectionAsync();
+    var output = worker.StandardOutput.ReadToEndAsync(); var errors = worker.StandardError.ReadToEndAsync();
+    await worker.StandardInput.WriteAsync("{\"code\":\"directive simulator stochastic\\n(1000 * <a> | rxn <a> ->{1.0} <a>)\",\"operation\":\"simulate\",\"final\":1000000000000,\"points\":1,\"seed\":42}");
+    worker.StandardInput.Close(); await connected;
+    await File.WriteAllTextAsync(args[2] + ".pending", worker.Id.ToString()); File.Move(args[2] + ".pending", args[2]);
+    await Task.WhenAll(worker.WaitForExitAsync(), output, errors);
+    return worker.ExitCode;
+}
+using var ownerLifetime = new WorkerLifetime();
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 var request = JsonSerializer.Deserialize<ModelRequest>(await Console.In.ReadToEndAsync(), json)!;
 var model = new ModelData("classic", "default", false, new("oslo", 0, 1, 10, null, "s", "nM"), [], [], []);

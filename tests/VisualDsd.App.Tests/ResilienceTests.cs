@@ -6,6 +6,7 @@ using Xunit;
 
 namespace VisualDsd.Tests;
 
+[Collection("Process integration")]
 public class ResilienceTests
 {
     private static ProcessEngineWorker Probe => new(new(LocalHost.Command.Executable,
@@ -39,30 +40,33 @@ public class ResilienceTests
     [Fact]
     public async Task A_worker_stops_if_its_owner_process_disappears_during_computation()
     {
-        var ownerStart = new ProcessStartInfo(LocalHost.Command.Executable) { UseShellExecute = false, CreateNoWindow = true };
+        string marker = Path.Combine(Path.GetTempPath(), "visual-dsd-owner-" + Guid.NewGuid().ToString("N"));
+        var ownerStart = new ProcessStartInfo(LocalHost.Command.Executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
         ownerStart.ArgumentList.Add(Path.Combine(LocalHost.Root, "tests", "VisualDsd.WorkerProbe", "bin", "Release", "net10.0", "VisualDsd.WorkerProbe.dll"));
-        ownerStart.ArgumentList.Add("--lifetime");
+        ownerStart.ArgumentList.Add("--owner"); ownerStart.ArgumentList.Add(LocalHost.Command.PrefixArguments[0]); ownerStart.ArgumentList.Add(marker);
         using var owner = Process.Start(ownerStart)!;
-        var start = new ProcessStartInfo(LocalHost.Command.Executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var argument in LocalHost.Command.PrefixArguments) start.ArgumentList.Add(argument);
-        start.ArgumentList.Add("--worker");
-        start.Environment["VISUAL_DSD_WORKER_OWNER"] = $"{owner.Id}:{owner.StartTime.ToUniversalTime().Ticks}";
-        using var worker = Process.Start(start)!;
-        var output = worker.StandardOutput.ReadToEndAsync(); var errors = worker.StandardError.ReadToEndAsync();
+        var output = owner.StandardOutput.ReadToEndAsync(); var errors = owner.StandardError.ReadToEndAsync();
+        Process? worker = null;
         try
         {
-            await worker.StandardInput.WriteAsync(JsonSerializer.Serialize(WorkerTests.SlowRequest with { TimeoutSeconds = 30 }, ProcessEngineWorker.Json)); worker.StandardInput.Close();
-            await Task.Delay(500); Assert.False(worker.HasExited);
-            owner.Kill(entireProcessTree: true); await owner.WaitForExitAsync();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            while (!File.Exists(marker)) { Assert.False(owner.HasExited, await ReadErrorIfExited()); await Task.Delay(25, deadline.Token); }
+            worker = Process.GetProcessById(int.Parse(await File.ReadAllTextAsync(marker)));
+            Assert.False(worker.HasExited);
+            // Kill only the owner; killing its tree would conceal a broken ownership monitor.
+            owner.Kill(); await owner.WaitForExitAsync();
             await worker.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.NotEqual(0, worker.ExitCode); Assert.Equal("", await output);
+            Assert.NotEqual(0, worker.ExitCode);
         }
         finally
         {
             if (!owner.HasExited) owner.Kill(entireProcessTree: true);
-            if (!worker.HasExited) worker.Kill(entireProcessTree: true);
-            await Task.WhenAll(owner.WaitForExitAsync(), worker.WaitForExitAsync(), output, errors);
+            if (worker is not null && !worker.HasExited) worker.Kill(entireProcessTree: true);
+            await owner.WaitForExitAsync(); if (worker is not null) { await worker.WaitForExitAsync(); worker.Dispose(); }
+            await Task.WhenAll(output, errors);
+            File.Delete(marker); File.Delete(marker + ".pending");
         }
+        async Task<string> ReadErrorIfExited() => owner.HasExited ? await errors : "";
     }
 
     [Fact]

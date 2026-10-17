@@ -11,6 +11,9 @@ try {
     Invoke-RebootDotNet @('build', 'reference/Reference.slnx', '--no-restore', '--configuration', 'Release', '--verbosity', 'minimal')
     Invoke-RebootDotNet @('reference/ReferenceBaselines/bin/Release/net10.0/ReferenceBaselines.dll', '--verify-reference')
     Invoke-RebootDotNet @('reference/ReferenceBaselines/bin/Release/net10.0/ReferenceBaselines.dll', '--verify-compatibility')
-    Invoke-RebootDotNet @('test', 'VisualDsd.Rebooted.slnx', '--no-restore', '--configuration', 'Release', '--verbosity', 'minimal', '--logger', 'trx', '--results-directory', (Join-Path $repoRoot 'artifacts/test-results'), '--blame-hang', '--blame-hang-timeout', '60s')
+    Invoke-RebootDotNet @('build', 'VisualDsd.Rebooted.slnx', '--no-restore', '--configuration', 'Release', '--verbosity', 'minimal')
+    foreach ($project in @('tests/ClassicDSDTests/ClassicDSDTests.fsproj', 'tests/VisualDsd.App.Tests/VisualDsd.App.Tests.csproj')) {
+        Invoke-RebootDotNet @('test', $project, '--no-build', '--no-restore', '--configuration', 'Release', '--verbosity', 'minimal', '--logger', 'trx', '--results-directory', (Join-Path $repoRoot 'artifacts/test-results'), '--blame-hang', '--blame-hang-timeout', '60s')
+    }
 }
 finally { Pop-Location }

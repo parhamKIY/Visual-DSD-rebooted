@@ -6,6 +6,7 @@ using Xunit;
 
 namespace VisualDsd.Tests;
 
+[Collection("Process integration")]
 public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
 {
     [Theory]

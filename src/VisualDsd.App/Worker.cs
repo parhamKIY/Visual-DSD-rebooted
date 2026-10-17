@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using VisualDsd.Contracts;
@@ -48,12 +49,16 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
         };
         foreach (string argument in command.PrefixArguments) start.ArgumentList.Add(argument);
         start.ArgumentList.Add("--worker");
-        using (Process owner = Process.GetCurrentProcess())
-            start.Environment[WorkerLifetime.OwnerVariable] = $"{owner.Id}:{owner.StartTime.ToUniversalTime().Ticks}";
+        string pipeName = "visual-dsd-owner-" + Guid.NewGuid().ToString("N");
+        using var ownerPipe = new NamedPipeServerStream(pipeName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        start.Environment[WorkerLifetime.OwnerVariable] = pipeName;
         using var process = new Process { StartInfo = start };
         try
         {
             if (!process.Start()) throw new WorkerFailure("WORKER_START", "The model worker could not start.");
+            Task connection = ownerPipe.WaitForConnectionAsync(token);
+            // A startup crash may exit before connecting. Observe cancellation/disposal faults too.
+            _ = connection.ContinueWith(task => { _ = task.Exception; }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
             Task<string> output = ReadLimitedAsync(process.StandardOutput, MaximumResultCharacters, token, () => Kill(process));
             Task<string> errors = ReadLimitedAsync(process.StandardError, 64 * 1024, token, () => Kill(process));
             Task memory = MonitorMemoryAsync(process, token);
@@ -79,6 +84,7 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
                 response.Diagnostics.Any(diagnostic => diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || string.IsNullOrWhiteSpace(diagnostic.Message)) ||
                 (response.Success ? response.Model is null || response.Diagnostics.Length != 0 : response.Model is not null || response.Diagnostics.Length == 0))
                 throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an inconsistent response.");
+            await connection;
             return response;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -147,42 +153,5 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
         try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
         catch (InvalidOperationException) { }
         catch (System.ComponentModel.Win32Exception) { }
-    }
-}
-
-
-// A hard crash of the UI/CLI process must not leave its numerical worker running.
-internal sealed class WorkerLifetime : IDisposable
-{
-    internal const string OwnerVariable = "VISUAL_DSD_WORKER_OWNER";
-    private readonly ManualResetEvent stopped = new(false);
-    private readonly Thread? monitor;
-
-    public WorkerLifetime()
-    {
-        string? owner = Environment.GetEnvironmentVariable(OwnerVariable);
-        if (owner is null) return;
-        monitor = new Thread(() => Watch(owner)) { IsBackground = true, Name = "Worker owner monitor" };
-        monitor.Start();
-    }
-
-    private void Watch(string owner)
-    {
-        try
-        {
-            string[] parts = owner.Split(':');
-            if (parts.Length != 2 || !int.TryParse(parts[0], out int id) || !long.TryParse(parts[1], out long ticks)) { Environment.Exit(1); return; }
-            using Process parent = Process.GetProcessById(id);
-            if (parent.StartTime.ToUniversalTime().Ticks != ticks) { Environment.Exit(1); return; }
-            while (!stopped.WaitOne(250)) if (parent.HasExited) { Environment.Exit(1); return; }
-        }
-        catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
-        { Environment.Exit(1); }
-    }
-
-    public void Dispose()
-    {
-        stopped.Set();
-        if (monitor is null || monitor.Join(1000)) stopped.Dispose();
     }
 }
