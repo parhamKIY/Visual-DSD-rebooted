@@ -91,15 +91,15 @@ function readInference(raw, runs) {
 function readSpatial(raw, run, budget) {
   object(raw);
   const dimensions = integer(raw.dimensions, 1, 2), boundary = choice(raw.boundary, ['Periodic', 'ZeroFlux']);
-  const x = array(raw.x, dimensions === 1 ? 128 : 64).map(finite), y = array(raw.y, 64).map(finite);
+  const x = array(raw.x, dimensions === 1 ? 512 : 128).map(finite), y = array(raw.y, 128).map(finite);
   if (x.length < 4 || x[0] !== 0 || x.some((value, i) => i && value <= x[i - 1]) || (dimensions === 1 ? y.length !== 0 : y.length !== x.length || y.some((value, i) => value !== x[i]))) fail('invalid spatial coordinates.');
   if (x.some((value, i) => Math.abs(value - i * x.at(-1) / (x.length - 1)) > 1e-10 * x.at(-1))) fail('spatial grid must be uniform.');
-  const dt = finite(raw.dt); if (dt <= 0 || !run.times.length || run.times.length > 501) fail('invalid spatial time step or frames.');
+  const dt = finite(raw.dt); if (dt <= 0 || !run.times.length || run.times.length > 5001) fail('invalid spatial time step or frames.');
   const cells = x.length * (y.length || 1);
   const series = array(raw.series, 10000).map((column, i) => {
     object(column); const name = text(column.name);
     if (name !== run.series[i]?.name) fail('spatial series do not match grid mean series.');
-    const frames = array(column.frames, 501).map(frame => {
+    const frames = array(column.frames, 5001).map(frame => {
       budget.cells += cells;
       if (budget.cells > 200000) fail('spatial output exceeds 200000 cell values.');
       const values = array(frame, cells).map(finite); if (values.length !== cells) fail('invalid spatial frame shape.'); return values;
@@ -135,17 +135,17 @@ function readStateSpace(raw, network, budget) {
 
 function readProbabilities(raw, run, network, budget) {
   object(raw);
-  const speciesIds = array(raw.speciesIds, 128).map(id => text(id, 512));
+  const speciesIds = array(raw.speciesIds, 256).map(id => text(id, 512));
   if (!speciesIds.length || new Set(speciesIds).size !== speciesIds.length || speciesIds.some(id => !network.species.some(sp => sp.id === id))) fail('invalid probability species.');
-  const states = array(raw.states, 1000).map(row => {
-    const values = array(row, 128).map(n => integer(n, 0, 1000000));
+  const states = array(raw.states, 4096).map(row => {
+    const values = array(row, 256).map(n => integer(n, 0, 1000000));
     if (values.length !== speciesIds.length) fail('probability state width mismatch.');
     return values;
   });
   budget.probabilityStates += states.length * speciesIds.length;
   if (!states.length || budget.probabilityStates > 200000 || new Set(states.map(row => row.join(','))).size !== states.length) fail('empty, oversized or duplicated probability states.');
   const mass = array(raw.mass, 1000000).map(row => {
-    const values = array(row, 1000).map(finite);
+    const values = array(row, 4096).map(finite);
     budget.probabilities += values.length;
     if (values.length !== states.length || budget.probabilities > 200000 || values.some(p => p < 0 || p > 1) || Math.abs(values.reduce((sum, p) => sum + p, 0) - 1) > 1e-8) fail('invalid or oversized probability mass.');
     return values;
@@ -155,7 +155,7 @@ function readProbabilities(raw, run, network, budget) {
   if (maximumMassError < 0 || maximumMassError > 1e-5) fail('invalid probability residual.');
   // The same joint distribution must reproduce the exported single-species moments.
   for (const series of run.series) {
-    const column = speciesIds.indexOf(series.name); if (column < 0) fail('probability plot refers to an unknown species.');
+    const column = speciesIds.indexOf(series.name); if (column < 0) continue; // Compound plot moments are calculated by the engine from the joint distribution.
     for (let t = 0; t < mass.length; t++) {
       const mean = mass[t].reduce((sum, p, i) => sum + p * states[i][column], 0);
       const variance = mass[t].reduce((sum, p, i) => sum + p * (states[i][column] - mean) ** 2, 0);

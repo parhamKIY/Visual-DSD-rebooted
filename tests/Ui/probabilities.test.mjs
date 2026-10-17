@@ -63,3 +63,14 @@ test('heatmap reduction is bounded and conserves mass while covering all samples
   assert.equal(buckets[0].start, 0); assert.equal(buckets.at(-1).end, 5000);
   assert.ok(buckets.every((b, i) => (!i || b.start === buckets[i - 1].end) && Math.abs(b.mean.reduce((a, v) => a + v, 0) - 1) < 1e-12));
 });
+
+
+test('CME projects retain more than a thousand joint states and compound plot moments', () => {
+  const {document, view, run, probabilities} = fixture();
+  probabilities.states = Array.from({length: 1201},(_,i) => [1200-i,i]);
+  probabilities.mass = run.times.map(() => Array.from({length:1201},(_,i)=>i===0?1:0));
+  run.series = [{name:'a',values:[1200,1200],standardDeviation:[0,0]}, {name:'a+b',values:[1200,1200],standardDeviation:[0,0]}];
+  const restored = parseProject(serialiseProject([document],document.id,new Map([[document.id,view]]),'0.12.0')).views.get(document.id);
+  assert.equal(restored.response.model.simulations[0].probabilities.states.length,1201);
+  assert.deepEqual(restored.response.model.simulations[0].series,run.series);
+});

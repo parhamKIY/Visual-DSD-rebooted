@@ -19,6 +19,7 @@ internal static class WebAssets
 
     public static readonly ExampleInfo[] Examples =
     [
+        new("lna-covariance", "CRN · covariance and scale", "Scaled copy populations and uncertainty of sums and differences, including cross-species covariance.", "current", "crn"),
         new("cme-distribution", "CRN · probability distribution", "Inspect joint CME probabilities, population heatmaps and marginal distributions.", "current", "crn"),
         new("jit-states", "JIT · reachable binding states", "Generate reachable population states lazily for a strand displacement model.", "current"),
         new("moment-closure", "CRN · moment closure", "Mean and uncertainty for molecular decay using second-order moments.", "current", "crn"),

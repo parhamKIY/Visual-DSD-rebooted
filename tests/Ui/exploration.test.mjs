@@ -73,3 +73,30 @@ test('scheduled JIT inputs use remaining time and ordinary timed inputs use abso
   assert.equal(populationLabel({ ...species, valueKind: 'timedInput' }), 'Timed input: 3 · at 0.5');
   assert.equal(populationLabel({ ...species, valueKind: 'scheduledInput' }), 'Scheduled input: 3 · after 0.5');
 });
+
+
+test('large spatial heatmaps reduce display cells without dropping samples or changing export data', async () => {
+  const { spatialHeatmapRows } = await import('../../src/VisualDsd.App/Web/exploration.js');
+  const run = { times: Array.from({length: 3000}, (_,i) => i / 30), spatial: {x: Array.from({length: 64}, (_,i) => i)} };
+  const series = { frames: run.times.map((_,t) => Array(64).fill(t)) };
+  const rows = spatialHeatmapRows(run,series);
+  assert.ok(rows.length * 64 <= 20000);
+  assert.equal(rows[0].start,0); assert.equal(rows.at(-1).end,3000);
+  assert.ok(rows.every((r,i) => !i || r.start===rows[i-1].end));
+  assert.ok(rows.every(r => Math.abs(r.values[0]-(r.start+r.end-1)/2)<1e-10));
+  assert.equal(series.frames.length,3000); assert.equal(series.frames[2999][0],2999);
+});
+
+
+test('larger spatial grids and nonuniform sample times survive project import', () => {
+  for (const [dimensions,nx] of [[1,512],[2,128]]) {
+    const {document,view,run} = fixture();
+    const grid=run.spatial; grid.dimensions=dimensions;
+    grid.x=Array.from({length:nx},(_,i)=>i/(nx-1)); grid.y=dimensions===2?[...grid.x]:[];
+    run.times=[0,.17,.17,1]; run.series[0].values=[2,2,2,2];
+    grid.series[0].frames=run.times.map(()=>Array(nx*(grid.y.length||1)).fill(2));
+    const restored=parseProject(serialiseProject([document],document.id,new Map([[document.id,view]]),'0.12.0')).views.get(document.id);
+    assert.deepEqual(restored.response.model.simulations[0].times,run.times);
+    assert.equal(restored.response.model.simulations[0].spatial.x.length,nx);
+  }
+});

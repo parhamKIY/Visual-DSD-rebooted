@@ -33,6 +33,17 @@ export function spatialScale(series) {
   return { min, max };
 }
 
+// Reduce only the display; CSV and saved results retain every original grid value.
+export function spatialHeatmapRows(run, series, maximumCells = 20000) {
+  const count = Math.min(run.times.length, Math.max(1, Math.floor(maximumCells / run.spatial.x.length)));
+  return Array.from({ length: count }, (_, i) => {
+    const start = Math.floor(i * run.times.length / count), end = Math.floor((i + 1) * run.times.length / count);
+    const values = Array(run.spatial.x.length).fill(0);
+    for (let t = start; t < end; t++) series.frames[t].forEach((v, j) => { values[j] += v / (end - start); });
+    return { start, end, values };
+  });
+}
+
 export function drawSpatial(svg, run, seriesIndex, frameIndex, settings) {
   const grid = run.spatial, series = grid.series[seriesIndex], frame = series.frames[frameIndex], { min, max } = spatialScale(series);
   const make = (tag, attributes = {}, text) => { const node = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value); if (text !== undefined) node.textContent = text; return node; };
@@ -48,9 +59,14 @@ export function drawSpatial(svg, run, seriesIndex, frameIndex, settings) {
     for (let x = 0; x < grid.x.length; x++) for (let y = 0; y < grid.y.length; y++) { const value = frame[x * grid.y.length + y]; cell(160 + x * width, 50 + (grid.y.length - 1 - y) * height, width, height, value, `x=${grid.x[x]}, y=${grid.y[y]}, value=${value}`); }
     label(115, 60, numberLabel(grid.y.at(-1))); label(130, 380, numberLabel(grid.y[0])); label(105, 215, 'y');
   } else {
-    const width = 540 / grid.x.length, height = 260 / run.times.length;
-    for (let t = 0; t < run.times.length; t++) for (let x = 0; x < grid.x.length; x++) cell(70 + x * width, 50 + (run.times.length - 1 - t) * height, width, height, series.frames[t][x], `t=${run.times[t]}, x=${grid.x[x]}, value=${series.frames[t][x]}`);
-    svg.append(make('rect', { x: 69, y: 50 + (run.times.length - 1 - frameIndex) * height, width: 542, height, stroke: '#d65b31', 'stroke-width': 2, fill: 'none', 'pointer-events': 'none' }));
+    const width = 540 / grid.x.length, rows = spatialHeatmapRows(run, series);
+    const timeY = t => 310 - 260 * (run.times.at(-1) === run.times[0] ? .5 : (t - run.times[0]) / (run.times.at(-1) - run.times[0]));
+    for (const [i, row] of rows.entries()) {
+      const top = i === rows.length - 1 ? 50 : timeY((run.times[row.end - 1] + run.times[row.end]) / 2);
+      const bottom = i === 0 ? 310 : timeY((run.times[row.start - 1] + run.times[row.start]) / 2);
+      for (let x = 0; x < grid.x.length; x++) cell(70 + x * width, top, width, bottom - top, row.values[x], `t=${run.times[row.start]}..${run.times[row.end - 1]}, x=${grid.x[x]}, mean value=${row.values[x]}`);
+    }
+    svg.append(make('path', { d: `M69 ${timeY(run.times[frameIndex])}h542`, stroke: '#d65b31', 'stroke-width': 2, fill: 'none', 'pointer-events': 'none' }));
     label(12, 60, numberLabel(run.times.at(-1))); label(12, 310, numberLabel(run.times[0])); label(12, 180, settings.timeUnit);
     const path = frame.map((value, i) => `${i ? 'L' : 'M'}${70 + i * 540 / (frame.length - 1)} ${380 - (max === min ? .5 : (value - min) / (max - min)) * 55}`).join('');
     svg.append(make('path', { d: path, stroke: '#0b6e63', 'stroke-width': 2, fill: 'none' }));
