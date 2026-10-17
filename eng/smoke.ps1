@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.11.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.12.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -105,6 +105,24 @@ foreach ($statisticalSolver in @('lna', 'cme', 'cmesundials')) {
         }
     }
 }
+$scaledSource = @'
+directive stochastic {scale=2}
+directive simulation {final=1;points=20;plots=[A;([A]+[B])]}
+| 5 A | A ->{0.35} B
+'@
+foreach ($solver in @('lna', 'cme', 'cmesundials')) {
+    $scaled = Invoke-Standalone -Arguments @('simulate', '-', '--language', 'crn', '--simulator', $solver) -InputText $scaledSource | ConvertFrom-Json
+    $run = $scaled.model.simulations[0]
+    if (!$scaled.success -or $run.series[0].values[0] -ne 10 -or [Math]::Abs($run.series[1].values[-1] - 10) -gt 1e-8 -or $run.series[1].standardDeviation[-1] -gt 1e-6) { throw "Standalone $solver scaling or covariance failed." }
+}
+$sampledSpatialSource = @'
+directive simulation {initial=2;final=3;points=10;times=[2;2.25;2.7;3];plots=[A]}
+directive spatial {nx=129;default_diffusion=0;dt=0.01}
+| 10 A | A ->{0.35} B
+'@
+$sampledSpatial = Invoke-Standalone -Arguments @('simulate', '-', '--language', 'crn', '--simulator', 'pde') -InputText $sampledSpatialSource | ConvertFrom-Json
+$sampledRun = $sampledSpatial.model.simulations[0]
+if (!$sampledSpatial.success -or $sampledRun.spatial.x.Count -ne 129 -or $sampledRun.times.Count -ne 4 -or $sampledRun.times[1] -ne 2.25 -or [Math]::Abs($sampledRun.series[0].values[-1] - 10 * [Math]::Exp(-0.35)) -gt 0.01) { throw 'Standalone large-grid spatial output sampling failed.' }
 $jitAnalysisSource = @'
 directive jit
 dom a = {bind=0.1;unbind=0.2}

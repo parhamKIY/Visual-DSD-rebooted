@@ -37,13 +37,17 @@ module internal Distributions =
             maximumError <- max maximumError (abs (normalizer - 1.0))
             if abs (normalizer - 1.0) > 1e-5 then fail "CME requires excessive probability correction. Tighten the deterministic solver tolerances."
             nonnegative |> Array.map (fun p -> p / normalizer)) |> List.toArray
-        let plots = crn.settings.simulation.plots |> List.map (function
-            | Expression.Key (Key.Species sp) -> Array.findIndex ((=) sp.name) names
-            | _ -> fail "Probability moments require single-species plots.")
-        let columns = plots |> List.map (fun index ->
-            let points = mass |> Array.map (fun row ->
-                let mean = Array.map2 (fun p (state: int[]) -> p * float state.[index]) row states |> Array.sum
-                let variance = Array.map2 (fun p (state: int[]) -> p * pown (float state.[index] - mean) 2) row states |> Array.sum
-                Point.create mean (sqrt variance)) |> Array.toList
-            { Column.name = names.[index]; values = points })
+        let env = Parameters.to_env crn.settings.parameters
+        let inlinePlot = Expression.expand (Key.inline_keys env (Key.inline_rates_env env crn.settings.rates)) >> Expression.map (Inlined.map (fun sp -> Array.findIndex ((=) sp.name) names))
+        let plots = crn.settings.simulation.plots |> List.map (fun plot -> plot, inlinePlot plot)
+        let columns = plots |> List.map (fun (plot, expression) ->
+            let points = Array.map2 (fun time row ->
+                let values = states |> Array.map (fun state ->
+                    let key = function Inlined.Species sp -> float state.[sp] | Inlined.Time -> time
+                    Expression.eval key expression)
+                if values |> Array.exists (Double.IsFinite >> not) then fail "A probability plot is nonfinite in a reachable state."
+                let mean = Array.map2 (*) row values |> Array.sum
+                let variance = Array.map2 (fun p value -> p * pown (value - mean) 2) row values |> Array.sum
+                Point.create mean (sqrt variance)) (List.toArray times) mass |> Array.toList
+            { Column.name = Functional2.to_string_plot plot; values = points })
         ProbabilityData(names, states, mass, maximumError), { Table.times = times; columns = columns }

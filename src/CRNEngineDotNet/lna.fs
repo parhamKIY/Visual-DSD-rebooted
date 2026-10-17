@@ -42,6 +42,33 @@ type Lna =
     |> Seq.sumBy (fun x -> x * x)
     |> Math.Sqrt
   (* End TODO *)
+  // Affine observables use the full covariance, including cross-species terms.
+  static member affine_plot (values:float[]) time (plot:Expression.t<Inlined<int>>) =
+    let zero () = Array.zeroCreate values.Length
+    let constant c = c, zero()
+    let varying (_, gradient:float[]) = gradient |> Array.exists ((<>) 0.0)
+    let scale factor (value, gradient:float[]) = value * factor, gradient |> Array.map ((*) factor)
+    let add (a, da:float[]) (b, db:float[]) = a + b, Array.map2 (+) da db
+    let rec read expression =
+      match expression with
+      | Expression.Float n -> constant n
+      | Expression.Key Inlined.Time -> constant time
+      | Expression.Key (Inlined.Species i) -> let d = zero() in d.[i] <- 1.0; values.[i], d
+      | Expression.Plus terms -> terms |> List.map read |> List.fold add (constant 0.0)
+      | Expression.Minus e -> add (read e.sub1) (scale -1.0 (read e.sub2))
+      | Expression.Times terms -> terms |> List.map read |> List.fold (fun a b ->
+          if varying a && varying b then failwith "LNA plots must be affine in species populations."
+          if varying a then scale (fst b) a else scale (fst a) b) (constant 1.0)
+      | Expression.Divide e ->
+          let denominator = read e.div2
+          if varying denominator then failwith "LNA plots must be affine in species populations."
+          scale (1.0 / fst denominator) (read e.div1)
+      | Expression.Power e when e.exponent = Expression.Float 1.0 -> read e.base_
+      | other ->
+          if Expression.mentions other |> List.exists (function Inlined.Species _ -> true | _ -> false) then
+            failwith "LNA plots must be affine in species populations."
+          constant (Expression.eval (function Inlined.Time -> time | Inlined.Species i -> values.[i]) other)
+    read plot
   static member initialise (ode:OdeOslo) (matrix:float[][]) (initials:float array) lna_scale =     
     let num_species = Array.length matrix
     let num_reactions = Array.length matrix.[0]
@@ -65,15 +92,15 @@ type Lna =
     let jacobian pops =
       let flux_derivative = dFdx pops
       let m1 = Oslo.Matrix.ofArray matrix
-      let m2 = Oslo.Matrix.ofArray flux_derivative
-      Oslo.Matrix.matrMultMatr m1 m2     
+      if num_reactions = 0 then Matrix.zeros num_species num_species
+      else Oslo.Matrix.matrMultMatr m1 (Oslo.Matrix.ofArray flux_derivative)
     let drift (props:Vector) =
       [|0..num_reactions-1|]
         |> Array.mapi (fun i _ ->
             // Each column of stoich contains the net stoichiometries of reaction i              
             let v = Oslo.Matrix.copyCol ode.stoich i // Maybe replace with a GetColumn operation?
             Oslo.Matrix.matrMultScal (Lna.CrossProduct v v) (props.[i]) )
-        |> Array.reduce Matrix.add    
+        |> Array.fold Matrix.add (Matrix.zeros num_species num_species)
     let props time (x:Vector) =
       let fluxes = Oslo.Vector.zeros num_reactions
       for i = 0 to (num_reactions - 1) do
@@ -137,27 +164,16 @@ type Lna =
     // Initial conditions
     let x0 = Array.append lna.initials (Array.zeroCreate (ns+ns*ns)) |> Oslo.Vector.ofArray
     let datapoint time (x:Vector) = 
-      let get_mean i = x.[i]
-      let get_stdev i = 
-        let var = x.[2*ns + i*(ns+1)]
-        if var < 0.0 then 0.0 else Math.Sqrt var      // Protecting against numerical error creating negative variance (especially problematic when distribution has stabilised)
-      lna.ode.plots
-      |> Array.map (fun spec ->
-          //let ps = Populations.to_species_plottables pops spec in
-          let keyToInt f (k : Inlined<int>) = 
-            match k with 
-            | Inlined.Time        -> time
-            | Inlined.Species x   -> f x
-            //| Inlined.IRate r      -> (ratesEnv f).[r]
-          let mean = Expression.eval (keyToInt get_mean) spec
-          let std  = Expression.eval (keyToInt get_stdev) spec
-          if lna.outputconcentrations then
-            Point.create mean (std / Nhalf)
-          else
-            Point.create (N * mean) (std * Nhalf)
-          //then ps, mean, std / Nhalf
-          //else ps, N * mean, std * Nhalf
-          )   
+      let values = Array.init ns (fun i -> x.[i])
+      lna.ode.plots |> Array.map (fun spec ->
+        let mean, weights = Lna.affine_plot values time spec
+        let variance =
+          seq { for i in 0 .. ns - 1 do
+                  for j in 0 .. ns - 1 do
+                    yield weights.[i] * weights.[j] * x.[2*ns + i*ns + j] } |> Seq.sum
+        let std = sqrt (max 0.0 variance)
+        if lna.outputconcentrations then Point.create mean (std / Nhalf)
+        else Point.create (N * mean) (std * Nhalf))
     let integrator = Oslo_integrator.create lna.ode.name lna.ode.simulator datapoint Point.interpolate lna.ode.settings x0 f
     let updated_integrator = Oslo_integrator.simulate_callback cancel output integrator
     { lna with ode = { lna.ode with simulator = updated_integrator.simulator } }

@@ -83,39 +83,77 @@ module private StatisticalSolvers =
         if instances.Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
         let mutable probabilityValues, probabilityStateCells = 0L, 0L
         instances |> List.map (fun instance ->
-            let current = { crn with settings = { crn.settings with simulation = instance.settings } } |> fun model -> model.substitute instance.environment
-            if current.settings.stochastic.scale <> 1.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "LNA and CME solvers currently require stochastic scale=1."))
-            if current.initials.Length > 128 then raise (ExecutionFailure("MODEL_TOO_LARGE", "Statistical solvers currently support at most 128 species."))
-            if current.settings.simulation.plots |> List.exists (function Expression.Key (Key.Species _) -> false | _ -> true) then
-                raise (ExecutionFailure("STATISTICAL_PLOTS", "LNA and CME solvers require single-species plots; statistics for compound expressions are not supported."))
+            let configured = Exploration.configure crn instance
+            let scale = configured.settings.stochastic.scale
+            if not (Double.IsFinite scale) || scale <= 0.0 then raise (ExecutionFailure("STATISTICAL_SCALE", "Stochastic scale must be finite and positive."))
+            // Preserve the original CRN scaling convention: outputs are scaled copy populations.
+            let current = configured.scale()
+            if current.initials.Length > 256 then raise (ExecutionFailure("MODEL_TOO_LARGE", "Statistical solvers currently support at most 256 initial entries."))
             let env = Parameters.to_env current.settings.parameters
             let eval = Expression.eval (Environment.find env)
             if current.initials |> List.exists (fun initial -> initial.time |> Option.exists (fun time -> eval time <> current.settings.simulation.initial)) then
                 raise (ExecutionFailure("STATISTICAL_EVENTS", "Timed population inputs are not supported by LNA and CME solvers."))
+            if current.initials |> List.exists (fun initial -> let n = eval initial.value in not (Double.IsFinite n) || n < 0.0) then
+                raise (ExecutionFailure("STATISTICAL_INITIALS", "Statistical solvers require finite nonnegative initial populations."))
+            let initials = current.initials |> List.groupBy (fun initial -> initial.species) |> List.map (fun (_, entries) ->
+                if entries |> List.exists (fun i -> i.spatial.IsSome) || (entries.Length > 1 && entries |> List.exists (fun i -> i.constant)) then
+                    raise (ExecutionFailure("STATISTICAL_INITIALS", "Statistical solvers require nonspatial initials without conflicting constant declarations."))
+                let amount = entries |> List.sumBy (fun initial -> eval initial.value)
+                if not (Double.IsFinite amount) then raise (ExecutionFailure("STATISTICAL_INITIALS", "Aggregated populations must be finite."))
+                { entries.Head with value = Expression.Float amount; time = None })
+            let current = { current with initials = initials }
             let mutable probabilityData = Unchecked.defaultof<ProbabilityData>
             let table =
-                if current.settings.simulator = Simulator.LNA then current.to_lna().simulate()
+                if current.settings.simulator = Simulator.LNA then
+                    if current.initials.Length > 128 then raise (ExecutionFailure("MODEL_TOO_LARGE", "LNA supports at most 128 distinct species because it integrates their full covariance matrix."))
+                    if current.reactions |> Reaction.normalise_list |> List.exists (fun r -> match r.rate with Rate.Function _ -> true | _ -> false) then
+                        raise (ExecutionFailure("LNA_RATES", "The original LNA solver supports mass-action reaction rates only."))
+                    let variables = current.initials.Length * (current.initials.Length + 2)
+                    if current.settings.deterministic.stiff && variables > 2048 then
+                        raise (ExecutionFailure("LNA_LIMIT", "Stiff LNA is limited to 2048 covariance-system variables because its linear solver uses dense matrices."))
+                    let sim = current.settings.simulation
+                    if int64 (max (sim.points + 5) sim.times.Length) * int64 sim.plots.Length > 200000L then
+                        raise (ExecutionFailure("LNA_LIMIT", "LNA output exceeds 200000 plot values per run. Reduce output points or plotted expressions."))
+                    let lna = current.to_lna()
+                    try
+                        for plot in lna.ode.plots do Lna.affine_plot lna.initials current.settings.simulation.initial plot |> ignore
+                    with error -> raise (ExecutionFailure("LNA_PLOTS", error.Message))
+                    lna.simulate()
                 else
-                    if current.initials |> List.exists (fun initial -> initial.constant || let value = eval initial.value in not (Double.IsFinite value) || value < 0.0 || value > float Int32.MaxValue || Math.Round value <> value) then
+                    let rates = Key.inline_rates_env env current.settings.rates
+                    if current.reactions |> Reaction.normalise_list |> List.exists (fun r ->
+                        match r.rate with
+                        | Rate.Function e -> Expression.expand (Key.inline_keys env rates) e |> Expression.mentions |> List.contains Inlined.Time
+                        | _ -> false) then
+                        raise (ExecutionFailure("CME_RATE", "CME requires time-independent reaction propensities."))
+                    if current.initials |> List.exists (fun initial -> initial.constant || let value = eval initial.value in not (Double.IsFinite value) || value < 0.0 || value > 1000000.0 || Math.Round value <> value) then
                         raise (ExecutionFailure("CME_INITIALS", "CME requires finite nonnegative integer populations and does not support constant species."))
                     // Resolve this run's parameters before enumerating states, including zero-rate transitions.
                     let inlineParameters key = match key with Key.Parameter name -> Expression.Float (Environment.find env name) | other -> Expression.Key other
                     let current = { current with reactions = current.reactions |> List.map (Reaction.map id (eval >> Expression.Float) (Expression.expand inlineParameters))
                                                  settings = { current.settings with rates = current.settings.rates |> Map.map (fun _ expression -> Expression.expand inlineParameters expression) }
-                                                 initials = current.initials |> List.groupBy (fun initial -> initial.species) |> List.map (fun (_, entries) -> { entries.Head with value = Expression.Float (entries |> List.sumBy (fun initial -> eval initial.value)); time = None }) }
+                                             }
                     let calc, initial, reactions, adapter = current.initialise_ctmc()
                     let states =
-                        try calc.to_ctmc_bounded 1000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter
+                        try calc.to_ctmc_limited 4096 200000 (Hashtable.ofMap current.settings.rates) 1.0 initial reactions adapter
                         with error when error.Message.StartsWith("State space exceeds", StringComparison.Ordinal) -> raise (ExecutionFailure("STATE_SPACE_LIMIT", error.Message))
                     let size = states.ctmc.graph.Count
                     probabilityStateCells <- probabilityStateCells + int64 size * int64 current.initials.Length
                     if probabilityStateCells > int64 Distributions.maximumValues then
                         raise (ExecutionFailure("PROBABILITY_LIMIT", "Probability state vectors exceed 200000 population values per batch. Reduce sweeps or the state space."))
                     let sim = current.settings.simulation
-                    let estimatedRows = if current.settings.simulator = Simulator.CMESundials && not sim.times.IsEmpty then sim.times.Length + 1 else sim.points + 5
+                    let estimatedRows = if current.settings.simulator = Simulator.CMESundials && not sim.times.IsEmpty then sim.times.Length + 1 else max (sim.points + 5) sim.times.Length
                     if probabilityValues + int64 estimatedRows * int64 size > int64 Distributions.maximumValues then
                         raise (ExecutionFailure("PROBABILITY_LIMIT", "Probability output exceeds 200000 state values per batch. Reduce output points, sweeps or the state space."))
-                    let cme = current.to_cme states
+                    for state in states.ctmc.graph |> Dictionary.keys do
+                        for edge in Dictionary.find states.ctmc.graph state do
+                            let rate = Expression.eval (Environment.find env) edge.propensity
+                            if not (Double.IsFinite rate) || rate < 0.0 then raise (ExecutionFailure("CME_RATE", "CME propensities must be finite and nonnegative."))
+                    if size > 2048 && current.settings.deterministic.stiff then
+                        raise (ExecutionFailure("STATE_SPACE_LIMIT", "Stiff CME supports at most 2048 states because its linear solver uses dense matrices."))
+                    // Raw solvers integrate species moments; arbitrary plot moments are evaluated from the joint distribution.
+                    let solver = { current with settings = { current.settings with simulation = { sim with plots = current.initials |> List.map (fun i -> Expression.Key (Key.Species i.species)) } } }
+                    let cme = solver.to_cme states
                     let solved, table =
                         if current.settings.simulator = Simulator.CMESundials then cme.simulate_sundials env (Crn.to_inlined_rates current.settings)
                         else Cme.simulate env (Crn.to_inlined_rates current.settings) false cme
@@ -167,7 +205,7 @@ module private CrnExecution =
             crn, runs, noInference
         | "simulate" ->
             if crn.get_instances().Length > 256 then raise (ExecutionFailure("BATCH_TOO_LARGE", "A simulation batch cannot exceed 256 runs."))
-            if List.contains crn.settings.simulator [Simulator.Sundials; Simulator.CMESundials; Simulator.MC] then
+            if List.contains crn.settings.simulator [Simulator.Sundials; Simulator.CMESundials; Simulator.MC; Simulator.LNA; Simulator.CME; Simulator.PDE] then
                 let ode = crn.settings.deterministic
                 if not (Double.IsFinite ode.abstolerance && Double.IsFinite ode.reltolerance) || ode.abstolerance <= 0.0 || ode.reltolerance <= 0.0 then
                     raise (ExecutionFailure("INVALID_TOLERANCE", "Solver tolerances must be finite and positive."))
@@ -219,7 +257,7 @@ module private CrnExecution =
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.11.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+        EngineInfo("Visual DSD Rebooted", "0.12.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =

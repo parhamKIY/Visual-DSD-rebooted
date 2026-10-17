@@ -174,20 +174,11 @@ type Pde<'a> when 'a:equality =
       |> Map.map (fun _ -> Expression.map (Inlined.map (fun sp -> match pde.populations.tryFind_index sp with Some i -> i | None -> failwithf "Could not locate species %s" sp.name)))
     let evaluated_rates = pde.rates |> Array.map ((Rate.map2 (Key<int>.eval_massaction env) (Key<int>.eval_function env ratesEnv) ) >> (fun ra -> ra.map id (fun l -> l.key))) 
     let f = Pde<'a>.reaction_term pde.stoich pde.powers evaluated_rates
-    let plotSpecies = 
-      pde.sim_settings.plots
-      |> List.collect (Expression.mentions >> 
-        List.choose (fun k -> 
-          match k with 
-          | Key.Species sp -> Some sp
-          | Key.Rate _  -> failwith "Not implemented yet"
-          | _ -> None
-        )
-      )
-      |> List.distinct
-    let speciesToPlotIndex sp = List.findIndex (fun ps -> ps = sp) plotSpecies
-    let inlineExpression = Expression.expand (Key.map speciesToPlotIndex >> Key.inline_keys env ratesEnv) >> Expression.simplify  
-    let plots = pde.sim_settings.plots |> List.map inlineExpression |> Array.ofList  
+    // Inline named rates before selecting plotted species so their species use the same index basis.
+    let expandedPlots = pde.sim_settings.plots |> List.map (Expression.expand (Key.inline_keys env (Key.inline_rates_env env pde.rateExpressions)))
+    let plotSpecies = expandedPlots |> List.collect (Expression.mentions >> List.choose (function Inlined.Species sp -> Some sp | _ -> None)) |> List.distinct
+    let speciesToPlotIndex sp = List.findIndex ((=) sp) plotSpecies
+    let plots = expandedPlots |> List.map (Expression.map (Inlined.map speciesToPlotIndex) >> Expression.simplify) |> List.toArray
     let plotlocs = plotSpecies |> List.map pde.species_index
     let solver_settings = Pde.map_settings env plotlocs pde
     f, solver_settings, plots

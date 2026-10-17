@@ -102,16 +102,18 @@ module Exploration =
             let settings = current.settings.spatial
             let simulation = current.settings.simulation
             if settings.dimensions <> 1 && settings.dimensions <> 2 then fail "SPATIAL_SETTINGS" "Spatial dimensions must be 1 or 2."
-            let maximumNx = if settings.dimensions = 1 then 128 else 64
+            let maximumNx = if settings.dimensions = 1 then 512 else 128
             if settings.nx < 4 || settings.nx > maximumNx || not (Double.IsFinite settings.xmax) || settings.xmax <= 0.0 || not (Double.IsFinite settings.dt) || settings.dt < 0.0 || not (Double.IsFinite settings.random) || settings.random < 0.0 || settings.random > 2.0 then
-                fail "SPATIAL_SETTINGS" "Use nx=4..128 in 1D or 4..64 in 2D, positive xmax, nonnegative dt, and random=0..2."
-            if simulation.points > 500 || not simulation.times.IsEmpty || current.initials.Length > 64 || simulation.plots.IsEmpty then
-                fail "SPATIAL_LIMIT" "Spatial runs require 1..500 output points, at most 64 species, nonempty plots and no explicit output times."
+                fail "SPATIAL_SETTINGS" "Use nx=4..512 in 1D or 4..128 in 2D, positive xmax, nonnegative dt, and random=0..2."
+            if simulation.points > 5000 || simulation.times.Length > 5001 || current.initials.Length > 128 || simulation.plots.IsEmpty then
+                fail "SPATIAL_LIMIT" "Spatial runs require 1..5000 integration output points, at most 5001 requested times, 128 species and nonempty plots."
             let diffusion = settings.default_diffusion :: (settings.diffusibles |> List.map (snd >> eval))
             if diffusion |> List.exists (fun value -> not (Double.IsFinite value) || value < 0.0) then fail "SPATIAL_DIFFUSION" "Diffusion coefficients must be finite and nonnegative."
             let cells = pown (int64 settings.nx) settings.dimensions
-            samples <- samples + cells * int64 (simulation.points + 1) * int64 simulation.plots.Length
-            if samples > 200000L then fail "SPATIAL_LIMIT" "Spatial output exceeds 200000 cell values per batch. Reduce the grid, output points or plotted species."
+            let outputRows = if simulation.times.IsEmpty then simulation.points + 1 else simulation.times.Length
+            let integrationValues = cells * int64 (simulation.points + 1) * int64 simulation.plots.Length
+            samples <- samples + cells * int64 outputRows * int64 simulation.plots.Length
+            if samples > 200000L || integrationValues > 200000L then fail "SPATIAL_LIMIT" "Spatial output exceeds 200000 cell values per batch. Reduce the grid, output points or plotted species."
             let dx = settings.xmax / float (settings.nx - 1)
             let diffusibles = Map.ofList settings.diffusibles
             let maximumD = current.initials |> List.map (fun initial -> Map.tryFind (Expression.Key (Key.Species initial.species)) diffusibles |> Option.map eval |> Option.defaultValue settings.default_diffusion) |> List.max
@@ -132,8 +134,20 @@ module Exploration =
                     if pde.populations.index_to_species |> Array.exists (fun population -> population.value |> Array.exists (Array.exists (fun value -> not (Double.IsFinite value) || value < 0.0))) then fail "SPATIAL_INITIALS" "Spatial initial concentrations must be finite and nonnegative."
                     let _, table = pde |> Pde<float[][]>.simulate_2d
                     table.times, table.columns |> List.map (fun column -> column.name, column.values |> List.map (Array.collect id) |> List.toArray)
+            let times, columns =
+                if simulation.times.IsEmpty then times, columns
+                else
+                    let stamps = List.toArray times
+                    let resample (frames:float[][]) =
+                        let mutable cursor = 0
+                        simulation.times |> List.map (fun time ->
+                            while cursor + 1 < stamps.Length && stamps.[cursor + 1] <= time do cursor <- cursor + 1
+                            if time < stamps.[0] || time > stamps.[stamps.Length - 1] then fail "SPATIAL_NUMERICS" "Spatial integration did not cover the requested times."
+                            if stamps.[cursor] = time then frames.[cursor]
+                            else Array.map2 (Row<float>.interpolate_float time stamps.[cursor] stamps.[cursor + 1]) frames.[cursor] frames.[cursor + 1]) |> List.toArray
+                    simulation.times, columns |> List.map (fun (name, frames) -> name, resample frames)
             let columns = columns |> List.mapi (fun columnIndex (name, frames) ->
-                if frames.Length <> simulation.points + 1 || frames |> Array.exists (fun frame -> frame.Length <> int cells || frame |> Array.exists (Double.IsFinite >> not)) then
+                if frames.Length <> outputRows || frames |> Array.exists (fun frame -> frame.Length <> int cells || frame |> Array.exists (Double.IsFinite >> not)) then
                     fail "SPATIAL_NUMERICS" "The spatial solver produced nonfinite or malformed grid values. Reduce dt."
                 let plot = current.settings.simulation.plots.[columnIndex]
                 match plot with

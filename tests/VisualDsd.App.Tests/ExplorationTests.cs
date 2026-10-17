@@ -90,7 +90,7 @@ public class ExplorationTests
     [InlineData("dimensions=1", "dimensions=3", "SPATIAL_SETTINGS")]
     [InlineData("dt=0.007", "dt=-1", "SPATIAL_SETTINGS")]
     [InlineData("default_diffusion=0.1", "default_diffusion=-1", "SPATIAL_DIFFUSION")]
-    [InlineData("points=10", "points=501", "SPATIAL_LIMIT")]
+    [InlineData("points=10", "points=5001", "SPATIAL_LIMIT")]
     [InlineData("dt=0.007", "dt=0.000000001", "SPATIAL_LIMIT")]
     public void Unsafe_spatial_settings_fail_explicitly(string from, string to, string diagnostic)
     {

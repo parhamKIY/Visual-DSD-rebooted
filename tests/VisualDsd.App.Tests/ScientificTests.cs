@@ -53,10 +53,13 @@ public class ScientificTests
     [InlineData("lna")]
     [InlineData("cme")]
     [InlineData("cmesundials")]
-    public void Compound_statistical_plots_are_rejected_instead_of_reporting_incorrect_uncertainty(string simulator)
+    public void Conserved_compound_statistical_plots_have_zero_uncertainty(string simulator)
     {
         var result = CoreEngine.Execute(new() { Code = Decay.Replace("plots=[<a>]", "plots=[([<a>] + [<b>])]"), Operation = "simulate", Simulator = simulator });
-        Assert.False(result.Success); Assert.Equal("STATISTICAL_PLOTS", Assert.Single(result.Diagnostics).Code);
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var series = Assert.Single(Assert.Single(result.Model!.Simulations).Series);
+        Assert.All(series.Values, value => Assert.InRange(Math.Abs(value - 10), 0, 1e-8));
+        Assert.All(series.StandardDeviation!, value => Assert.InRange(value, 0, 1e-6));
     }
 
     [Theory]
@@ -65,7 +68,7 @@ public class ScientificTests
     public void Unbounded_CME_networks_stop_at_the_state_limit(string simulator)
     {
         var result = CoreEngine.Execute(new() { Code = "(1 * <a> | rxn <a> ->{1} <a> + <a>)", Operation = "simulate", Simulator = simulator });
-        Assert.False(result.Success); Assert.Contains("1000 states", Assert.Single(result.Diagnostics).Message);
+        Assert.False(result.Success); Assert.Contains("4096 states", Assert.Single(result.Diagnostics).Message);
     }
 
     [Theory]
