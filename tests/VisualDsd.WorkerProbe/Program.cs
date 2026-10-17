@@ -1,6 +1,7 @@
 using System.Text.Json;
 using VisualDsd.Contracts;
 
+if (args.Contains("--lifetime")) { await Task.Delay(TimeSpan.FromSeconds(30)); return 0; }
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 var request = JsonSerializer.Deserialize<ModelRequest>(await Console.In.ReadToEndAsync(), json)!;
 var model = new ModelData("classic", "default", false, new("oslo", 0, 1, 10, null, "s", "nM"), [], [], []);

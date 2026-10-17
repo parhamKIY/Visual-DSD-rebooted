@@ -76,6 +76,30 @@ public sealed class LocalHost : IAsyncLifetime
 public class ApiTests(LocalHost host) : IClassFixture<LocalHost>
 {
     [Fact]
+    public async Task Concurrent_real_simulations_keep_seeds_populations_and_results_isolated()
+    {
+        var doses = new[] { 2, 5, 2, 5 };
+        var ids = await Task.WhenAll(doses.Select(async dose =>
+        {
+            var response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest {
+                Code = $"directive simulation {{final=5;points=20;seed=42;plots=[<a>]}}\n({dose} * <a> | rxn <a> ->{{0.35}} <b>)", Operation = "simulate", Simulator = "ssa"
+            });
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            return (await response.Content.ReadFromJsonAsync<JobView>())!.Id;
+        }));
+        Assert.Equal(4, ids.Distinct().Count());
+        var completed = await Task.WhenAll(ids.Select(host.FinishAsync));
+        for (int i = 0; i < completed.Length; i++)
+        {
+            Assert.Equal("succeeded", completed[i].State);
+            var run = Assert.Single(completed[i].Result!.Model!.Simulations);
+            Assert.Equal(doses[i], run.Series[0].Values[0]); Assert.Equal(42, run.Seed);
+        }
+        Assert.Equal(JsonSerializer.Serialize(completed[0].Result), JsonSerializer.Serialize(completed[2].Result));
+        Assert.Equal(JsonSerializer.Serialize(completed[1].Result), JsonSerializer.Serialize(completed[3].Result));
+    }
+
+    [Fact]
     public async Task Real_worker_expands_models_through_the_local_API()
     {
         HttpResponseMessage accepted = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest { Code = EngineTests.Catalytic, Operation = "expand" });

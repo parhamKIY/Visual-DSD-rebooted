@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text.Json;
 using VisualDsd.App;
 using VisualDsd.Contracts;
 using Xunit;
@@ -32,6 +34,35 @@ public class ResilienceTests
         Assert.Equal("failed", failed.State); Assert.Null(failed.Result!.Model);
         Assert.Equal(code, Assert.Single(failed.Result.Diagnostics).Code);
         Assert.Equal("succeeded", (await JobTests.FinishedAsync(jobs, good.Id)).State);
+    }
+
+    [Fact]
+    public async Task A_worker_stops_if_its_owner_process_disappears_during_computation()
+    {
+        var ownerStart = new ProcessStartInfo(LocalHost.Command.Executable) { UseShellExecute = false, CreateNoWindow = true };
+        ownerStart.ArgumentList.Add(Path.Combine(LocalHost.Root, "tests", "VisualDsd.WorkerProbe", "bin", "Release", "net10.0", "VisualDsd.WorkerProbe.dll"));
+        ownerStart.ArgumentList.Add("--lifetime");
+        using var owner = Process.Start(ownerStart)!;
+        var start = new ProcessStartInfo(LocalHost.Command.Executable) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var argument in LocalHost.Command.PrefixArguments) start.ArgumentList.Add(argument);
+        start.ArgumentList.Add("--worker");
+        start.Environment["VISUAL_DSD_WORKER_OWNER"] = $"{owner.Id}:{owner.StartTime.ToUniversalTime().Ticks}";
+        using var worker = Process.Start(start)!;
+        var output = worker.StandardOutput.ReadToEndAsync(); var errors = worker.StandardError.ReadToEndAsync();
+        try
+        {
+            await worker.StandardInput.WriteAsync(JsonSerializer.Serialize(WorkerTests.SlowRequest with { TimeoutSeconds = 30 }, ProcessEngineWorker.Json)); worker.StandardInput.Close();
+            await Task.Delay(500); Assert.False(worker.HasExited);
+            owner.Kill(entireProcessTree: true); await owner.WaitForExitAsync();
+            await worker.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.NotEqual(0, worker.ExitCode); Assert.Equal("", await output);
+        }
+        finally
+        {
+            if (!owner.HasExited) owner.Kill(entireProcessTree: true);
+            if (!worker.HasExited) worker.Kill(entireProcessTree: true);
+            await Task.WhenAll(owner.WaitForExitAsync(), worker.WaitForExitAsync(), output, errors);
+        }
     }
 
     [Fact]

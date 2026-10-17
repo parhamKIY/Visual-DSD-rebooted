@@ -48,6 +48,8 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
         };
         foreach (string argument in command.PrefixArguments) start.ArgumentList.Add(argument);
         start.ArgumentList.Add("--worker");
+        using (Process owner = Process.GetCurrentProcess())
+            start.Environment[WorkerLifetime.OwnerVariable] = $"{owner.Id}:{owner.StartTime.ToUniversalTime().Ticks}";
         using var process = new Process { StartInfo = start };
         try
         {
@@ -145,5 +147,42 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
         try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
         catch (InvalidOperationException) { }
         catch (System.ComponentModel.Win32Exception) { }
+    }
+}
+
+
+// A hard crash of the UI/CLI process must not leave its numerical worker running.
+internal sealed class WorkerLifetime : IDisposable
+{
+    internal const string OwnerVariable = "VISUAL_DSD_WORKER_OWNER";
+    private readonly ManualResetEvent stopped = new(false);
+    private readonly Thread? monitor;
+
+    public WorkerLifetime()
+    {
+        string? owner = Environment.GetEnvironmentVariable(OwnerVariable);
+        if (owner is null) return;
+        monitor = new Thread(() => Watch(owner)) { IsBackground = true, Name = "Worker owner monitor" };
+        monitor.Start();
+    }
+
+    private void Watch(string owner)
+    {
+        try
+        {
+            string[] parts = owner.Split(':');
+            if (parts.Length != 2 || !int.TryParse(parts[0], out int id) || !long.TryParse(parts[1], out long ticks)) { Environment.Exit(1); return; }
+            using Process parent = Process.GetProcessById(id);
+            if (parent.StartTime.ToUniversalTime().Ticks != ticks) { Environment.Exit(1); return; }
+            while (!stopped.WaitOne(250)) if (parent.HasExited) { Environment.Exit(1); return; }
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        { Environment.Exit(1); }
+    }
+
+    public void Dispose()
+    {
+        stopped.Set();
+        if (monitor is null || monitor.Join(1000)) stopped.Dispose();
     }
 }

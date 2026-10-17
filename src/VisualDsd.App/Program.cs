@@ -110,6 +110,7 @@ public static class Program
 
     private static async Task<int> RunWorkerAsync()
     {
+        using var ownerLifetime = new WorkerLifetime();
         TextWriter output = Console.Out;
         Console.SetOut(TextWriter.Null);
         EngineResponse result;
