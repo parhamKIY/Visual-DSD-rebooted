@@ -9,6 +9,24 @@ namespace VisualDsd.Tests;
 public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
 {
     [Fact]
+    public async Task JIT_batch_passes_through_the_real_worker_and_returns_distinct_run_networks()
+    {
+        HttpResponseMessage response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest
+        {
+            Code = "directive jit\ndirective simulator stochastic\ndirective simulation {final=1;points=5;seed=42}\n" +
+                   "directive parameters [N=1]\ndirective sweeps [dose=[N=[2;7]]]\nN * <a>", Operation = "simulate"
+        });
+        var created = (await response.Content.ReadFromJsonAsync<JobView>())!;
+        var finished = await host.FinishAsync(created.Id);
+        Assert.Equal("succeeded", finished.State);
+        var runs = finished.Result!.Model!.Simulations;
+        Assert.Equal(2, runs.Length);
+        Assert.Equal("2", Assert.Single(runs[0].Network!.Species).Initial);
+        Assert.Equal("7", Assert.Single(runs[1].Network!.Species).Initial);
+        Assert.All(runs, run => { Assert.Equal(42, run.Settings!.Seed); Assert.Equal(1, run.Times[^1]); });
+    }
+
+    [Fact]
     public async Task Workspace_assets_are_embedded_and_served_with_local_only_security_policy()
     {
         HttpResponseMessage page = await host.Client.GetAsync("/");

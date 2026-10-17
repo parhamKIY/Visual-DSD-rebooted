@@ -73,6 +73,7 @@
           </div>
           <div id="empty-state" class="empty-state"><div class="empty-art" aria-hidden="true"><svg viewBox="0 0 240 130"><path class="empty-strand" d="M20 74h60l22-28h30l22 28h66M20 94h80l22-28h30l22 28h46"/><path class="empty-toehold" d="M80 74h22m30-28h22m-54 48h22m30-28h22"/><circle cx="32" cy="74" r="4"/><circle cx="208" cy="94" r="4"/><path class="empty-bond" d="M123 48v16m8-16v16m8-12v16"/></svg></div><span class="eyebrow">FROM STRANDS TO DYNAMICS</span><h2>Your model, brought to life.</h2><p>Check the syntax, expand the reaction network,<br>or simulate how your system changes over time.</p><button id="empty-simulate" class="button primary">Run first simulation <span aria-hidden="true">→</span></button><small>Use the example on the left, or open your own model.</small></div>
           <div id="results-content" hidden>
+            <div id="run-toolbar" class="view-toolbar" hidden><label for="run-select">Simulation run</label><select id="run-select" aria-label="Simulation run" hidden></select></div>
             <section id="panel-network" class="result-panel" role="tabpanel" aria-labelledby="tab-network" hidden>
               <div class="network-toolbar"><label>Focus<select id="network-focus" aria-label="Network focus"><option value="">Full network</option></select></label><div><button id="network-out" class="button compact secondary" aria-label="Zoom network out">−</button><button id="network-in" class="button compact secondary" aria-label="Zoom network in">+</button><button id="network-fit" class="button compact secondary">Fit</button><button id="network-export" class="button compact secondary">SVG ↓</button></div></div>
               <p id="network-caption" class="network-caption"></p>
@@ -81,7 +82,7 @@
               <div id="network-details" class="network-details" aria-live="polite"></div>
             </section>
             <section id="panel-plot" class="result-panel" role="tabpanel" aria-labelledby="tab-plot">
-              <div class="plot-toolbar"><div><span class="eyebrow">CONCENTRATION OVER TIME</span><p id="plot-subtitle" class="muted"></p></div><div class="plot-actions"><label class="sr-only" for="run-select">Simulation run</label><select id="run-select" aria-label="Simulation run" hidden></select><button id="export-svg" class="button compact secondary">SVG</button><button id="export-csv" class="button compact secondary">CSV <span aria-hidden="true">↓</span></button></div></div>
+              <div class="plot-toolbar"><div><span class="eyebrow">CONCENTRATION OVER TIME</span><p id="plot-subtitle" class="muted"></p></div><div class="plot-actions"><button id="export-svg" class="button compact secondary">SVG</button><button id="export-csv" class="button compact secondary">CSV <span aria-hidden="true">↓</span></button></div></div>
               <div id="plot-empty" class="inline-empty" hidden><h3>No simulation data yet</h3><p>Choose Simulate to calculate the time course.</p></div>
               <div id="chart-container" class="chart-container"><svg id="chart" role="img" aria-label="Simulation chart. Use arrow keys to inspect time points." tabindex="0" viewBox="0 0 800 420"></svg><div id="chart-tooltip" class="chart-tooltip" hidden></div></div>
               <div id="legend" class="legend" aria-label="Visible series"></div>

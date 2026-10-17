@@ -1,4 +1,4 @@
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
@@ -12,6 +12,7 @@ let documents = [], activeId, activeJob = null, examples = [], persistTimer, toa
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
+const selectedModel = () => modelForRun(state().response.model, state().runIndex);
 
 function element(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
 function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').hidden = false; toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500); }
@@ -222,21 +223,21 @@ function updateStamp() {
   $('stale').hidden = fresh;
   $('export-json').disabled = !response;
   if (!response) return;
-  const model = response.model;
+  const model = selectedModel();
   $('result-summary').textContent = `${model.species.length} species · ${model.reactions.length} reactions`;
-  $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated during simulation' : 'Expanded network'} · ${model.compilation} semantics${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
+  $('result-note').textContent = `${response.operation === 'parse' ? 'Initial species' : model.isJit ? 'Species generated in the selected run' : 'Expanded network'} · ${model.compilation} semantics${fresh ? '' : ' · earlier source'} · engine ${view.snapshot?.engineVersion || 'unknown'}`;
 }
 function renderResults() {
   const view = state(), response = view.response;
   renderDiagnostics(); updateStamp(); selectTab(view.tab);
   $('empty-state').hidden = Boolean(response); $('results-content').hidden = !response;
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
-  const model = response.model;
+  const model = selectedModel();
   $('species-count').textContent = model.species.length; $('reaction-count').textContent = model.reactions.length;
   renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork();
 }
 function renderNetwork() {
-  const view = state(), model = view.response.model;
+  const view = state(), model = selectedModel();
   if (!model.species.some(item => item.id === view.networkFocus)) view.networkFocus = '';
   $('network-focus').replaceChildren(element('option', '', 'Full network'), ...model.species.map(item => { const option = element('option', '', `${item.id} · ${item.structure || item.name}`); option.value = item.id; return option; }));
   $('network-focus').firstElementChild.value = ''; $('network-focus').value = view.networkFocus;
@@ -245,9 +246,10 @@ function renderNetwork() {
 }
 function selectedRun() { return state().response?.model.simulations[state().runIndex]; }
 function renderRuns() {
-  const model = state().response.model, runs = model.simulations, select = $('run-select');
+  const model = selectedModel(), runs = model.simulations, select = $('run-select');
   select.replaceChildren(...runs.map((run, index) => { const option = element('option', '', [run.name || `Run ${index + 1}`, run.sweep, run.assignment].filter(Boolean).join(' · ')); option.value = index; return option; }));
   select.value = state().runIndex; select.hidden = runs.length < 2;
+  $('run-toolbar').hidden = runs.length < 2;
   const run = selectedRun(), hasData = Boolean(run?.times.length);
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
@@ -260,7 +262,7 @@ function renderRuns() {
 }
 function svgImage(source) { const image = element('img'); image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`; image.loading = 'lazy'; return image; }
 function renderSpecies() {
-  const view = state(), all = view.response.model.species;
+  const view = state(), all = selectedModel().species;
   const query = view.search.toLocaleLowerCase();
   const filtered = all.filter(species => [species.id, species.name, species.structure].some(value => value.toLocaleLowerCase().includes(query)));
   const size = 24; view.speciesPage = Math.max(0, Math.min(view.speciesPage, Math.ceil(filtered.length / size) - 1)); const start = view.speciesPage * size;
@@ -277,7 +279,7 @@ function renderSpecies() {
   }));
 }
 function renderReactions() {
-  const view = state(), model = view.response.model, size = 30, start = view.reactionPage * size;
+  const view = state(), model = selectedModel(), size = 30, start = view.reactionPage * size;
   $('reaction-page-label').textContent = model.reactions.length ? `${start + 1}–${Math.min(start + size, model.reactions.length)} of ${model.reactions.length}` : 'No reactions in this result';
   $('reaction-prev').disabled = !view.reactionPage; $('reaction-next').disabled = start + size >= model.reactions.length;
   $('reaction-list').replaceChildren(...model.reactions.slice(start, start + size).map((reaction, index) => {
@@ -292,12 +294,12 @@ function renderData() {
   if (!run?.times.length) { $('data-page-label').textContent = 'Run a simulation to inspect its data.'; return; }
   $('data-page-label').textContent = `Rows ${start + 1}–${Math.min(start + size, run.times.length)} of ${run.times.length} · full precision in CSV`;
   const table = element('table'), header = element('thead'), heading = element('tr'), body = element('tbody');
-  for (const name of [`Time (${view.response.model.settings.timeUnit})`, ...run.series.map(series => series.name)]) { const cell = element('th', '', name); cell.scope = 'col'; cell.title = name; heading.append(cell); }
+  for (const name of [`Time (${selectedModel().settings.timeUnit})`, ...run.series.map(series => series.name)]) { const cell = element('th', '', name); cell.scope = 'col'; cell.title = name; heading.append(cell); }
   header.append(heading);
   for (let index = start; index < Math.min(start + size, run.times.length); index++) { const row = element('tr'); for (const value of [run.times[index], ...run.series.map(series => series.values[index])]) { const cell = element('td', '', numberLabel(value)); cell.title = String(value); row.append(cell); } body.append(row); }
   table.append(header, body); $('data-table').append(table);
 }
-function exportCsv() { const run = selectedRun(); if (run) download(`${stem()}-run-${state().runIndex + 1}.csv`, csvFor(run, state().response.model.settings.timeUnit), 'text/csv;charset=utf-8'); }
+function exportCsv() { const run = selectedRun(); if (run) download(`${stem()}-run-${state().runIndex + 1}.csv`, csvFor(run, selectedModel().settings.timeUnit), 'text/csv;charset=utf-8'); }
 
 editor.addEventListener('input', () => { current().code = editor.value; changed(); renderEditor(); });
 editor.addEventListener('scroll', syncScroll);
@@ -334,7 +336,7 @@ for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
   tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'network', 'data'], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? 'data' : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
 }
-$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = 0; renderRuns(); renderData(); });
+$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; renderResults(); });
 $('species-search').addEventListener('input', () => { state().search = $('species-search').value; state().speciesPage = 0; renderSpecies(); });
 for (const [kind, render] of [['species', renderSpecies], ['reaction', renderReactions], ['data', renderData]]) for (const direction of ['prev', 'next']) $(`${kind}-${direction}`).addEventListener('click', () => { state()[`${kind}Page`] += direction === 'prev' ? -1 : 1; render(); });
 for (const id of ['export-csv', 'data-export-csv']) $(id).addEventListener('click', exportCsv);

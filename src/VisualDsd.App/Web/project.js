@@ -1,4 +1,4 @@
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, modelForRun } from './model.js';
 
 export const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const fail = message => { throw new Error(`Invalid project: ${message}`); };
@@ -43,20 +43,32 @@ export function resultIsCurrent(model, snapshot) {
   catch { return false; }
 }
 
-export function readResponse(raw) {
-  object(raw);
-  if (raw.success !== true) fail('only completed successful results can be restored.');
-  const operation = choice(raw.operation, ['parse', 'expand', 'simulate']), dialect = choice(raw.dialect, ['current', 'legacy']);
-  const source = object(raw.model), settings = object(source.settings);
+function readSettings(raw) {
+  const settings = object(raw);
+  return { simulator: text(settings.simulator, 50), initial: finite(settings.initial), final: finite(settings.final), points: integer(settings.points, -2147483648, 2147483647), seed: seed(settings.seed), timeUnit: text(settings.timeUnit, 100), concentrationUnit: text(settings.concentrationUnit, 100) };
+}
+
+function readNetwork(source, isJit, operation) {
+  object(source);
   const species = array(source.species, 10000).map(item => {
     object(item); if (typeof item.constant !== 'boolean') fail('invalid species flag.');
-    const valueKind = item.valueKind ?? (source.isJit && operation === 'simulate' ? item.time == null ? 'finalPopulation' : 'scheduledInput' : 'initial');
+    const valueKind = item.valueKind ?? (isJit && operation === 'simulate' ? item.time == null ? 'finalPopulation' : 'scheduledInput' : 'initial');
     return { id: text(item.id, 512), name: text(item.name), structure: text(item.structure), svg: text(item.svg, 8 * 1024 * 1024), initial: text(item.initial), constant: item.constant, time: nullableText(item.time), valueKind: choice(valueKind, ['initial', 'finalPopulation', 'scheduledInput']) };
   });
   const ids = new Set(species.map(item => item.id)); if (ids.size !== species.length) fail('duplicate species identifiers.');
   const participants = items => array(items, 10000).map(item => { object(item); if (!ids.has(item.speciesId)) fail('reaction refers to an unknown species.'); return { speciesId: item.speciesId, multiplicity: integer(item.multiplicity, 1, 2147483647) }; });
   const rate = item => { object(item); return { kind: choice(item.kind, ['massAction', 'functional']), expression: text(item.expression) }; };
   const reactions = array(source.reactions, 50000).map(item => { object(item); return { reactants: participants(item.reactants), products: participants(item.products), catalysts: participants(item.catalysts), rate: rate(item.rate), reverseRate: item.reverseRate == null ? null : rate(item.reverseRate) }; });
+  return { species, reactions };
+}
+
+export function readResponse(raw) {
+  object(raw);
+  if (raw.success !== true) fail('only completed successful results can be restored.');
+  const operation = choice(raw.operation, ['parse', 'expand', 'simulate']), dialect = choice(raw.dialect, ['current', 'legacy']);
+  const source = object(raw.model), settings = readSettings(source.settings);
+  if (typeof source.isJit !== 'boolean') fail('invalid JIT flag.');
+  const { species, reactions } = readNetwork(source, source.isJit, operation);
   let samples = 0;
   const simulations = array(source.simulations, 256).map(run => {
     object(run);
@@ -67,10 +79,15 @@ export function readResponse(raw) {
       if (values.length !== times.length || samples > 1000000) fail('invalid or oversized simulation table.');
       return { name: text(column.name), values };
     });
-    return { name: text(run.name), sweep: text(run.sweep), assignment: text(run.assignment), times, series, seed: seed(run.seed) };
+    const result = { name: text(run.name), sweep: text(run.sweep), assignment: text(run.assignment), times, series, seed: seed(run.seed) };
+    if (run.settings !== undefined) {
+      result.settings = run.settings === null ? null : readSettings(run.settings);
+      if (result.settings && result.settings.seed !== result.seed) fail('run settings disagree with its seed.');
+    }
+    if (run.network !== undefined) result.network = run.network === null ? null : readNetwork(run.network, source.isJit, operation);
+    return result;
   });
-  if (typeof source.isJit !== 'boolean') fail('invalid JIT flag.');
-  return { success: true, operation, dialect, diagnostics: [], model: { kind: choice(source.kind, ['classic', 'rules']), compilation: choice(source.compilation, ['default', 'detailed', 'finite', 'infinite']), isJit: source.isJit, settings: { simulator: text(settings.simulator, 50), initial: finite(settings.initial), final: finite(settings.final), points: integer(settings.points, -2147483648, 2147483647), seed: seed(settings.seed), timeUnit: text(settings.timeUnit, 100), concentrationUnit: text(settings.concentrationUnit, 100) }, species, reactions, simulations } };
+  return { success: true, operation, dialect, diagnostics: [], model: { kind: choice(source.kind, ['classic', 'rules']), compilation: choice(source.compilation, ['default', 'detailed', 'finite', 'infinite']), isJit: source.isJit, settings, species, reactions, simulations } };
 }
 
 function readSavedResult(raw, model) {
@@ -79,8 +96,9 @@ function readSavedResult(raw, model) {
   if (response.operation !== 'simulate' && response.model.simulations.length) fail('unexpected simulation data.');
   const snapshot = { name: text(raw.name, 120), engineVersion: text(raw.engineVersion || 'unknown', 50), request };
   const networkFocus = text(raw.networkFocus ?? '', 512);
-  if (networkFocus && !response.model.species.some(species => species.id === networkFocus)) fail('network focus refers to an unknown species.');
-  return { response, snapshot, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex: integer(raw.runIndex ?? 0, 0, Math.max(0, response.model.simulations.length - 1)), tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network']), networkFocus };
+  const runIndex = integer(raw.runIndex ?? 0, 0, Math.max(0, response.model.simulations.length - 1));
+  if (networkFocus && !modelForRun(response.model, runIndex).species.some(species => species.id === networkFocus)) fail('network focus refers to an unknown species.');
+  return { response, snapshot, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network']), networkFocus };
 }
 
 export function parseProject(input) {

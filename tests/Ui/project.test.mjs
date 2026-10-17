@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
-import { createDocument, requestFor, csvFor } from '../../src/VisualDsd.App/Web/model.js';
+import { createDocument, requestFor, csvFor, modelForRun } from '../../src/VisualDsd.App/Web/model.js';
 import { parseProject, serialiseProject, resultIsCurrent, readResponse } from '../../src/VisualDsd.App/Web/project.js';
 globalThis.crypto ??= webcrypto;
 
@@ -60,4 +60,46 @@ test('numeric and network corruption cannot be restored as a successful result',
 test('legacy JIT result files identify final populations without relabeling them as initial amounts', () => {
   const { view } = fixture(); view.response.model.isJit = true; delete view.response.model.species[0].valueKind;
   assert.equal(readResponse(view.response).model.species[0].valueKind, 'finalPopulation');
+});
+
+function batchFixture() {
+  const result = fixture(), model = result.view.response.model;
+  model.isJit = true;
+  model.species[0].valueKind = 'finalPopulation';
+  const first = model.simulations[0];
+  first.settings = { ...model.settings };
+  first.network = { species: structuredClone(model.species), reactions: [] };
+  const second = structuredClone(first); second.name = 'second'; second.assignment = 'N=7';
+  second.settings.final = 200; second.times[2] = 200;
+  second.network.species[0].id = 'second-only'; second.network.species[0].initial = '7';
+  second.network.reactions = [{ reactants: [{ speciesId: 'second-only', multiplicity: 1 }], products: [], catalysts: [], rate: { kind: 'massAction', expression: '1' }, reverseRate: null }];
+  model.simulations.push(second); result.view.runIndex = 1; result.view.networkFocus = 'second-only';
+  return result;
+}
+
+test('selected JIT run supplies its own network and settings to every result view', () => {
+  const { view } = batchFixture(), model = view.response.model;
+  assert.equal(modelForRun(model, 0).species[0].initial, '1');
+  assert.equal(modelForRun(model, 1).species[0].initial, '7');
+  assert.equal(modelForRun(model, 1).species[0].id, 'second-only');
+  assert.equal(modelForRun(model, 1).reactions.length, 1);
+  assert.equal(modelForRun(model, 1).settings.final, 200);
+  assert.equal(model.species[0].id, 'a'); assert.equal(model.settings.final, 100);
+  const { view: old } = fixture(); assert.deepEqual(modelForRun(old.response.model, 0), old.response.model);
+});
+
+test('batch project restores exact per-run networks, settings, data and focus on a species absent from the first run', () => {
+  const { document, view, views } = batchFixture();
+  const restored = parseProject(serialiseProject([document], document.id, views, '0.5.0')).views.get(document.id);
+  assert.deepEqual(restored.response, view.response); assert.equal(restored.runIndex, 1); assert.equal(restored.networkFocus, 'second-only');
+  assert.equal(modelForRun(restored.response.model, restored.runIndex).settings.final, 200);
+  assert.equal(csvFor(restored.response.model.simulations[1]), csvFor(view.response.model.simulations[1]));
+});
+
+test('batch import validates every network in its own identifier scope and rejects corrupted run settings', () => {
+  for (const mutate of [model => { model.simulations[1].network.reactions[0].reactants[0].speciesId = 'a'; },
+    model => { model.simulations[1].network.species.push(model.simulations[1].network.species[0]); },
+    model => { model.simulations[1].settings.final = Infinity; }, model => { model.simulations[1].settings.seed = 7; }]) {
+    const { view } = batchFixture(); mutate(view.response.model); assert.throws(() => readResponse(view.response), Error);
+  }
 });

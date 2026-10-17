@@ -5,6 +5,11 @@ export const optionDefaults = Object.freeze({ dialect: 'auto', compilation: 'sou
 export const byteLength = text => new TextEncoder().encode(text).length;
 export const escapeHtml = text => String(text).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
+export function modelForRun(model, runIndex) {
+  const run = model.simulations[runIndex];
+  return { ...model, settings: run?.settings ?? model.settings, species: run?.network?.species ?? model.species, reactions: run?.network?.reactions ?? model.reactions };
+}
+
 export function createDocument(name = 'Untitled.dsd', code = '// Your strand displacement model\n\n<a^ b>\n', dialect = 'auto', exampleId = null) {
   if (byteLength(code) > MAX_CODE_BYTES) throw new Error('Model files must be no larger than 256 KiB.');
   return { id: crypto.randomUUID(), name, code: code.replace(/\r\n?/g, '\n'), options: { ...optionDefaults, dialect }, exampleId, revision: 0, databases: {} };
