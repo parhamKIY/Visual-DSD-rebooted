@@ -160,12 +160,18 @@ function showError(error) { state().diagnostics = [{ code: 'WORKSPACE_ERROR', me
 function renderDatasets() {
   $('dataset-list').replaceChildren(...(current().data || []).map((dataset, index) => {
     const row = element('div', 'dataset-row'), input = element('input'); input.value = dataset.name; input.maxLength = 120; input.setAttribute('aria-label', `Dataset ${index + 1} name`);
-    input.addEventListener('change', () => { try { const data = structuredClone(current().data); data[index].name = input.value.trim(); current().data = readDatasets(data); changed(); renderDatasets(); } catch (error) { input.value = dataset.name; toast(error.message); } });
+    input.addEventListener('input', () => {
+      try {
+        const data = structuredClone(current().data); data[index].name = input.value.trim(); current().data = readDatasets(data); input.setCustomValidity('');
+        append.setAttribute('aria-label', `Add table to ${data[index].name}`); remove.setAttribute('aria-label', `Remove dataset ${data[index].name}`); changed();
+      } catch (error) { input.setCustomValidity(error.message); }
+    });
+    input.addEventListener('blur', () => { if (!input.validity.valid) toast(input.validationMessage); input.value = current().data[index].name; input.setCustomValidity(''); });
     const count = dataset.tables.reduce((sum, table) => sum + table.times.length * table.series.length, 0);
     const remove = element('button', 'text-button', 'Remove'); remove.type = 'button'; remove.setAttribute('aria-label', `Remove dataset ${dataset.name}`);
     remove.addEventListener('click', () => { current().data.splice(index, 1); changed(); renderDatasets(); });
     const append = element('button', 'text-button', 'Add table'); append.type = 'button'; append.setAttribute('aria-label', `Add table to ${dataset.name}`);
-    append.addEventListener('click', () => { importTarget = { documentId: activeId, datasetName: dataset.name }; $('data-input').click(); });
+    append.addEventListener('click', () => { importTarget = { documentId: activeId, datasetName: current().data[index].name }; $('data-input').click(); });
     row.append(input, element('small', '', `${dataset.tables.length} tables · ${count} measurements`), append, remove);
     const group = element('div'); group.append(row);
     if (dataset.tables.length > 1) dataset.tables.forEach((table, tableIndex) => {
@@ -208,6 +214,7 @@ async function run(operation) {
   let request;
   try {
     for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if ($(key).validity.badInput) throw new Error(`${key}: enter a valid number.`);
+    for (const input of $('dataset-list').querySelectorAll('input')) if (!input.validity.valid) throw new Error(input.validationMessage);
     request = requestFor(model, operation);
   }
   catch (error) { showError(error); return; }
