@@ -131,6 +131,7 @@ public class JitBatchTests
         Assert.All(run.Times.Select((time, index) => (time, value: series.Values[index])), pair =>
             Assert.Equal(pair.time < 7 ? 1 : 4, pair.value));
         Assert.Contains(run.Network!.Species, species => species.ValueKind == "scheduledInput" && species.Initial == "9" && species.Time == "10");
+        Assert.Equal(run.Network.Species.Length, run.Network.Species.Select(species => species.Id).Distinct().Count());
     }
 
     [Fact]

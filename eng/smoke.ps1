@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.4.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.5.0') { throw "Unexpected version: $version" }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
@@ -61,6 +61,22 @@ foreach ($simulator in @('oslo', 'ssa')) {
 }
 $invalid = Invoke-Standalone -Arguments @('parse', '-') -InputText '<a^' -ExpectedExit 1 | ConvertFrom-Json
 if ($invalid.success -or $invalid.diagnostics[0].code -ne 'PARSE_ERROR' -or $invalid.diagnostics[0].line -lt 1) { throw 'Standalone parser diagnostics failed.' }
+$jitSource = @'
+directive jit
+directive simulator stochastic
+directive parameters [N=1]
+directive sweeps [dose=[N=[2;7]]]
+directive simulations [short={initial=5;final=6;points=5;seed=42};long={initial=5;final=7;points=5;seed=43}]
+N * <a>
+'@
+$jitBatch = Invoke-Standalone -Arguments @('simulate', '-') -InputText $jitSource | ConvertFrom-Json
+if (!$jitBatch.success -or $jitBatch.model.simulations.Count -ne 4) { throw 'Standalone JIT batch failed.' }
+for ($runIndex = 0; $runIndex -lt 4; $runIndex++) {
+    $run = $jitBatch.model.simulations[$runIndex]
+    $expectedPopulation = if ($runIndex % 2 -eq 0) { '2' } else { '7' }
+    $expectedEnd = if ($runIndex -lt 2) { 6 } else { 7 }
+    if ($run.network.species[0].initial -ne $expectedPopulation -or $run.times[0] -ne 5 -or $run.times[-1] -ne $expectedEnd -or $run.settings.seed -ne $run.seed) { throw 'Standalone JIT run data mismatch.' }
+}
 
 $server = Start-Standalone @('serve', '--port', '0')
 try {
@@ -96,4 +112,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, isolated JIT sweeps and named runs, parser diagnostics, local API."

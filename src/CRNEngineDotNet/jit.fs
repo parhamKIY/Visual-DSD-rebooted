@@ -334,10 +334,6 @@ let rec enactEvents lu1 (output:output) (jit: t<'s>) =
 
         (* Run for the remaining portion of the random number *)
         let new_lu1          = lu1 - dt1 * old_prop
-        // TODO: uncomment?
-        //let new_current_time = next_event.time 
-        //jit := { !jit with total_propensity = totalprop; 
-        //simulator = {sim jit with currenttime = new_current_time}} 
         enactEvents 
           new_lu1 
           output
