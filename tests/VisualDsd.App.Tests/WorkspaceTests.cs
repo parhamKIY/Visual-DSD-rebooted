@@ -9,6 +9,23 @@ namespace VisualDsd.Tests;
 public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
 {
     [Fact]
+    public async Task CSV_import_and_parameter_inference_use_the_real_worker()
+    {
+        var data = ScientificTests.Data[0].Tables[0];
+        string csv = "Time (s),<a>\n" + string.Join('\n', data.Times.Select((time, index) => $"{time.ToString("R", System.Globalization.CultureInfo.InvariantCulture)},{data.Series[0].Values[index].ToString("R", System.Globalization.CultureInfo.InvariantCulture)}"));
+        var parsed = await host.Client.PostAsJsonAsync("/api/data/parse", new CsvDataRequest("decay", csv));
+        Assert.True(parsed.IsSuccessStatusCode);
+        var dataset = (await parsed.Content.ReadFromJsonAsync<DatasetData>())!;
+        var response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest { Code = ScientificTests.FitCode, Operation = "infer", Data = [dataset] });
+        var created = (await response.Content.ReadFromJsonAsync<JobView>())!;
+        var finished = await host.FinishAsync(created.Id);
+        Assert.Equal("succeeded", finished.State);
+        Assert.InRange(finished.Result!.Model!.Inference!.Parameters.Single(p => p.Name == "k").Mle, .33, .37);
+        var invalid = await host.Client.PostAsJsonAsync("/api/data/parse", new CsvDataRequest("decay", "Time,a\n0,1\n0,2"));
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
+
+    [Fact]
     public async Task JIT_batch_passes_through_the_real_worker_and_returns_distinct_run_networks()
     {
         HttpResponseMessage response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest
@@ -36,7 +53,7 @@ public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
         Assert.Contains("script-src 'self'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Contains("frame-ancestors 'none'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Equal("nosniff", page.Headers.GetValues("X-Content-Type-Options").Single());
-        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "icon.svg" })
+        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "observations.js", "icon.svg" })
         {
             HttpResponseMessage response = await host.Client.GetAsync($"/assets/{asset}");
             Assert.True(response.IsSuccessStatusCode, asset);

@@ -68,8 +68,11 @@ module internal ParameterInference =
             if mapped |> List.exists ((<>) mapped.Head) then fail "INFERENCE_COLUMNS" "A dataset selected by several simulations must use the same plots."
             Dataset.create name mapped.Head)
         let prepared = { crn with settings = { crn.settings with data = datasets; inference = { options with seed = seed; print_console = false; print_summary = false } } }
-        let _, tables, _, _, _, _ = Ode.list_to_inference_method prepared.settings [prepared.to_ode()]
+        let _, tables, inferenceParameters, _, _, _ = Ode.list_to_inference_method prepared.settings [prepared.to_ode()]
         if tables.IsEmpty || tables.Length > 32 then fail "INFERENCE_DATA" "An inference problem must select 1–32 observation tables."
+        if tables |> List.sumBy (fun table -> table.times.Length * table.columns.Length) > 20000 then fail "INFERENCE_DATA" "Selected observation tables exceed 20000 measurements."
+        if inferenceParameters |> List.filter Parameter.variable |> List.length > 32 then fail "INFERENCE_PARAMETERS" "Expanded inference problems support at most 32 variable model parameters."
+        let modelParameterNames = inferenceParameters |> List.map (fun parameter -> parameter.name) |> Set.ofList
         let result = prepared.infer()
         if result.mlesims.Length <> tables.Length || not (Double.IsFinite result.summary.mle) || result.summary.mle <= Double.MinValue / 2.0 then
             fail "INFERENCE_FAILED" "The inference engine did not produce a finite fit for all observation tables."
@@ -79,7 +82,7 @@ module internal ParameterInference =
             let samples = posterior |> Array.map (fun sample -> sample.[p.name])
             let numbers = Array.append samples [|p.mle; p.mean; p.variance; p.median; p.l95; p.u95|]
             if numbers |> Array.exists (Double.IsFinite >> not) then fail "INFERENCE_FAILED" "The inference engine returned nonfinite parameter estimates."
-            ParameterEstimateData(p.name, (if crn.settings.parameters |> List.exists (fun parameter -> parameter.name = p.name) then "model" else "noise"),
+            ParameterEstimateData(p.name, (if modelParameterNames.Contains p.name then "model" else "noise"),
                                   p.mle, p.mean, p.variance, p.median, p.l95, p.u95, samples)) |> List.toArray
         let observations = tables |> List.map (fun table -> ObservationData(table.times |> List.toArray, table.columns |> List.map (fun column -> SeriesData(column.name, column.values |> List.toArray)) |> List.toArray, crn.settings.units.time.to_string)) |> List.toArray
         let likelihood = posterior |> Array.map (fun sample -> sample.["logLikelihood"])

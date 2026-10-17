@@ -4,9 +4,10 @@ export const colors = ['#158779', '#c89245', '#6f87b9', '#b87991', '#8ca85e', '#
 const ns = 'http://www.w3.org/2000/svg';
 const width = 800, height = 420, left = 65, right = 24, top = 24, bottom = 62;
 
-export function extent(run, visible) {
+export function extent(run, visible, observations) {
   let minimum = 0, maximum = 0;
-  run.series.forEach((series, index) => { if (!visible || visible.has(index)) for (const value of series.values) { minimum = Math.min(minimum, value); maximum = Math.max(maximum, value); } });
+  run.series.forEach((series, index) => { if (!visible || visible.has(index)) series.values.forEach((value, row) => { const deviation = series.standardDeviation?.[row] ?? 0; minimum = Math.min(minimum, value - deviation); maximum = Math.max(maximum, value + deviation); }); });
+  observations?.series.forEach(column => { const index = run.series.findIndex(series => series.name === column.name); if (index >= 0 && (!visible || visible.has(index))) for (const value of column.values) { minimum = Math.min(minimum, value); maximum = Math.max(maximum, value); } });
   if (minimum === maximum) maximum = minimum + 1;
   const padding = (maximum - minimum) * .08;
   const x0 = run.times[0] ?? 0, last = run.times.at(-1) ?? x0 + 1;
@@ -69,14 +70,14 @@ export class SimulationChart {
     });
   }
 
-  setRun(run, settings) {
-    this.run = run; this.settings = settings; this.index = 0;
+  setRun(run, settings, observations = null) {
+    this.run = run; this.settings = settings; this.observations = observations; this.index = 0;
     this.visible = new Set(run.series.map((_, index) => index));
     this.legend.replaceChildren();
     run.series.forEach((series, index) => {
       const button = document.createElement('button'); button.type = 'button'; button.setAttribute('aria-pressed', 'true'); button.title = series.name;
       const swatch = svgElement('svg', { width: 16, height: 8, 'aria-hidden': 'true' }); swatch.append(svgElement('line', { x1: 0, y1: 4, x2: 16, y2: 4, stroke: colors[index % colors.length], 'stroke-width': 3 }));
-      button.append(swatch, document.createTextNode(series.name));
+      button.append(swatch, document.createTextNode(`${series.name}${series.standardDeviation ? ' · mean ± 1 SD' : ''}`));
       button.addEventListener('click', () => { if (this.visible.has(index)) this.visible.delete(index); else this.visible.add(index); button.setAttribute('aria-pressed', String(this.visible.has(index))); this.draw(); });
       this.legend.append(button);
     });
@@ -88,7 +89,7 @@ export class SimulationChart {
     const svg = this.svg, run = this.run;
     svg.replaceChildren();
     if (!run?.times.length) return;
-    const bounds = this.bounds = extent(run, this.visible);
+    const bounds = this.bounds = extent(run, this.visible, this.observations);
     const x = value => left + (value - bounds.x0) / (bounds.x1 - bounds.x0) * (width - left - right);
     const y = value => height - bottom - (value - bounds.y0) / (bounds.y1 - bounds.y0) * (height - top - bottom);
     this.x = x; this.y = y;
@@ -97,13 +98,22 @@ export class SimulationChart {
     for (const value of ticks(bounds.x0, bounds.x1)) { svg.append(svgElement('line', { x1: x(value), x2: x(value), y1: top, y2: height - bottom, class: 'chart-grid' }), svgElement('text', { x: x(value), y: height - bottom + 23, 'text-anchor': 'middle', class: 'chart-label' }, numberLabel(value))); }
     svg.append(svgElement('path', { d: `M${left} ${top}V${height - bottom}H${width - right}`, fill: 'none', class: 'chart-axis' }));
     svg.append(svgElement('text', { x: (width + left - right) / 2, y: height - 12, 'text-anchor': 'middle', class: 'chart-axis-title' }, `Time${this.settings.timeUnit ? ` (${this.settings.timeUnit})` : ''}`));
-    svg.append(svgElement('text', { transform: `translate(16 ${(height - bottom + top) / 2}) rotate(-90)`, 'text-anchor': 'middle', class: 'chart-axis-title' }, `Concentration${this.settings.concentrationUnit ? ` (${this.settings.concentrationUnit})` : ''}`));
+    const population = this.settings.simulator === 'cme';
+    svg.append(svgElement('text', { transform: `translate(16 ${(height - bottom + top) / 2}) rotate(-90)`, 'text-anchor': 'middle', class: 'chart-axis-title' }, population ? 'Population (molecules)' : `Concentration${this.settings.concentrationUnit ? ` (${this.settings.concentrationUnit})` : ''}`));
     run.series.forEach((series, index) => {
       if (!this.visible.has(index)) return;
       const indices = sampledIndices(series.values);
+      if (series.standardDeviation) {
+        const upper = series.values.map((value, row) => value + series.standardDeviation[row]), lower = series.values.map((value, row) => value - series.standardDeviation[row]);
+        const bandIndices = [...new Set([...sampledIndices(upper), ...sampledIndices(lower)])].sort((a, b) => a - b);
+        const edge = (points, values, first) => points.map((point, position) => `${first && position === 0 ? 'M' : 'L'}${x(run.times[point]).toFixed(3)} ${y(values[point]).toFixed(3)}`).join('');
+        svg.append(svgElement('path', { d: `${edge(bandIndices, upper, true)}${edge([...bandIndices].reverse(), lower, false)}Z`, fill: colors[index % colors.length], 'fill-opacity': .13, 'data-uncertainty': index }));
+      }
       const path = indices.map((point, position) => `${position ? 'L' : 'M'}${x(run.times[point]).toFixed(3)} ${y(series.values[point]).toFixed(3)}`).join('');
       svg.append(svgElement('path', { d: path, stroke: colors[index % colors.length], class: 'chart-series', 'data-series': index }));
       if (run.times.length === 1) svg.append(svgElement('circle', { cx: x(run.times[0]), cy: y(series.values[0]), r: 3, fill: colors[index % colors.length] }));
+      const observed = this.observations?.series.find(column => column.name === series.name);
+      if (observed) this.observations.times.forEach((time, row) => svg.append(svgElement('circle', { cx: x(time), cy: y(observed.values[row]), r: 3.5, fill: '#fff', stroke: colors[index % colors.length], 'stroke-width': 1.7, 'data-observation': index })));
     });
     this.cursor = svgElement('g', { visibility: 'hidden', 'aria-hidden': 'true' }); svg.append(this.cursor);
   }
@@ -119,7 +129,7 @@ export class SimulationChart {
       if (!this.visible.has(seriesIndex)) return;
       this.cursor.append(svgElement('circle', { cx: this.x(this.run.times[index]), cy: this.y(series.values[index]), r: 3, fill: colors[seriesIndex % colors.length], stroke: '#fff', 'stroke-width': 1.5 }));
       const row = document.createElement('div'), name = document.createElement('span'), value = document.createElement('span');
-      name.className = 'tooltip-name'; name.textContent = series.name; value.textContent = numberLabel(series.values[index]); row.append(name, value); this.tooltip.append(row);
+      name.className = 'tooltip-name'; name.textContent = series.name; value.textContent = `${numberLabel(series.values[index])}${series.standardDeviation ? ` ± ${numberLabel(series.standardDeviation[index])} SD` : ''}`; row.append(name, value); this.tooltip.append(row);
     });
     this.tooltip.hidden = false;
   }
@@ -138,7 +148,7 @@ export class SimulationChart {
     copy.prepend(style);
     visible.forEach((series, index) => {
       const y = height + index * 20 + 6;
-      copy.append(svgElement('line', { x1: left, x2: left + 18, y1: y, y2: y, stroke: colors[series.index % colors.length], 'stroke-width': 3 }), svgElement('text', { x: left + 28, y: y + 4, fill: '#536e5c', 'font-family': 'sans-serif', 'font-size': 11 }, series.name));
+      copy.append(svgElement('line', { x1: left, x2: left + 18, y1: y, y2: y, stroke: colors[series.index % colors.length], 'stroke-width': 3 }), svgElement('text', { x: left + 28, y: y + 4, fill: '#536e5c', 'font-family': 'sans-serif', 'font-size': 11 }, `${series.name}${series.standardDeviation ? ' · mean ± 1 SD' : ''}${this.observations ? ' · circles: observations' : ''}`));
     });
     return new XMLSerializer().serializeToString(copy);
   }

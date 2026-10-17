@@ -1,3 +1,5 @@
+import { readDatasets } from './observations.js';
+
 export const MAX_CODE_BYTES = 256 * 1024;
 export const MAX_DOCUMENTS = 16;
 export const STORAGE_KEY = 'visual-dsd.workspace.v1';
@@ -12,7 +14,7 @@ export function modelForRun(model, runIndex) {
 
 export function createDocument(name = 'Untitled.dsd', code = '// Your strand displacement model\n\n<a^ b>\n', dialect = 'auto', exampleId = null) {
   if (byteLength(code) > MAX_CODE_BYTES) throw new Error('Model files must be no larger than 256 KiB.');
-  return { id: crypto.randomUUID(), name, code: code.replace(/\r\n?/g, '\n'), options: { ...optionDefaults, dialect }, exampleId, revision: 0, databases: {} };
+  return { id: crypto.randomUUID(), name, code: code.replace(/\r\n?/g, '\n'), options: { ...optionDefaults, dialect }, exampleId, revision: 0, databases: {}, data: [] };
 }
 
 export function restoreWorkspace(raw) {
@@ -22,6 +24,7 @@ export function restoreWorkspace(raw) {
     const ids = new Set();
     const documents = saved.documents.slice(0, MAX_DOCUMENTS).filter(document => {
       if (typeof document?.id !== 'string' || ids.has(document.id) || document.id.length > 80 || typeof document.name !== 'string' || typeof document.code !== 'string' || byteLength(document.code) > MAX_CODE_BYTES) return false;
+      try { readDatasets(document.data); } catch { return false; }
       ids.add(document.id);
       return true;
     }).map(document => {
@@ -32,7 +35,7 @@ export function restoreWorkspace(raw) {
         const entry = document.databases?.[key];
         if (typeof entry?.code === 'string' && byteLength(entry.code) <= MAX_CODE_BYTES) databases[key] = { name: String(entry.name || 'Custom database').slice(0, 120), code: entry.code };
       }
-      return { id: document.id, name: document.name.slice(0, 120), code: document.code, options, databases, exampleId: typeof document.exampleId === 'string' ? document.exampleId : null, revision: 0 };
+      return { id: document.id, name: document.name.slice(0, 120), code: document.code, options, databases, data: readDatasets(document.data), exampleId: typeof document.exampleId === 'string' ? document.exampleId : null, revision: 0 };
     });
     return documents.length ? { documents, activeId: documents.some(document => document.id === saved.activeId) ? saved.activeId : documents[0].id } : null;
   } catch { return null; }
@@ -55,6 +58,10 @@ export function requestFor(document, operation) {
   if (request.timeoutSeconds < 1 || request.timeoutSeconds > 120) throw new Error('The time limit must be between 1 and 120 seconds.');
   if (request.initial !== undefined && request.final !== undefined && request.final <= request.initial) throw new Error('Final time must be greater than initial time.');
   for (const key of ['toeholds', 'specificities']) if (document.databases[key]) request[key] = document.databases[key].code;
+  if (operation === 'infer') {
+    request.data = readDatasets(document.data);
+    if (!request.data.length) throw new Error('Import observation CSV files before fitting parameters.');
+  }
   return request;
 }
 
@@ -83,8 +90,9 @@ export function csvFor(run, timeUnit = '') {
     if (header && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
     return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   };
-  const header = [timeUnit ? `Time (${timeUnit})` : 'Time', ...run.series.map(series => series.name)].map(value => quote(value, true)).join(',');
-  const rows = run.times.map((time, index) => [time, ...run.series.map(series => series.values[index])].map(value => quote(value)).join(','));
+  const columns = run.series.flatMap(series => [{ name: series.name, values: series.values }, ...(series.standardDeviation ? [{ name: `${series.name} (StDev)`, values: series.standardDeviation }] : [])]);
+  const header = [timeUnit ? `Time (${timeUnit})` : 'Time', ...columns.map(series => series.name)].map(value => quote(value, true)).join(',');
+  const rows = run.times.map((time, index) => [time, ...columns.map(series => series.values[index])].map(value => quote(value)).join(','));
   return [header, ...rows].join('\r\n') + '\r\n';
 }
 

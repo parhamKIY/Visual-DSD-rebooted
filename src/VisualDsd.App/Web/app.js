@@ -2,13 +2,14 @@ import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength,
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
+import { readDatasets } from './observations.js';
 
 const $ = id => document.getElementById(id);
 const editor = $('editor');
 const chart = new SimulationChart($('chart'), $('legend'), $('chart-tooltip'));
 const network = new ReactionNetwork($('network'), $('network-details'), $('network-caption'));
 const views = new Map();
-let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown';
+let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
@@ -96,6 +97,7 @@ function selectDocument(id) {
   $('model-name').value = model.name; editor.value = model.code;
   for (const key of Object.keys(optionDefaults)) $(key).value = model.options[key];
   for (const key of ['toeholds', 'specificities']) { $(`${key}-name`).textContent = model.databases[key]?.name || 'Default database'; $(`${key}-file`).value = ''; }
+  renderDatasets();
   $('species-search').value = state().search;
   $('document-description').textContent = examples.find(example => example.id === model.exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
   $('dialect-badge').textContent = model.options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD';
@@ -155,9 +157,46 @@ function renderDiagnostics() {
 }
 function showError(error) { state().diagnostics = [{ code: 'WORKSPACE_ERROR', message: error.message }]; renderDiagnostics(); renderEditor(); }
 
+function renderDatasets() {
+  $('dataset-list').replaceChildren(...(current().data || []).map((dataset, index) => {
+    const row = element('div', 'dataset-row'), input = element('input'); input.value = dataset.name; input.maxLength = 120; input.setAttribute('aria-label', `Dataset ${index + 1} name`);
+    input.addEventListener('change', () => { try { const data = structuredClone(current().data); data[index].name = input.value.trim(); current().data = readDatasets(data); changed(); } catch (error) { input.value = dataset.name; toast(error.message); } });
+    const count = dataset.tables.reduce((sum, table) => sum + table.times.length * table.series.length, 0);
+    const remove = element('button', 'text-button', 'Remove'); remove.type = 'button'; remove.setAttribute('aria-label', `Remove dataset ${dataset.name}`);
+    remove.addEventListener('click', () => { current().data.splice(index, 1); changed(); renderDatasets(); });
+    const append = element('button', 'text-button', 'Add table'); append.type = 'button'; append.setAttribute('aria-label', `Add table to ${dataset.name}`);
+    append.addEventListener('click', () => { importTarget = { documentId: activeId, datasetName: dataset.name }; $('data-input').click(); });
+    row.append(input, element('small', '', `${dataset.tables.length} tables · ${count} measurements`), append, remove);
+    const group = element('div'); group.append(row);
+    if (dataset.tables.length > 1) dataset.tables.forEach((table, tableIndex) => {
+      const entry = element('div', 'dataset-row'), up = element('button', 'text-button', '↑'), removeTable = element('button', 'text-button', 'Remove'); up.type = removeTable.type = 'button';
+      up.disabled = tableIndex === 0; up.setAttribute('aria-label', `Move ${dataset.name} table ${tableIndex + 1} up`); removeTable.setAttribute('aria-label', `Remove ${dataset.name} table ${tableIndex + 1}`);
+      up.addEventListener('click', () => { const tables = current().data[index].tables; [tables[tableIndex - 1], tables[tableIndex]] = [tables[tableIndex], tables[tableIndex - 1]]; changed(); renderDatasets(); });
+      removeTable.addEventListener('click', () => { current().data[index].tables.splice(tableIndex, 1); changed(); renderDatasets(); });
+      entry.append(element('small', '', `Table ${tableIndex + 1}: ${table.times.length} rows · ${table.series.map(column => column.name).join(', ')}`), up, removeTable); group.append(entry);
+    });
+    return group;
+  }));
+}
+
+async function importData(files, target) {
+  const model = documents.find(document => document.id === target?.documentId) || current();
+  try {
+    for (const file of files) {
+      if (file.size > 512 * 1024) throw new Error('Observation CSV exceeds 512 KiB.');
+      const dataset = await api('/api/data/parse', { method: 'POST', body: JSON.stringify({ name: file.name.replace(/\.csv$/i, ''), csv: await file.text() }) });
+      if (!documents.includes(model)) return;
+      if (target && !model.data.some(item => item.name === target.datasetName)) throw new Error('The target dataset is no longer open.');
+      model.data = readDatasets(target ? model.data.map(item => item.name === target.datasetName ? { ...item, tables: [...item.tables, ...dataset.tables] } : item) : [...(model.data || []), dataset]); model.revision++;
+      if (current() === model) { renderDatasets(); updateStamp(); } persist();
+    }
+  } catch (error) { toast(error.message); }
+  finally { $('data-input').value = ''; }
+}
+
 function updateBusy() {
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
-  for (const id of ['check', 'expand', 'simulate', 'empty-simulate']) $(id).disabled = busy;
+  for (const id of ['check', 'expand', 'simulate', 'infer', 'empty-simulate']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
   $('save-project').disabled = busy; $('open-project').disabled = busy;
   $('run-state').textContent = busy && activeJob.documentId === activeId ? activeJob.message : busy ? `Running ${documents.find(model => model.id === activeJob.documentId)?.name || 'another model'}…` : state().status;
@@ -172,7 +211,8 @@ async function run(operation) {
   }
   catch (error) { showError(error); return; }
   state().diagnostics = []; renderDiagnostics(); renderEditor();
-  activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message: operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…', started: performance.now(), cancelling: false };
+  const message = operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
+  activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message, started: performance.now(), cancelling: false };
   const task = activeJob; updateBusy();
   try {
     const admitted = await api('/api/jobs', { method: 'POST', body: JSON.stringify(request) }); task.id = admitted.id; updateBusy();
@@ -182,7 +222,7 @@ async function run(operation) {
       try { job = await api(`/api/jobs/${task.id}`); failures = 0; }
       catch (error) { if (++failures > 5) { fetch(`/api/jobs/${task.id}`, { method: 'DELETE' }).catch(() => {}); throw error; } task.message = 'Reconnecting to the local service…'; updateBusy(); await new Promise(resolve => setTimeout(resolve, 1500)); continue; }
       if (job.finishedAt) { finishJob(job, task); break; }
-      task.message = task.cancelling ? 'Stopping…' : job.state === 'queued' ? 'Waiting for a calculation slot…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…'; updateBusy();
+      task.message = task.cancelling ? 'Stopping…' : job.state === 'queued' ? 'Waiting for a calculation slot…' : message; updateBusy();
       await new Promise(resolve => setTimeout(resolve, 250));
     }
   } catch (error) {
@@ -199,8 +239,8 @@ function finishJob(job, task) {
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
-    view.tab = task.operation === 'simulate' ? 'plot' : 'species';
-    view.status = `${task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
+    view.tab = task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : 'species';
+    view.status = `${task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
   const model = documents.find(item => item.id === task.documentId);
   if (model?.revision !== task.revision && !job.result?.success) view.diagnostics = view.diagnostics.map(diagnostic => ({ ...diagnostic, line: null, column: null, message: `Earlier source: ${diagnostic.message}` }));
@@ -229,12 +269,14 @@ function updateStamp() {
 }
 function renderResults() {
   const view = state(), response = view.response;
+  $('tab-fit').hidden = !response?.model.inference;
+  if (view.tab === 'fit' && !response?.model.inference) view.tab = 'plot';
   renderDiagnostics(); updateStamp(); selectTab(view.tab);
   $('empty-state').hidden = Boolean(response); $('results-content').hidden = !response;
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
   $('species-count').textContent = model.species.length; $('reaction-count').textContent = model.reactions.length;
-  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit();
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
@@ -254,10 +296,10 @@ function renderRuns() {
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
   $('plot-subtitle').textContent = run ? [run.name, run.sweep, run.assignment].filter(Boolean).join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
-  if (hasData) chart.setRun(run, model.settings);
+  if (hasData) chart.setRun(run, model.settings, model.inference?.observations[state().runIndex]);
   $('run-details').replaceChildren();
   if (hasData) {
-    for (const [label, value] of [['Simulator', model.settings.simulator === 'oslo' ? 'Deterministic · Oslo' : 'Stochastic · SSA'], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
+    for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
   }
 }
 function svgImage(source) { const image = element('img'); image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`; image.loading = 'lazy'; return image; }
@@ -294,12 +336,29 @@ function renderData() {
   if (!run?.times.length) { $('data-page-label').textContent = 'Run a simulation to inspect its data.'; return; }
   $('data-page-label').textContent = `Rows ${start + 1}–${Math.min(start + size, run.times.length)} of ${run.times.length} · full precision in CSV`;
   const table = element('table'), header = element('thead'), heading = element('tr'), body = element('tbody');
-  for (const name of [`Time (${selectedModel().settings.timeUnit})`, ...run.series.map(series => series.name)]) { const cell = element('th', '', name); cell.scope = 'col'; cell.title = name; heading.append(cell); }
+  const columns = run.series.flatMap(series => [{ name: series.name, values: series.values }, ...(series.standardDeviation ? [{ name: `${series.name} (StDev)`, values: series.standardDeviation }] : [])]);
+  for (const name of [`Time (${selectedModel().settings.timeUnit})`, ...columns.map(series => series.name)]) { const cell = element('th', '', name); cell.scope = 'col'; cell.title = name; heading.append(cell); }
   header.append(heading);
-  for (let index = start; index < Math.min(start + size, run.times.length); index++) { const row = element('tr'); for (const value of [run.times[index], ...run.series.map(series => series.values[index])]) { const cell = element('td', '', numberLabel(value)); cell.title = String(value); row.append(cell); } body.append(row); }
+  for (let index = start; index < Math.min(start + size, run.times.length); index++) { const row = element('tr'); for (const value of [run.times[index], ...columns.map(series => series.values[index])]) { const cell = element('td', '', numberLabel(value)); cell.title = String(value); row.append(cell); } body.append(row); }
   table.append(header, body); $('data-table').append(table);
 }
 function exportCsv() { const run = selectedRun(); if (run) download(`${stem()}-run-${state().runIndex + 1}.csv`, csvFor(run, selectedModel().settings.timeUnit), 'text/csv;charset=utf-8'); }
+
+function renderFit() {
+  const fit = state().response.model.inference;
+  $('fit-table').replaceChildren(); $('fit-trace').replaceChildren();
+  if (!fit) return;
+  $('fit-summary').textContent = `${fit.dataPoints} measurements · seed ${fit.seed} · ${fit.burnIn} burn-in + ${fit.iterations} sampling iterations · thinning ${fit.thin} · ${fit.retainedSamples} retained samples · maximum log likelihood ${numberLabel(fit.maxLogLikelihood)}`;
+  const table = element('table'), header = element('tr');
+  for (const name of ['Parameter', 'Kind', 'Maximum likelihood', 'Posterior mean', 'Median', '95% lower', '95% upper']) header.append(element('th', '', name));
+  table.append(header);
+  for (const parameter of fit.parameters) { const row = element('tr'); for (const value of [parameter.name, parameter.kind, parameter.mle, parameter.mean, parameter.median, parameter.lower95, parameter.upper95]) { const cell = element('td', '', typeof value === 'number' ? numberLabel(value) : value); cell.title = String(value); row.append(cell); } table.append(row); }
+  $('fit-table').append(table);
+  const values = fit.logLikelihood, low = Math.min(...values), high = Math.max(...values), range = high - low || 1;
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  line.setAttribute('d', values.map((value, index) => `${index ? 'L' : 'M'}${30 + index * 740 / Math.max(1, values.length - 1)} ${140 - (value - low) / range * 110}`).join('')); line.setAttribute('fill', 'none'); line.setAttribute('stroke', '#158779'); line.setAttribute('stroke-width', '1.7');
+  const label = document.createElementNS('http://www.w3.org/2000/svg', 'text'); label.setAttribute('x', '30'); label.setAttribute('y', '173'); label.textContent = 'Retained posterior log likelihood · sample order'; label.setAttribute('fill', '#677d6e'); label.setAttribute('font-size', '12'); $('fit-trace').append(line, label);
+}
 
 editor.addEventListener('input', () => { current().code = editor.value; changed(); renderEditor(); });
 editor.addEventListener('scroll', syncScroll);
@@ -323,6 +382,12 @@ $('open-model').addEventListener('click', () => $('file-input').click());
 $('file-input').addEventListener('change', event => openFiles(event.target.files));
 $('save-model').addEventListener('click', saveModel);
 $('save-project').addEventListener('click', saveProject);
+$('import-data').addEventListener('click', () => { importTarget = null; $('data-input').click(); });
+$('data-input').addEventListener('change', event => { const target = importTarget; importTarget = null; importData(event.target.files, target); });
+$('export-posterior').addEventListener('click', () => {
+  const fit = state().response.model.inference;
+  download(`${stem()}-posterior.csv`, csvFor({ times: fit.logLikelihood.map((_, i) => i + 1), series: [{ name: 'logLikelihood', values: fit.logLikelihood }, ...fit.parameters.map(parameter => ({ name: parameter.name, values: parameter.samples }))] }).replace(/^Time,/, 'Retained sample,'), 'text/csv;charset=utf-8');
+});
 $('open-project').addEventListener('click', () => $('project-input').click());
 $('project-input').addEventListener('change', event => openProject(event.target.files[0]));
 $('network-focus').addEventListener('change', () => { state().networkFocus = $('network-focus').value; renderNetwork(); });
@@ -330,11 +395,11 @@ $('network-in').addEventListener('click', () => network.zoom(1 / 1.3));
 $('network-out').addEventListener('click', () => network.zoom(1.3));
 $('network-fit').addEventListener('click', () => network.fit());
 $('network-export').addEventListener('click', () => download(`${stem()}-network.svg`, network.exportSvg(), 'image/svg+xml'));
-for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
+for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
 $('cancel').addEventListener('click', cancelJob);
 for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
-  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'network', 'data'], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? 'data' : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
+  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'network', 'data', ...($('tab-fit').hidden ? [] : ['fit'])], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? tabs.at(-1) : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
 }
 $('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; renderResults(); });
 $('species-search').addEventListener('input', () => { state().search = $('species-search').value; state().speciesPage = 0; renderSpecies(); });

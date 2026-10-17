@@ -89,6 +89,7 @@ public class ScientificTests
     [InlineData("outside-time")]
     [InlineData("invalid-noise")]
     [InlineData("invalid-thin")]
+    [InlineData("wrong-unit")]
     public void Invalid_inference_inputs_cannot_be_silently_fit(string problem)
     {
         var data = Data; string code = FitCode;
@@ -97,7 +98,34 @@ public class ScientificTests
         if (problem == "outside-time") data[0].Tables[0].Times[^1] = 6;
         if (problem == "invalid-noise") code = code.Replace("Fixed(0.1)", "Fixed(0)");
         if (problem == "invalid-thin") code = code.Replace("thin=5", "thin=0");
+        if (problem == "wrong-unit") data[0].Tables[0] = data[0].Tables[0] with { TimeUnit = "min" };
         var result = CoreEngine.Execute(new() { Code = code, Operation = "infer", Data = data });
         Assert.False(result.Success); Assert.StartsWith("INFERENCE_", Assert.Single(result.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Observation_columns_are_matched_by_name_instead_of_position()
+    {
+        var data = Data;
+        var table = data[0].Tables[0];
+        data[0].Tables[0] = table with { Series = [new("<b>", table.Series[0].Values.Select(v => 10 - v).ToArray()), table.Series[0]] };
+        var result = CoreEngine.Execute(new() { Code = FitCode.Replace("plots=[<a>]", "plots=[<a>;<b>]"), Operation = "infer", Data = data });
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var fit = result.Model!.Inference!;
+        Assert.InRange(fit.Parameters.Single(p => p.Name == "k").Mle, .33, .37);
+        Assert.Equal(10, fit.Observations[0].Series[0].Values[0]); Assert.Equal(0, fit.Observations[0].Series[1].Values[0]);
+    }
+
+    [Fact]
+    public void Inference_sweeps_fit_each_observation_table_to_its_own_initial_population()
+    {
+        var table = Data[0].Tables[0];
+        var data = new DatasetData[] { new("decay", [table, table with { Series = [table.Series[0] with { Values = table.Series[0].Values.Select(value => 2 * value).ToArray() }] }]) };
+        var code = FitCode.Replace("[k=0.1,", "[N=10;k=0.1,").Replace("(10 * <a>", "(N * <a>").Replace("directive data [decay]", "directive data [decay]\ndirective sweeps [dose=[N=[10;20]]]");
+        var result = CoreEngine.Execute(new() { Code = code, Operation = "infer", Data = data });
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        Assert.Equal(2, result.Model!.Simulations.Length);
+        Assert.Equal(10, result.Model.Simulations[0].Series[0].Values[0]); Assert.Equal(20, result.Model.Simulations[1].Series[0].Values[0]);
+        Assert.InRange(result.Model.Inference!.Parameters.Single(p => p.Name == "k").Mle, .33, .37);
     }
 }

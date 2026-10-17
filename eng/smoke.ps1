@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.5.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.6.0') { throw "Unexpected version: $version" }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
@@ -77,6 +77,25 @@ for ($runIndex = 0; $runIndex -lt 4; $runIndex++) {
     $expectedEnd = if ($runIndex -lt 2) { 6 } else { 7 }
     if ($run.network.species[0].initial -ne $expectedPopulation -or $run.times[0] -ne 5 -or $run.times[-1] -ne $expectedEnd -or $run.settings.seed -ne $run.seed) { throw 'Standalone JIT run data mismatch.' }
 }
+$decaySource = @'
+directive simulation {final=5;points=20;plots=[<a>]}
+directive parameters [k=0.35]
+(10 * <a> | rxn <a> ->{k} <b>)
+'@
+foreach ($statisticalSolver in @('lna', 'cme')) {
+    $statistics = Invoke-Standalone -Arguments @('simulate', '-', '--simulator', $statisticalSolver) -InputText $decaySource | ConvertFrom-Json
+    $trace = $statistics.model.simulations[0].series[0]
+    if (!$statistics.success -or $trace.standardDeviation.Count -ne $trace.values.Count -or [Math]::Abs($trace.values[-1] - 10 * [Math]::Exp(-1.75)) -gt 0.01) { throw "Standalone $statisticalSolver differs from the analytic decay solution." }
+}
+$fitSource = "directive simulator deterministic`n" + $decaySource.Replace('directive parameters [k=0.35]', "directive parameters [k=0.1, {interval=Real;distribution=Uniform(0.01,1);variation=Random}]`ndirective inference {burnin=200;samples=400;thin=5;seed=42;noise_parameter=Fixed(0.1)}`ndirective data [decay]")
+$fitPath = Join-Path $directory 'decay.dsd'
+$dataPath = Join-Path $directory 'decay.csv'
+Set-Content -LiteralPath $fitPath -Value $fitSource -Encoding utf8NoBOM
+$dataRows = @(0..10 | ForEach-Object { $time = $_ * 0.5; $value = 10 * [Math]::Exp(-0.35 * $time); $time.ToString('R', [cultureinfo]::InvariantCulture) + ',' + $value.ToString('R', [cultureinfo]::InvariantCulture) })
+Set-Content -LiteralPath $dataPath -Value (@('Time (s),<a>') + $dataRows) -Encoding utf8NoBOM
+$fitted = Invoke-Standalone -Arguments @('infer', $fitPath, '--data', $dataPath) | ConvertFrom-Json
+$estimate = $fitted.model.inference.parameters | Where-Object name -eq 'k'
+if (!$fitted.success -or !$estimate -or [Math]::Abs($estimate.mle - 0.35) -gt 0.02 -or $fitted.model.inference.dataPoints -ne 11) { throw 'Standalone inference did not recover the analytic decay rate.' }
 
 $server = Start-Standalone @('serve', '--port', '0')
 try {
@@ -93,7 +112,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -112,4 +131,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
