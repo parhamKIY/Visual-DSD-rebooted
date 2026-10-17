@@ -14,11 +14,13 @@ internal static class WebAssets
         ["index.html"] = "text/html; charset=utf-8", ["app.css"] = "text/css; charset=utf-8",
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
-        ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
+        ["exploration.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
     };
 
     public static readonly ExampleInfo[] Examples =
     [
+        new("diffusion", "Diffusion pulse", "A 2D reaction-diffusion pulse with two diffusion coefficients.", "current"),
+        new("state-switch", "Reversible state switch", "Explore the five reachable population states of a reversible switch.", "current"),
         new("catalytic", "Catalytic", "A strand displacement catalyst and its reaction network.", "current"),
         new("and-gate", "AND circuit", "Two inputs release a common output strand.", "current"),
         new("transducer", "Two-domain transducer", "Signal transfer through a two-domain gate.", "current"),

@@ -8,6 +8,22 @@ namespace VisualDsd.Tests;
 
 public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
 {
+    [Theory]
+    [InlineData("diffusion", "simulate")]
+    [InlineData("state-switch", "analyze")]
+    public async Task Spatial_and_state_examples_complete_through_the_isolated_worker(string id, string operation)
+    {
+        var example = (await host.Client.GetFromJsonAsync<ExampleModel>($"/api/examples/{id}"))!;
+        var response = await host.Client.PostAsJsonAsync("/api/jobs", new ModelRequest { Code = example.Code, Operation = operation });
+        Assert.True(response.IsSuccessStatusCode);
+        var created = (await response.Content.ReadFromJsonAsync<JobView>())!;
+        var finished = await host.FinishAsync(created.Id);
+        Assert.Equal("succeeded", finished.State);
+        var run = Assert.Single(finished.Result!.Model!.Simulations);
+        if (operation == "analyze") { Assert.Equal(5, run.StateSpace!.States.Length); Assert.Equal(8, run.StateSpace.Transitions.Length); }
+        else { Assert.Equal(2, run.Spatial!.Dimensions); Assert.Equal(41, run.Times.Length); Assert.Equal(441, run.Spatial.Series[0].Frames[0].Length); }
+    }
+
     [Fact]
     public async Task CSV_import_and_parameter_inference_use_the_real_worker()
     {
@@ -53,7 +69,7 @@ public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
         Assert.Contains("script-src 'self'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Contains("frame-ancestors 'none'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Equal("nosniff", page.Headers.GetValues("X-Content-Type-Options").Single());
-        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "observations.js", "icon.svg" })
+        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "observations.js", "exploration.js", "icon.svg" })
         {
             HttpResponseMessage response = await host.Client.GetAsync($"/assets/{asset}");
             Assert.True(response.IsSuccessStatusCode, asset);

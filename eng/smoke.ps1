@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.6.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.7.0') { throw "Unexpected version: $version" }
 $catalytic = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt'
 $legacy = Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/ClassicDSDTests/testData/visualDsd/Simple - AND Circuit.vdsd'
 $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
@@ -87,6 +87,19 @@ foreach ($statisticalSolver in @('lna', 'cme')) {
     $trace = $statistics.model.simulations[0].series[0]
     if (!$statistics.success -or $trace.standardDeviation.Count -ne $trace.values.Count -or [Math]::Abs($trace.values[-1] - 10 * [Math]::Exp(-1.75)) -gt 0.01) { throw "Standalone $statisticalSolver differs from the analytic decay solution." }
 }
+$spatialSource = @'
+directive simulator pde
+directive simulation {initial=2;final=3;points=10;plots=[<a>]}
+directive spatial {dimensions=2;boundary=Periodic;nx=11;xmax=1;dt=0.007;default_diffusion=0.1}
+(10 * <a> | rxn <a> ->{0.35} <b>)
+'@
+$spatial = Invoke-Standalone -Arguments @('simulate', '-') -InputText $spatialSource | ConvertFrom-Json
+$spatialRun = $spatial.model.simulations[0]
+if (!$spatial.success -or $spatialRun.spatial.dimensions -ne 2 -or $spatialRun.spatial.series[0].frames[0].Count -ne 121 -or $spatialRun.times[-1] -ne 3 -or [Math]::Abs($spatialRun.series[0].values[-1] - 10 * [Math]::Exp(-0.35)) -gt 0.005) { throw 'Standalone spatial reaction-diffusion failed.' }
+$stateSpace = Invoke-Standalone -Arguments @('analyze', '-') -InputText '(4 * <a> | rxn <a> ->{0.5} <b> | rxn <b> ->{0.2} <a>)' | ConvertFrom-Json
+$graph = $stateSpace.model.simulations[0].stateSpace
+if (!$stateSpace.success -or $graph.states.Count -ne 5 -or $graph.transitions.Count -ne 8) { throw 'Standalone state exploration failed.' }
+
 $fitSource = "directive simulator deterministic`n" + $decaySource.Replace('directive parameters [k=0.35]', "directive parameters [k=0.1, {interval=Real;distribution=Uniform(0.01,1);variation=Random}]`ndirective inference {burnin=200;samples=400;thin=5;seed=42;noise_parameter=Fixed(0.1)}`ndirective data [decay]")
 $fitPath = Join-Path $directory 'decay.dsd'
 $dataPath = Join-Path $directory 'decay.csv'
@@ -112,7 +125,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -131,4 +144,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, spatial PDE, bounded state exploration, seeded inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

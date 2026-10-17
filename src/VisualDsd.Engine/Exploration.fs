@@ -131,9 +131,13 @@ module Exploration =
                     if pde.populations.index_to_species |> Array.exists (fun population -> population.value |> Array.exists (Array.exists (fun value -> not (Double.IsFinite value) || value < 0.0))) then fail "SPATIAL_INITIALS" "Spatial initial concentrations must be finite and nonnegative."
                     let _, table = pde |> Pde<float[][]>.simulate_2d
                     table.times, table.columns |> List.map (fun column -> column.name, column.values |> List.map (Array.collect id) |> List.toArray)
-            let columns = columns |> List.map (fun (name, frames) ->
+            let columns = columns |> List.mapi (fun columnIndex (name, frames) ->
                 if frames.Length <> simulation.points + 1 || frames |> Array.exists (fun frame -> frame.Length <> int cells || frame |> Array.exists (Double.IsFinite >> not)) then
                     fail "SPATIAL_NUMERICS" "The spatial solver produced nonfinite or malformed grid values. Reduce dt."
+                let plot = current.settings.simulation.plots.[columnIndex]
+                match plot with
+                | Expression.Key (Key.Species _) when frames |> Array.exists (Array.exists (fun value -> value < -1e-8)) -> fail "SPATIAL_NUMERICS" "The spatial solver produced negative concentrations. Reduce dt."
+                | _ -> ()
                 SpatialSeriesData(name, frames)) |> List.toArray
             let effectiveNx = if settings.boundary = Boundary.Periodic then settings.nx - 1 else settings.nx
             let mean (frame: float[]) =

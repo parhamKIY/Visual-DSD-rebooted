@@ -3,6 +3,7 @@ import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
 import { readDatasets } from './observations.js';
+import { drawSpatial, spatialCsv, statesCsv, stateSummary, shortestPath } from './exploration.js';
 
 const $ = id => document.getElementById(id);
 const editor = $('editor');
@@ -203,7 +204,7 @@ async function importData(files, target) {
 
 function updateBusy() {
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
-  for (const id of ['check', 'expand', 'simulate', 'infer', 'empty-simulate']) $(id).disabled = busy;
+  for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'empty-simulate']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
   $('save-project').disabled = busy; $('open-project').disabled = busy;
   $('run-state').textContent = busy && activeJob.documentId === activeId ? activeJob.message : busy ? `Running ${documents.find(model => model.id === activeJob.documentId)?.name || 'another model'}…` : state().status;
@@ -219,7 +220,7 @@ async function run(operation) {
   }
   catch (error) { showError(error); return; }
   state().diagnostics = []; renderDiagnostics(); renderEditor();
-  const message = operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
+  const message = operation === 'analyze' ? 'Exploring reachable states…' : operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
   activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message, started: performance.now(), cancelling: false };
   const task = activeJob; updateBusy();
   try {
@@ -247,8 +248,9 @@ function finishJob(job, task) {
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
-    view.tab = task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : 'species';
-    view.status = `${task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
+    view.spatialFrame = view.spatialSeries = view.stateIndex = 0;
+    view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : 'species';
+    view.status = `${task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
   const model = documents.find(item => item.id === task.documentId);
   if (model?.revision !== task.revision && !job.result?.success) view.diagnostics = view.diagnostics.map(diagnostic => ({ ...diagnostic, line: null, column: null, message: `Earlier source: ${diagnostic.message}` }));
@@ -279,12 +281,14 @@ function renderResults() {
   const view = state(), response = view.response;
   $('tab-fit').hidden = !response?.model.inference;
   if (view.tab === 'fit' && !response?.model.inference) view.tab = 'plot';
+  $('tab-spatial').hidden = !selectedRun()?.spatial; $('tab-states').hidden = !selectedRun()?.stateSpace;
+  if ((view.tab === 'spatial' && $('tab-spatial').hidden) || (view.tab === 'states' && $('tab-states').hidden)) view.tab = 'plot';
   renderDiagnostics(); updateStamp(); selectTab(view.tab);
   $('empty-state').hidden = Boolean(response); $('results-content').hidden = !response;
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
   $('species-count').textContent = model.species.length; $('reaction-count').textContent = model.reactions.length;
-  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration();
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
@@ -303,12 +307,36 @@ function renderRuns() {
   const run = selectedRun(), hasData = Boolean(run?.times.length);
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
-  $('plot-heading').textContent = model.settings.simulator === 'cme' ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
+  $('plot-heading').textContent = run?.spatial ? 'GRID MEAN CONCENTRATION OVER TIME' : model.settings.simulator === 'cme' ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
   $('plot-subtitle').textContent = model.inference ? 'Maximum-likelihood fit · circles: observations' : run ? [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
   if (hasData) chart.setRun(run, model.settings, model.inference?.observations[state().runIndex]);
   $('run-details').replaceChildren();
   if (hasData) {
-    for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
+    for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME', pde: 'Reaction diffusion · PDE' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
+  }
+}
+function renderExploration() {
+  const run = selectedRun(), view = state(), model = selectedModel();
+  if (run?.spatial) {
+    view.spatialSeries = Math.min(view.spatialSeries || 0, run.spatial.series.length - 1); view.spatialFrame = Math.min(view.spatialFrame || 0, run.times.length - 1);
+    $('spatial-series').replaceChildren(...run.spatial.series.map((column, i) => { const species = model.species.find(item => item.id === column.name); const option = element('option', '', species?.structure ? `${column.name} · ${species.structure}` : column.name); option.value = i; return option; })); $('spatial-series').value = view.spatialSeries;
+    $('spatial-time').max = run.times.length - 1; $('spatial-time').value = view.spatialFrame;
+    $('spatial-time-label').textContent = `${numberLabel(run.times[view.spatialFrame])} ${model.settings.timeUnit}`;
+    drawSpatial($('spatial-chart'), run, view.spatialSeries, view.spatialFrame, model.settings);
+  }
+  if (run?.stateSpace) {
+    const graph = run.stateSpace, summary = stateSummary(graph), selected = Math.min(view.stateIndex || 0, graph.states.length - 1); view.stateIndex = selected;
+    $('state-select').replaceChildren(...graph.states.map((_, index) => { const option = element('option', '', `State ${index}${index === graph.initialState ? ' · initial' : ''}${summary.absorbing.includes(index) ? ' · absorbing' : ''}`); option.value = index; return option; })); $('state-select').value = selected;
+    $('state-summary').textContent = `${graph.states.length} reachable states · ${graph.transitions.length} transitions · ${summary.absorbing.length} absorbing states · complete enumeration`;
+    const path = shortestPath(graph, selected);
+    $('state-path').replaceChildren(element('span', 'muted', `Shortest path · ${path.length - 1} transitions:`), ...path.map(index => { const button = element('button', 'button secondary compact', String(index)); button.setAttribute('aria-label', `Visit state ${index}`); button.addEventListener('click', () => { view.stateIndex = index; renderExploration(); }); return button; }));
+    const table = element('table'), header = element('tr'); for (const name of ['Species', 'Population', 'Reachable min', 'Reachable max']) header.append(element('th', '', name)); table.append(header);
+    const names = new Map(model.species.map(species => [species.id, species.structure || species.name]));
+    graph.speciesIds.forEach((id, index) => { const row = element('tr'); for (const value of [names.get(id) || id, graph.states[selected][index], summary.ranges[index].min, summary.ranges[index].max]) row.append(element('td', '', String(value))); table.append(row); }); $('state-populations').replaceChildren(table);
+    const edges = graph.transitions.filter(edge => edge.source === selected);
+    $('state-transitions').replaceChildren(...edges.slice(0, 50).map(edge => { const button = element('button', 'state-edge'); button.append(element('strong', '', `State ${edge.target} →`), element('small', '', `rate ${numberLabel(edge.rate)} per ${model.settings.timeUnit}`)); button.addEventListener('click', () => { view.stateIndex = edge.target; renderExploration(); }); return button; }));
+    if (!edges.length) $('state-transitions').append(element('p', 'muted', 'Absorbing state · no outgoing state changes.'));
+    if (edges.length > 50) $('state-transitions').append(element('p', 'muted', `Showing 50 of ${edges.length} outgoing transitions. Export JSON for the full graph.`));
   }
 }
 function svgImage(source) { const image = element('img'); image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`; image.loading = 'lazy'; return image; }
@@ -404,13 +432,20 @@ $('network-in').addEventListener('click', () => network.zoom(1 / 1.3));
 $('network-out').addEventListener('click', () => network.zoom(1.3));
 $('network-fit').addEventListener('click', () => network.fit());
 $('network-export').addEventListener('click', () => download(`${stem()}-network.svg`, network.exportSvg(), 'image/svg+xml'));
-for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
+for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['analyze', 'analyze'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
 $('cancel').addEventListener('click', cancelJob);
 for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
-  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = ['plot', 'species', 'reactions', 'network', 'data', ...($('tab-fit').hidden ? [] : ['fit'])], index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? tabs.at(-1) : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
+  tab.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const tabs = [...document.querySelectorAll('[data-tab]')].filter(button => !button.hidden).map(button => button.dataset.tab), index = tabs.indexOf(state().tab); selectTab(event.key === 'Home' ? 'plot' : event.key === 'End' ? tabs.at(-1) : tabs[(index + (event.key === 'ArrowLeft' ? tabs.length - 1 : 1)) % tabs.length], true); } });
 }
-$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; renderResults(); });
+$('run-select').addEventListener('change', () => { state().runIndex = Number($('run-select').value); state().dataPage = state().speciesPage = state().reactionPage = 0; state().networkFocus = ''; state().spatialFrame = state().spatialSeries = state().stateIndex = 0; renderResults(); });
+$('spatial-series').addEventListener('change', () => { state().spatialSeries = Number($('spatial-series').value); renderExploration(); });
+$('spatial-time').addEventListener('input', () => { state().spatialFrame = Number($('spatial-time').value); renderExploration(); });
+$('spatial-csv').addEventListener('click', () => download(`${stem()}-grid.csv`, spatialCsv(selectedRun(), selectedModel().settings.timeUnit), 'text/csv;charset=utf-8'));
+$('spatial-svg').addEventListener('click', () => download(`${stem()}-spatial.svg`, new XMLSerializer().serializeToString($('spatial-chart')), 'image/svg+xml'));
+$('state-select').addEventListener('change', () => { state().stateIndex = Number($('state-select').value); renderExploration(); });
+$('state-initial').addEventListener('click', () => { state().stateIndex = selectedRun().stateSpace.initialState; renderExploration(); });
+$('state-csv').addEventListener('click', () => download(`${stem()}-states.csv`, statesCsv(selectedRun().stateSpace, selectedModel()), 'text/csv;charset=utf-8'));
 $('species-search').addEventListener('input', () => { state().search = $('species-search').value; state().speciesPage = 0; renderSpecies(); });
 for (const [kind, render] of [['species', renderSpecies], ['reaction', renderReactions], ['data', renderData]]) for (const direction of ['prev', 'next']) $(`${kind}-${direction}`).addEventListener('click', () => { state()[`${kind}Page`] += direction === 'prev' ? -1 : 1; render(); });
 for (const id of ['export-csv', 'data-export-csv']) $(id).addEventListener('click', exportCsv);

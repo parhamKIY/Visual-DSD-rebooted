@@ -12,6 +12,7 @@
   <ItemGroup>
     <Content Remove="Web/**/*" />
     <ProjectReference Include="../VisualDsd.Engine/VisualDsd.Engine.fsproj" />
+    <EmbeddedResource Include="WebExamples/*.dsd" LogicalName="VisualDsd.Examples.%(Filename)" />
     <EmbeddedResource Include="Web/*" LogicalName="VisualDsd.Web.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt" LogicalName="VisualDsd.Examples.catalytic" />
     <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - AND Circuit.txt" LogicalName="VisualDsd.Examples.and-gate" />

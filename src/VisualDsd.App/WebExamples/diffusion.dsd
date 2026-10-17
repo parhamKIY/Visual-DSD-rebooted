@@ -1,0 +1,7 @@
+directive simulator pde
+directive simulation { final=1; points=40; plots=[<a>;<b>]; seed=42 }
+directive spatial { dimensions=2; boundary=ZeroFlux; nx=21; xmax=1; dt=0.002; diffusibles=[<a>=0.02;<b>=0.005] }
+( <a> = { spatial={points=[{x=0.3;y=0.5;width=0.25;value=10}]} }
+| 0 * <b>
+| rxn <a> ->{0.35} <b>
+)

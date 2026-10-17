@@ -1,0 +1,6 @@
+directive simulation { final=10; plots=[<a>;<b>] }
+directive simulator stochastic
+( 4 * <a>
+| rxn <a> ->{0.5} <b>
+| rxn <b> ->{0.2} <a>
+)
