@@ -8,6 +8,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../VisualDsd.WorkerProbe/VisualDsd.WorkerProbe.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../src/VisualDsd.App/VisualDsd.App.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.4.1" />

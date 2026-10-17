@@ -12,4 +12,5 @@
   <Project Path="src/VisualDsd.Engine/VisualDsd.Engine.fsproj" />
   <Project Path="src/VisualDsd.App/VisualDsd.App.csproj" />
   <Project Path="tests/VisualDsd.App.Tests/VisualDsd.App.Tests.csproj" />
+  <Project Path="tests/VisualDsd.WorkerProbe/VisualDsd.WorkerProbe.csproj" />
 </Solution>

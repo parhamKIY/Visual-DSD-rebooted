@@ -34,6 +34,9 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
 
     public async Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        Diagnostic[] invalid = RequestValidation.Validate(request);
+        if (invalid.Length > 0) return new(false, request.Operation, request.Dialect, null, invalid);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds));
         CancellationToken token = deadline.Token;
@@ -69,6 +72,11 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
             catch (JsonException) { throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an invalid response."); }
             if (response is null || (process.ExitCode != 0 && response.Success))
                 throw new WorkerFailure("WORKER_EXIT", "The model worker exited unexpectedly.");
+            if (response.Operation != request.Operation || response.Dialect is not ("current" or "legacy") ||
+                (request.Dialect != "auto" && response.Dialect != request.Dialect) || response.Diagnostics is null ||
+                response.Diagnostics.Any(diagnostic => diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || string.IsNullOrWhiteSpace(diagnostic.Message)) ||
+                (response.Success ? response.Model is null || response.Diagnostics.Length != 0 : response.Model is not null || response.Diagnostics.Length == 0))
+                throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an inconsistent response.");
             return response;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -102,8 +110,11 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
     {
         while (!process.HasExited)
         {
-            process.Refresh();
-            if (process.PrivateMemorySize64 > memoryLimitBytes)
+            long memory;
+            try { process.Refresh(); memory = process.PrivateMemorySize64; }
+            catch (InvalidOperationException) when (process.HasExited) { return; }
+            catch (System.ComponentModel.Win32Exception) when (process.HasExited) { return; }
+            if (memory > memoryLimitBytes)
             {
                 Kill(process);
                 throw new WorkerFailure("MEMORY_LIMIT", "The model exceeded its worker memory limit.");

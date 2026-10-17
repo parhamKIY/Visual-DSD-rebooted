@@ -11,9 +11,11 @@ public class JobTests
     {
         public Channel<TaskCompletionSource<EngineResponse>> Calls { get; } = Channel.CreateUnbounded<TaskCompletionSource<EngineResponse>>();
         public int CallCount;
+        public System.Collections.Concurrent.ConcurrentQueue<ModelRequest> Requests { get; } = new();
         public async Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken token)
         {
             Interlocked.Increment(ref CallCount);
+            Requests.Enqueue(request);
             var completion = new TaskCompletionSource<EngineResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
             await Calls.Writer.WriteAsync(completion, token);
             return await completion.Task.WaitAsync(token);
@@ -32,6 +34,26 @@ public class JobTests
             if (job.FinishedAt.HasValue) return job;
             await Task.Delay(10, deadline.Token);
         }
+    }
+
+    [Fact]
+    public async Task Queued_requests_own_an_immutable_copy_of_all_observation_arrays()
+    {
+        var worker = new ControlledWorker();
+        await using var jobs = new JobCoordinator(worker, parallelism: 1);
+        var first = jobs.Enqueue(Request).Job!; var running = await worker.Next();
+        var values = new double[] { 1, 2 }; var times = new double[] { 0, 1 };
+        var columns = new SeriesData[] { new("a", values) };
+        var tables = new ObservationData[] { new(times, columns) };
+        var data = new DatasetData[] { new("sample", tables) };
+        var second = jobs.Enqueue(Request with { Data = data }).Job!;
+        values[0] = 999; times[0] = 999;
+        columns[0] = new("changed", [8, 9]); tables[0] = new([3, 4], columns); data[0] = new("changed", tables);
+        running.SetResult(new(true, "parse", "current", null, []));
+        var pending = await worker.Next(); var captured = worker.Requests.Last().Data[0];
+        Assert.Equal("sample", captured.Name); Assert.Equal(new double[] { 0, 1 }, captured.Tables[0].Times);
+        Assert.Equal("a", captured.Tables[0].Series[0].Name); Assert.Equal(new double[] { 1, 2 }, captured.Tables[0].Series[0].Values);
+        pending.SetResult(new(true, "parse", "current", null, [])); await FinishedAsync(jobs, second.Id);
     }
 
     [Fact]

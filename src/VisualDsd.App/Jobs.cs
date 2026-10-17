@@ -51,7 +51,14 @@ public sealed class JobCoordinator : IAsyncDisposable
                 jobs.Remove(oldest.Id);
                 oldest.Cancellation.Dispose();
             }
-            var job = new Job(Guid.NewGuid().ToString("N"), request with { });
+            // Admission owns the exact data that was validated, including every nested buffer.
+            var snapshot = request with { Data = request.Data.Select(dataset => dataset with {
+                Tables = dataset.Tables.Select(table => table with {
+                    Times = (double[])table.Times.Clone(),
+                    Series = table.Series.Select(column => column with { Values = (double[])column.Values.Clone() }).ToArray()
+                }).ToArray()
+            }).ToArray() };
+            var job = new Job(Guid.NewGuid().ToString("N"), snapshot);
             jobs.Add(job.Id, job);
             job.Task = Task.Run(() => RunAsync(job));
             return new(job.View(), []);
