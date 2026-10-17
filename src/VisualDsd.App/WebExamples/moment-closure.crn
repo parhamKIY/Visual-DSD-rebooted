@@ -1,0 +1,8 @@
+// This linear network has exact first and second moment equations.
+// For nonlinear networks, moment closure is an approximation.
+directive simulator mc
+directive simulation { final=5; points=100 }
+directive moments { order=2; plots=[<A>; <B>] }
+directive deterministic { abstolerance=1e-9; reltolerance=1e-7 }
+| 10 A
+| A ->{0.35} B

@@ -25,7 +25,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
 | Generate networks | Default, detailed, finite, and infinite compilation; species diagrams and reaction graphs |
-| Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, and bounded 1D/2D reaction–diffusion |
+| Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
 | Fit parameters | Seeded, single-chain MCMC with the Oslo solver and imported observation CSV files |
 | Explore states | Finite population state graphs, reachable-state inspection, and shortest paths |
@@ -80,7 +80,7 @@ dom a = {bind=k; unbind=u}
 
 The `^` marks a toehold domain and `*` its complement. Simulation options can come from the model's directives or the workspace controls. The **Species**, **Reactions**, and **Network** views show the expanded model; the simulation view provides plots and data exports.
 
-The example library also includes catalytic and AND circuits, a legacy model, a just-in-time model, a reversible state switch, and a 2D diffusion pulse.
+The example library also includes a CRN moment-closure model, catalytic and AND circuits, a legacy model, a just-in-time model, a reversible state switch, and a 2D diffusion pulse.
 
 ## Edit a reaction network
 
@@ -100,6 +100,9 @@ The same executable supports structured JSON output for scripts. These examples 
 ./VisualDsd expand model.dsd --compilation detailed
 ./VisualDsd simulate model.dsd --simulator oslo --final 100 --points 200
 ./VisualDsd simulate model.dsd --simulator ssa --seed 42
+./VisualDsd simulate model.crn --simulator sundials
+./VisualDsd simulate model.crn --simulator cmesundials
+./VisualDsd simulate model.crn --simulator mc
 ./VisualDsd infer model.dsd --data observations.csv --seed 42
 ./VisualDsd analyze model.dsd
 ./VisualDsd simulate model.crn --node prediction --system reversible
@@ -112,7 +115,9 @@ Responses contain `success`, the requested operation, results when available, an
 
 ## Build & test
 
-Development requires the [.NET SDK pinned in `global.json`](global.json), [PowerShell 7](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell), and [Node.js 22](https://nodejs.org/en/download) for the JavaScript tests. Node.js is only a test dependency; the application has no npm installation or frontend build step.
+Development requires the [.NET SDK pinned in `global.json`](global.json), [PowerShell 7](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell), and [Node.js 22](https://nodejs.org/en/download) for the JavaScript tests. Native solver builds also require CMake and a C/C++ compiler: Visual Studio Build Tools with **Desktop development with C++** and **CMake tools** on Windows, or CMake and GCC on Linux. They are built automatically from checksum-verified, vendored SUNDIALS 3.1.2 sources; downloaded applications include these solvers and need no compiler or separate SUNDIALS installation.
+
+Node.js is only a test dependency; the application has no npm installation or frontend build step.
 
 ```powershell
 git clone https://github.com/parhamKIY/Visual-DSD-rebooted.git
@@ -156,6 +161,7 @@ tests/       Engine, application, browser-data, and compatibility tests
 reference/   Independent build of the preserved original implementation
 upstream/    Frozen source snapshot and file-hash manifest
 eng/         Bootstrap, run, verification, and publishing scripts
+native/      Portable native solver wrapper and preserved SUNDIALS sources
 ```
 
 ## Compatibility & scope
@@ -169,7 +175,9 @@ Current boundaries:
 - Just-in-time models use SSA; full-network expansion, inference, and state exploration are unavailable for that mode.
 - Inference uses a single MCMC chain and the Oslo solver. Linked and multi-system inference is not yet exposed.
 - CME, LNA, spatial simulation, and state exploration enforce explicit size and work limits. Large models may require a smaller grid, state space, or output request.
-- Native Sundials solvers, moment-closure simulation, and temporal-logic model checking are not exposed by this application.
+- Native `sundials` uses CVODE 3.1.2, preserving the original Adams/BDF selection through `directive deterministic {stiff=false}` / `stiff=true`. `cmesundials` uses the same bounded state enumeration as managed CME (at most 1000 states).
+- Moment closure uses the original symbolic equations, derivative-matching closure, and Oslo integration. Configure it with `directive simulator mc` and `directive moments {order=2; plots=[<A>; <A^2>]; initial_minimum=1e-16; log_evaluation=false}`. It supports mass-action reactions, order 1–8 and at most 256 moments; constant species, timed inputs and stochastic scale other than 1 are rejected. It approximates nonlinear networks, and the original visualization clamps negative variance estimates to zero. Output interpolation can introduce additional error between solver steps.
+- Temporal-logic model checking is not yet exposed by this application.
 
 ## Origins & license
 

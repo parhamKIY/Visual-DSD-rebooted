@@ -93,7 +93,7 @@ export class SimulationChart {
     const x = value => left + (value - bounds.x0) / (bounds.x1 - bounds.x0) * (width - left - right);
     const y = value => height - bottom - (value - bounds.y0) / (bounds.y1 - bounds.y0) * (height - top - bottom);
     this.x = x; this.y = y;
-    const population = this.settings.simulator === 'cme';
+    const population = ['cme', 'cmesundials', 'lna', 'mc', 'ssa'].includes(this.settings.simulator);
     svg.append(svgElement('title', {}, population ? 'Population over time' : 'Concentration over time'), svgElement('rect', { x: 0, y: 0, width, height, fill: '#fff' }));
     for (const value of ticks(bounds.y0, bounds.y1)) { svg.append(svgElement('line', { x1: left, x2: width - right, y1: y(value), y2: y(value), class: 'chart-grid' }), svgElement('text', { x: left - 12, y: y(value) + 3, 'text-anchor': 'end', class: 'chart-label' }, numberLabel(value))); }
     for (const value of ticks(bounds.x0, bounds.x1)) { svg.append(svgElement('line', { x1: x(value), x2: x(value), y1: top, y2: height - bottom, class: 'chart-grid' }), svgElement('text', { x: x(value), y: height - bottom + 23, 'text-anchor': 'middle', class: 'chart-label' }, numberLabel(value))); }

@@ -19,7 +19,7 @@ public static class Program
         if (args.SequenceEqual(["--version"])) { Console.WriteLine(CoreEngine.Info.Version); return 0; }
         if (args.SequenceEqual(["--help"]) || args.SequenceEqual(["help"]))
         {
-            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
+            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde|sundials|cmesundials|mc] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
             return 0;
         }
         try

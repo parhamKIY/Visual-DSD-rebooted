@@ -18,7 +18,7 @@ function readDocument(raw) {
   if (!id || byteLength(code) > MAX_CODE_BYTES) fail('invalid model identifier or source size.');
   const options = {};
   for (const key of Object.keys(optionDefaults)) options[key] = ['language', 'nodeId', 'systemId'].includes(key) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
-  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
+  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde', 'sundials', 'cmesundials', 'mc']);
   const databases = {};
   const sourceDatabases = raw.databases === undefined ? {} : object(raw.databases);
   for (const key of ['toeholds', 'specificities']) if (sourceDatabases[key] !== undefined) {
@@ -32,7 +32,7 @@ export function normaliseRequest(raw) {
   object(raw);
   const options = { ...optionDefaults };
   for (const key of ['language', 'dialect', 'compilation', 'simulator']) if (raw[key] !== undefined) options[key] = text(raw[key], 30);
-  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde']);
+  choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde', 'sundials', 'cmesundials', 'mc']);
   for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if (raw[key] !== undefined && raw[key] !== null) options[key] = String(finite(raw[key]));
   if (raw.nodeId != null) options.nodeId = text(raw.nodeId, 128);
   if (raw.systemId != null) options.systemId = raw.systemId === '' ? '$top' : text(raw.systemId, 128);

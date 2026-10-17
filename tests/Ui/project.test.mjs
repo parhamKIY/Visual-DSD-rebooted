@@ -113,3 +113,18 @@ test('timed inputs preserve their own values and absolute times with a stable sp
   assert.deepEqual(restored.views.get(document.id).response.model.species[1], input);
   for (const sourceId of ['unknown', 'initial:1:a']) { input.sourceId = sourceId; assert.throws(() => readResponse(view.response)); }
 });
+
+for (const simulator of ['sundials', 'cmesundials', 'mc']) {
+  test(`${simulator} project round trip retains solver, uncertainty and run identity`, () => {
+    const { document, view, views } = fixture();
+    document.options.simulator = simulator;
+    view.snapshot.request = requestFor(document, 'simulate');
+    view.response.model.settings.simulator = simulator;
+    view.response.model.simulations[0].settings = { ...view.response.model.settings };
+    if (simulator !== 'sundials') view.response.model.simulations[0].series[0].standardDeviation = [0, 1.25, .5];
+    const restored = parseProject(serialiseProject([document], document.id, views, '0.10.0'));
+    assert.equal(restored.documents[0].options.simulator, simulator);
+    assert.equal(resultIsCurrent(restored.documents[0], restored.views.get(document.id).snapshot), true);
+    assert.deepEqual(restored.views.get(document.id).response.model.simulations, view.response.model.simulations);
+  });
+}

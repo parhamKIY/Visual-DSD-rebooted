@@ -19,6 +19,7 @@ internal static class WebAssets
 
     public static readonly ExampleInfo[] Examples =
     [
+        new("moment-closure", "CRN · moment closure", "Mean and uncertainty for molecular decay using second-order moments.", "current", "crn"),
         new("crn-systems", "CRN · two systems", "Two independent reaction networks sharing a rate parameter.", "current", "crn"),
         new("crn-graph", "CRN · linked models", "Select a node and system to simulate. Links record inference dependencies.", "current", "crn"),
         new("diffusion", "Diffusion pulse", "A 2D reaction-diffusion pulse with two diffusion coefficients.", "current"),

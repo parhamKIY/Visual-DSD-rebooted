@@ -358,12 +358,12 @@ function renderRuns() {
   const run = selectedRun(), hasData = Boolean(run?.times.length);
   $('plot-empty').hidden = hasData; $('chart-container').hidden = !hasData; $('legend').hidden = !hasData;
   for (const id of ['export-csv', 'data-export-csv', 'export-svg']) $(id).disabled = !hasData;
-  $('plot-heading').textContent = run?.spatial ? 'GRID MEAN CONCENTRATION OVER TIME' : model.settings.simulator === 'cme' ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
+  $('plot-heading').textContent = run?.spatial ? 'GRID MEAN CONCENTRATION OVER TIME' : ['cme', 'cmesundials', 'lna', 'mc', 'ssa'].includes(model.settings.simulator) ? 'MEAN POPULATION OVER TIME' : 'CONCENTRATION OVER TIME';
   $('plot-subtitle').textContent = model.inference ? 'Maximum-likelihood fit · circles: observations' : run ? [run.name, run.sweep, run.assignment].filter(value => value && value !== '[]').join(' · ') || `${run.series.length} species traces` : 'The source has been checked; simulation is a separate step.';
   if (hasData) chart.setRun(run, model.settings, model.inference?.observations[state().runIndex]);
   $('run-details').replaceChildren();
   if (hasData) {
-    for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME', pde: 'Reaction diffusion · PDE' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
+    for (const [label, value] of [['Simulator', ({ oslo: 'Deterministic · Oslo', ssa: 'Stochastic · SSA', lna: 'Linear noise · LNA', cme: 'Master equation · CME', pde: 'Reaction diffusion · PDE', sundials: 'Deterministic · Sundials', cmesundials: 'Master equation · Sundials', mc: 'Moment closure · MC' })[model.settings.simulator] || model.settings.simulator], ['Time range', `${numberLabel(run.times[0])} — ${numberLabel(run.times.at(-1))} ${model.settings.timeUnit}`], ['Samples', String(run.times.length)], ...(run.seed !== null && run.seed !== undefined ? [['Seed', run.seed]] : [])]) { const item = element('div', '', label); item.append(element('strong', '', value)); $('run-details').append(item); }
   }
 }
 function renderExploration() {
