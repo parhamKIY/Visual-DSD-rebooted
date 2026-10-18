@@ -147,10 +147,21 @@
               <details><summary>Effective model parameter priors</summary><div id="fit-priors"></div></details>
             </section>
             <section id="panel-network" class="result-panel" role="tabpanel" aria-labelledby="tab-network" hidden>
-              <div class="network-toolbar"><label>Focus<select id="network-focus" aria-label="Network focus"><option value="">Full network</option></select></label><div><button id="network-out" class="button compact secondary" aria-label="Zoom network out">−</button><button id="network-in" class="button compact secondary" aria-label="Zoom network in">+</button><button id="network-fit" class="button compact secondary">Fit</button><button id="network-export" class="button compact secondary">SVG ↓</button></div></div>
+              <div class="network-toolbar">
+                <label>Focus<select id="network-focus" aria-label="Network focus"><option value="">Full network</option></select></label>
+                <div><button id="network-expand" class="button compact secondary" aria-pressed="false">Expand</button><button id="network-export" class="button compact secondary" disabled>SVG ↓</button></div>
+              </div>
+              <div class="network-options">
+                <label>Edge routing<select id="network-routing" aria-label="Edge routing"><option value="sugiyamasplines">Sugiyama splines</option><option value="splines">Splines</option><option value="splinesbundling">Bundled splines</option><option value="rectilinear">Rectilinear</option><option value="straightline">Straight lines</option></select></label>
+                <label>Direction<select id="network-direction" aria-label="Direction"><option value="down">Top to bottom</option><option value="right">Left to right</option></select></label>
+                <label>Species<select id="network-labels" aria-label="Species display"><option value="molecules">Molecular diagrams</option><option value="names">Names</option><option value="structure">Structure and names</option></select></label>
+                <label class="network-check"><input id="network-rates" type="checkbox" checked>Rates</label>
+                <label class="network-check"><input id="network-edit" type="checkbox">Edit</label>
+              </div>
+              <div class="network-zoom"><button id="network-out" class="button compact secondary" aria-label="Zoom network out">−</button><input id="network-zoom" type="range" min="1" max="400" step="1" value="100" aria-label="Network zoom"><button id="network-in" class="button compact secondary" aria-label="Zoom network in">+</button><label><input id="network-percent" type="number" min="0.1" max="800" step="0.1" value="100" aria-label="Network zoom percent">%</label><button id="network-fit" class="button compact secondary">Fit</button></div>
               <p id="network-caption" class="network-caption"></p>
-              <svg id="network" class="network-canvas" viewBox="0 0 1000 640" aria-label="Reaction network" role="group"></svg>
-              <div class="network-key"><span>○ Species</span><span>□ Reactions</span><span>╌ Catalysts</span><span>⇌ Reversible</span></div>
+              <svg id="network" class="network-canvas" viewBox="0 0 1000 640" aria-label="Reaction network" role="group" tabindex="0"></svg>
+              <div class="network-key"><span>▣ Molecular species</span><span><b>▣</b> Initial population</span><span>□ Forward / reverse rates</span><span>◆ Catalyst</span></div>
               <div id="network-details" class="network-details" aria-live="polite"></div>
             </section>
             <section id="panel-plot" class="result-panel" role="tabpanel" aria-labelledby="tab-plot">

@@ -26,7 +26,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
 | Configure DSD | Source defaults or per-document overrides for reactions, kinetics, domain checking, JIT and molecular rendering |
 | Manage DNA | Editable default/custom sequence databases, compiler domain assignments, reverse complements, CSV and FASTA |
-| Generate networks | Default, detailed, finite, and infinite compilation; species diagrams and reaction graphs |
+| Generate networks | Default, detailed, finite, and infinite compilation; complete molecular networks using the original MSAGL layered layout, rate labels, five edge-routing modes, editable node positions, expanded view and vector SVG export |
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
 | Fit parameters | Seeded MCMC with Oslo / Sundials, multiple chains, joint system fits, linked model inference, and imported observation CSV files |

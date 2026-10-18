@@ -1,0 +1,21 @@
+{
+  "origin": "Microsoft CRN Engine / HTML5SharedGUI/MSAGL_JS/Scripts",
+  "license": "MIT; Copyright (c) Microsoft Corporation; see LICENSE",
+  "adaptations": [
+    "Classic worker instead of Webpack/raw-loader/eval bootstrap",
+    "Runtime-generated getters replaced by equivalent closures",
+    "Unused generic parsers use JSON.parse; dynamic Eval disabled"
+  ],
+  "sources": {
+    "sharpkit_pre.js": "fa5205804907e5c2842ce238ed5608f9fb9ca3d0cfa50dd18631ce04bd9592bc",
+    "jsclr.min.js": "e74e1e3bd4887e25faba17be33b656fbf4c54c2da30aad50138f47f76a11b557",
+    "Microsoft.Msagl.min.js": "cd956d0f6c9987e62e176fc10f89d5d049a373bb2083293049f31190511385ba",
+    "sharpkit_post.js": "9a9db76e234c09ac5da0b40db6e82b631233625d8a5392d9db45e70ddbc02b0a",
+    "ggraph.js": "46cd98a544a7d9f9ca4bd6316f19de7edefd72bd6efe2b6499a4a910b41501a6",
+    "msagl.worker.js": "98a8f4a3e728a0df64aebff52e5fbce3fc32573b160e403943438b13e8e9f64f"
+  },
+  "bundles": {
+    "msagl.runtime.js": "1beb9282072295147ff3c6db75844a358d3e6bbd0419c4c7a779019a315f2e37",
+    "msagl.worker.js": "45b3c36a9035622da92d6b4d7d0536e4dd96eff466be34e0c19ce92d30ab1afb"
+  }
+}

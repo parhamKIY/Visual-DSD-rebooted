@@ -382,7 +382,7 @@ function renderNetwork() {
   if (!model.species.some(item => item.id === view.networkFocus)) view.networkFocus = '';
   $('network-focus').replaceChildren(element('option', '', 'Full network'), ...model.species.filter(item => !item.sourceId).map(item => { const option = element('option', '', `${item.id} · ${item.structure || item.name}`); option.value = item.id; return option; }));
   $('network-focus').firstElementChild.value = ''; $('network-focus').value = view.networkFocus;
-  try { network.render(model, view.networkFocus); $('network-export').disabled = false; }
+  try { network.render(model, view.networkFocus).catch(error => { $('network-caption').textContent = error.message; $('network-export').disabled = true; }); }
   catch (error) { $('network-caption').textContent = error.message; $('network').replaceChildren(); $('network-export').disabled = true; }
 }
 function selectedRun() { return fittedModel()?.simulations[state().runIndex]; }
@@ -576,6 +576,38 @@ $('network-focus').addEventListener('change', () => { state().networkFocus = $('
 $('network-in').addEventListener('click', () => network.zoom(1 / 1.3));
 $('network-out').addEventListener('click', () => network.zoom(1.3));
 $('network-fit').addEventListener('click', () => network.fit());
+network.onChange = () => {
+  $('network-export').disabled = !network.ready;
+  $('network').setAttribute('aria-busy', String(!network.ready));
+  $('network-zoom').value = String(network.zoomLevel);
+  if (document.activeElement !== $('network-percent')) $('network-percent').value = String(Math.round(network.zoomLevel * 10) / 10);
+};
+for (const option of ['routing', 'direction', 'labels']) $(`network-${option}`).addEventListener('change', event => network.setOptions({ [option]: event.target.value }));
+$('network-rates').addEventListener('change', event => network.setOptions({ rates: event.target.checked }));
+$('network-edit').addEventListener('change', event => { network.editing = event.target.checked; $('network').classList.toggle('network-editing', network.editing); });
+$('network-zoom').addEventListener('input', event => network.zoomPercent(Number(event.target.value)));
+$('network-percent').addEventListener('change', event => network.zoomPercent(Number(event.target.value)));
+$('network-percent').addEventListener('input', event => network.zoomPercent(Number(event.target.value)));
+function expandNetwork(expanded) {
+  $('panel-network').classList.toggle('network-expanded', expanded);
+  document.body.classList.toggle('network-open', expanded);
+  $('panel-network').setAttribute('role', expanded ? 'dialog' : 'tabpanel');
+  if (expanded) $('panel-network').setAttribute('aria-modal', 'true'); else $('panel-network').removeAttribute('aria-modal');
+  $('network-expand').setAttribute('aria-pressed', String(expanded));
+  $('network-expand').textContent = expanded ? 'Close expanded view' : 'Expand';
+  if (expanded) $('network-expand').focus();
+}
+$('network-expand').addEventListener('click', () => expandNetwork(!$('panel-network').classList.contains('network-expanded')));
+document.addEventListener('keydown', event => {
+  if (!$('panel-network').classList.contains('network-expanded')) return;
+  if (event.key === 'Escape') { expandNetwork(false); $('network-expand').focus(); }
+  if (event.key === 'Tab') {
+    const controls = [...$('panel-network').querySelectorAll('button:not(:disabled), select, input, [tabindex="0"]')];
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  }
+});
 $('network-export').addEventListener('click', () => download(`${stem()}-network.svg`, network.exportSvg(), 'image/svg+xml'));
 for (const [id, operation] of [['scientific-export', 'export'], ['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['synthesize', 'synthesize'], ['analyze', 'analyze'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
 $('cancel').addEventListener('click', cancelJob);
