@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.13.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.14.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -157,6 +157,18 @@ $linked=Invoke-Standalone -Arguments $linkedArguments -InputText $linkedSource |
 if(!$linked.success -or $linked.model.inferenceNodes.Count -ne 2 -or $linked.model.inference.chains.Count -ne 2 -or $linked.model.inference.retainedSamples -ne 80) { throw 'Standalone linked multichain inference failed.' }
 $linkedRate=$linked.model.inference.parameters | Where-Object name -eq 'k'
 if([Math]::Abs($linkedRate.mle-0.35) -gt 0.03) { throw 'Standalone linked fit differs from the synthetic known rate.' }
+foreach($example in @('synthesis-bistable','synthesis-turing')) {
+    $source=Get-Content -LiteralPath (Join-Path $repoRoot "src/VisualDsd.App/WebExamples/$example.crn") -Raw
+    $synthesized=Invoke-Standalone -Arguments @('synthesize','-','--language','crn','--phase-trajectories','4') -InputText $source | ConvertFrom-Json
+    $synthesis=$synthesized.model.synthesis
+    if(!$synthesized.success -or $synthesis.status -ne 'SAT') { throw "Standalone $example failed." }
+    foreach($eq in $synthesis.equilibria) {
+        if(($eq.residuals | Where-Object { [Math]::Abs($_) -gt 1e-8 }).Count -gt 0 -or $eq.maximumRealEigenvalue -ge 0) { throw "Standalone $example equilibrium check failed." }
+    }
+    if($example -eq 'synthesis-turing') {
+        if($synthesis.dispersion.witnessGrowthRate -le 0 -or $synthesis.equilibria.Count -ne 1) { throw 'Standalone Turing dispersion failed.' }
+    } elseif($synthesis.equilibria.Count -ne 2 -or $synthesis.phasePortrait.trajectories.Count -ne 4 -or [Math]::Abs($synthesis.equilibria[0].values[0]-$synthesis.equilibria[1].values[0]) -lt 1.9) { throw 'Standalone bistable roots or trajectories failed.' }
+}
 $spatialSource = @'
 directive simulator pde
 directive simulation {initial=2;final=3;points=10;plots=[<a>]}
@@ -195,7 +207,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -214,4 +226,4 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
-Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, seeded and multichain linked inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."
+Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, Z3 multistability and Turing synthesis with phase portraits and dispersion, seeded and multichain linked inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

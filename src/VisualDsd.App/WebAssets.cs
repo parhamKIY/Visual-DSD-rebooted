@@ -16,11 +16,13 @@ internal static class WebAssets
         ["index.html"] = "text/html; charset=utf-8", ["app.css"] = "text/css; charset=utf-8",
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
-        ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
+        ["synthesis.js"] = "text/javascript; charset=utf-8", ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
     };
 
     public static readonly ExampleInfo[] Examples =
     [
+        new("synthesis-bistable", "CRN · bistable synthesis", "Two analytic stable equilibria, synthesized values and sampled phase trajectories.", "current", "crn"),
+        new("synthesis-turing", "CRN · Turing synthesis", "Synthesize diffusion for a Brusselator and inspect its dispersion curve.", "current", "crn"),
         new("inference-linked", "CRN · linked inference", "Synthetic observations included: two chains per node and posterior transfer between fitted models.", "current", "crn"),
         new("lna-covariance", "CRN · covariance and scale", "Scaled copy populations and uncertainty of sums and differences, including cross-species covariance.", "current", "crn"),
         new("cme-distribution", "CRN · probability distribution", "Inspect joint CME probabilities, population heatmaps and marginal distributions.", "current", "crn"),

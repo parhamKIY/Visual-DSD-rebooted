@@ -1,3 +1,4 @@
+import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
@@ -252,7 +253,7 @@ async function importData(files, target) {
 
 function updateBusy() {
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
-  for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
+  for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'synthesize', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
   $('edit-crn').disabled = busy || current().options.language === 'crn' || !state().response?.model.crnCode || !resultIsCurrent(current(), state().snapshot);
   for (const button of document.querySelectorAll('.program-system')) button.disabled = busy;
@@ -270,7 +271,7 @@ async function run(operation) {
   }
   catch (error) { showError(error); return; }
   state().diagnostics = []; renderDiagnostics(); renderEditor();
-  const message = operation === 'analyze' ? 'Exploring reachable states…' : operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
+  const message = operation === 'synthesize' ? 'Synthesizing parameters…' : operation === 'analyze' ? 'Exploring reachable states…' : operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
   activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message, started: performance.now(), cancelling: false };
   const task = activeJob; task.tab = state().tab; updateBusy();
   try {
@@ -299,8 +300,8 @@ function finishJob(job, task) {
   if (job.result?.success) {
     view.response = job.result; view.snapshot = { name: task.name, request: task.request, engineVersion: task.engineVersion }; view.revision = task.revision; view.runIndex = 0; view.speciesPage = view.reactionPage = view.dataPage = 0;
     view.spatialFrame = view.spatialSeries = view.stateIndex = view.probabilitySpecies = view.probabilityFrame = 0; view.probabilityLog = false; view.fitNodeId = job.result.model.program?.selectedNodeId || ''; view.fitParameter = view.fitPair = '';
-    view.tab = task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : task.tab === 'program' && job.result.model.program ? 'program' : 'species';
-    view.status = `${task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
+    view.tab = task.operation === 'synthesize' ? 'synthesis' : task.operation === 'analyze' ? 'states' : job.result.model.simulations[0]?.spatial ? 'spatial' : task.operation === 'infer' ? 'fit' : task.operation === 'simulate' ? 'plot' : task.tab === 'program' && job.result.model.program ? 'program' : 'species';
+    view.status = `${task.operation === 'synthesize' ? 'Synthesis complete · '+job.result.model.synthesis.status : task.operation === 'analyze' ? 'State exploration complete' : task.operation === 'infer' ? 'Parameter fit complete' : task.operation === 'parse' ? 'Source checked' : task.operation === 'expand' ? 'Network expanded' : 'Simulation complete'} · ${elapsed} s`;
   } else view.status = job.state === 'timedOut' ? 'Time limit reached. Adjust the model or time limit.' : 'The model needs attention.';
   const model = documents.find(item => item.id === task.documentId);
   if (model?.revision !== task.revision && !job.result?.success) view.diagnostics = view.diagnostics.map(diagnostic => ({ ...diagnostic, line: null, column: null, message: `Earlier source: ${diagnostic.message}` }));
@@ -337,6 +338,8 @@ function renderResults() {
   renderProgramSelection(); renderProgram();
   $('tab-program').hidden = !response?.model.program;
   if (view.tab === 'program' && !response?.model.program) view.tab = 'plot';
+  $('tab-synthesis').hidden = !response?.model.synthesis;
+  if(view.tab==='synthesis'&&!response?.model.synthesis)view.tab='plot';
   $('tab-fit').hidden = !response?.model.inference;
   if (view.tab === 'fit' && !response?.model.inference) view.tab = 'plot';
   $('tab-probabilities').hidden = !selectedRun()?.probabilities;
@@ -352,7 +355,7 @@ function renderResults() {
   $('fit-node-toolbar').hidden=!nodes.length;
   $('fit-node').replaceChildren(...nodes.map(n=>{const option=element('option','',n.nodeId||'Model');option.value=n.nodeId;return option;}));
   $('fit-node').value=state().fitNodeId ?? response.model.program?.selectedNodeId ?? '';
-  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderExploration(); renderProbabilities();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderSynthesis(); renderExploration(); renderProbabilities();
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
@@ -523,7 +526,7 @@ $('network-in').addEventListener('click', () => network.zoom(1 / 1.3));
 $('network-out').addEventListener('click', () => network.zoom(1.3));
 $('network-fit').addEventListener('click', () => network.fit());
 $('network-export').addEventListener('click', () => download(`${stem()}-network.svg`, network.exportSvg(), 'image/svg+xml'));
-for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['analyze', 'analyze'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
+for (const [id, operation] of [['check', 'parse'], ['expand', 'expand'], ['simulate', 'simulate'], ['infer', 'infer'], ['synthesize', 'synthesize'], ['analyze', 'analyze'], ['empty-simulate', 'simulate']]) $(id).addEventListener('click', () => run(operation));
 $('cancel').addEventListener('click', cancelJob);
 for (const tab of document.querySelectorAll('[data-tab]')) {
   tab.addEventListener('click', () => selectTab(tab.dataset.tab));
@@ -580,3 +583,24 @@ $('fit-svg').addEventListener('click',()=>{
   for(const [id,y]of [['fit-parameter-trace',0],['fit-density',200],['fit-scatter',200],['fit-trace',460]]){const item=$(id).cloneNode(true);item.setAttribute('x',id==='fit-scatter'?400:0);item.setAttribute('y',y);item.setAttribute('width',id==='fit-density'||id==='fit-scatter'?400:800);item.setAttribute('height',id==='fit-density'||id==='fit-scatter'?260:200);svg.append(item);}
   download(`${stem()}-posterior.svg`,new XMLSerializer().serializeToString(svg),'image/svg+xml');
 });
+
+function renderSynthesis(){
+  const result=state().response?.model.synthesis;if(!result)return;
+  $('synthesis-summary').textContent=`${result.mode==='turing'?'Turing instability':'Multistability'} · ${result.status} · ${result.solver} · ${numberLabel(result.solverSeconds)} s solving${result.seed==null?'':' · seed '+result.seed}`;
+  $('synthesis-note').textContent=result.status==='SAT'?'Z3 found a satisfying assignment to the symbolic constraints. Displayed values are double-precision approximations. Residuals and eigenvalues below are numerical checks; this is not experimental validation.':result.status==='UNSAT'?'No assignment satisfies this model’s encoded constraints and bounds. This statement applies to the selected symbolic formulation.':'The solver returned UNKNOWN. A time limit or incomplete solving does not establish that no solution exists.';
+  const table=rows=>{const t=element('table');for(const row of rows){const tr=element('tr');for(const cell of row)tr.append(element('td','',String(cell)));t.append(tr);}return t;};
+  $('synthesis-values').replaceChildren(table([['Variable','Kind','Value','Lower bound','Upper bound'],...result.values.map(v=>[v.name,v.kind,numberLabel(v.value),v.lowerBound==null?'—':numberLabel(v.lowerBound),v.upperBound==null?'—':numberLabel(v.upperBound)])]));
+  const eqNodes=[];
+  for(const eq of result.equilibria){eqNodes.push(element('h3','state-heading',`${eq.name} · max Re(λ) = ${numberLabel(eq.maximumRealEigenvalue)}`));eqNodes.push(table([['Species','Concentration','ODE residual'],...eq.species.map((name,i)=>[name,numberLabel(eq.values[i]),numberLabel(eq.residuals[i])])]));}
+  if(result.phasePortrait){eqNodes.push(element('h3','state-heading','Sampled trajectories · distance at final time'));eqNodes.push(table([['Trajectory','Nearest equilibrium','Final distance'],...result.phasePortrait.trajectories.map((t,i)=>[i+1,t.nearestEquilibrium+1,numberLabel(t.finalDistance)])]));}
+  $('synthesis-equilibria').replaceChildren(...eqNodes);
+  $('synthesis-dispersion').innerHTML=result.dispersion?dispersionSvg(result):'';
+  $('synthesis-phase').innerHTML=result.phasePortrait?phaseSvg(result):'';
+  $('synthesis-jacobian').innerHTML=result.equilibria.length?jacobianSvg(result):'';
+  $('synthesis-equations').textContent=[result.rateEquations,'Jacobian:',result.jacobian,'Diffusion (w = q²):',result.diffusion,'Constraints:',result.constraints].join('\n\n');
+  $('synthesis-open').disabled=Boolean(activeJob)||!result.code;
+  $('synthesis-svg').disabled=!result.equilibria.length;
+}
+$('synthesis-csv').addEventListener('click',()=>download(`${stem()}-synthesis.csv`,synthesisCsv(state().response.model.synthesis),'text/csv;charset=utf-8'));
+$('synthesis-svg').addEventListener('click',()=>{const figures=[...$('panel-synthesis').querySelectorAll('.synthesis-chart svg')];const body=figures.map((svg,i)=>`<g transform="translate(0 ${i*340})">${svg.innerHTML}</g>`).join('');download(`${stem()}-synthesis.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 ${figures.length*340}">${body}</svg>`,'image/svg+xml');});
+$('synthesis-open').addEventListener('click',()=>{try{const result=state().response.model.synthesis;if(!result?.code)return;const doc=createDocument(`${stem()}-synthesized.crn`,result.code,'current');addDocument(doc);}catch(error){toast(error.message);}});

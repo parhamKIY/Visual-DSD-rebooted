@@ -19,7 +19,7 @@ public static class Program
         if (args.SequenceEqual(["--version"])) { Console.WriteLine(CoreEngine.Info.Version); return 0; }
         if (args.SequenceEqual(["--help"]) || args.SequenceEqual(["help"]))
         {
-            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde|sundials|cmesundials|mc] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
+            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze|synthesize <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde|sundials|cmesundials|mc] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--phase-x SPECIES] [--phase-y SPECIES] [--phase-trajectories N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
             return 0;
         }
         try
@@ -76,7 +76,7 @@ public static class Program
 
     private static async Task<ModelRequest> ParseCommandAsync(string[] args)
     {
-        if (args.Length < 2 || args[0] is not ("parse" or "expand" or "simulate" or "infer" or "analyze")) throw new ArgumentException("Expected parse, expand, simulate, infer, or analyze and a model file. Use --help for options.");
+        if (args.Length < 2 || args[0] is not ("parse" or "expand" or "simulate" or "infer" or "analyze" or "synthesize")) throw new ArgumentException("Expected parse, expand, simulate, infer, analyze, or synthesize and a model file. Use --help for options.");
         if (args[1] != "-" && new FileInfo(args[1]).Length > RequestValidation.MaximumCodeBytes + 3)
             throw new ArgumentException("The model file exceeds 256 KiB.");
         string code = args[1] == "-" ? await ReadInputAsync(Console.In, RequestValidation.MaximumCodeBytes) : await File.ReadAllTextAsync(args[1]);
@@ -98,6 +98,9 @@ public static class Program
                 "--points" => request with { Points = int.Parse(value, CultureInfo.InvariantCulture) },
                 "--seed" => request with { Seed = int.Parse(value, CultureInfo.InvariantCulture) },
                 "--timeout-seconds" => request with { TimeoutSeconds = int.Parse(value, CultureInfo.InvariantCulture) },
+                "--phase-x" => request with { PhaseX = value },
+                "--phase-y" => request with { PhaseY = value },
+                "--phase-trajectories" => request with { PhaseTrajectories = int.Parse(value, CultureInfo.InvariantCulture) },
                 "--data" => request with { Data = [..request.Data, ObservationCsv.Parse(Path.GetFileNameWithoutExtension(value), await ReadCsvAsync(value))] },
                 _ => throw new ArgumentException($"Unknown option {args[index]}.")
             };

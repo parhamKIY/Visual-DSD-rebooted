@@ -20,6 +20,9 @@ public sealed record ModelRequest
     public int? Seed { get; init; }
     public string? Toeholds { get; init; }
     public string? Specificities { get; init; }
+    public string? PhaseX { get; init; }
+    public string? PhaseY { get; init; }
+    public int PhaseTrajectories { get; init; } = 12;
     public int TimeoutSeconds { get; init; } = 30;
     public DatasetData[] Data { get; init; } = [];
 }
@@ -56,8 +59,16 @@ public sealed record CrnLocationData(string NodeId, string SystemId);
 public sealed record CrnPriorData(string SourceParameter, string TargetParameter, string Kind);
 public sealed record CrnEdgeData(CrnLocationData Source, CrnLocationData Target, CrnPriorData[] Parameters);
 public sealed record CrnProgramData(string Source, CrnNodeData[] Nodes, CrnEdgeData[] Edges, string SelectedNodeId, string SelectedSystemId);
+public sealed record SynthesisValueData(string Name, string Kind, double Value, double? LowerBound, double? UpperBound);
+public sealed record EquilibriumData(string Name, string[] Species, double[] Values, double[] Residuals, double MaximumRealEigenvalue, double[][] Jacobian);
+public sealed record DispersionData(double[] WaveNumbers, double[] GrowthRates, double WitnessWaveNumber, double WitnessGrowthRate);
+public sealed record PhaseTrajectoryData(double InitialX, double InitialY, double[] Times, double[] X, double[] Y, int NearestEquilibrium, double FinalDistance);
+public sealed record PhasePortraitData(string SpeciesX, string SpeciesY, double[] EquilibriumX, double[] EquilibriumY, PhaseTrajectoryData[] Trajectories);
+public sealed record SynthesisData(string Mode, string Solver, string Status, double SolverSeconds, SynthesisValueData[] Values,
+    string RateEquations, string Jacobian, string Diffusion, string Constraints, EquilibriumData[] Equilibria, DispersionData? Dispersion,
+    PhasePortraitData? PhasePortrait, string? Code, int? Seed);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
-    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null);
+    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null, SynthesisData? Synthesis = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>
@@ -83,7 +94,7 @@ public static class RequestValidation
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));
-        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, or analyze."));
+        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze" or "synthesize")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, analyze, or synthesize."));
         if (request.Dialect is not ("auto" or "current" or "legacy")) errors.Add(new("INVALID_DIALECT", "Dialect must be auto, current, or legacy."));
         if (request.Compilation is not ("source" or "default" or "detailed" or "finite" or "infinite")) errors.Add(new("INVALID_COMPILATION", "Unknown compilation mode."));
         if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme" or "pde" or "sundials" or "cmesundials" or "mc")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, cme, pde, sundials, cmesundials, or mc."));
@@ -97,6 +108,9 @@ public static class RequestValidation
         if ((request.Toeholds is { } toeholds && Encoding.UTF8.GetByteCount(toeholds) > MaximumCodeBytes) ||
             (request.Specificities is { } specificities && Encoding.UTF8.GetByteCount(specificities) > MaximumCodeBytes))
             errors.Add(new("DATABASE_TOO_LARGE", "A sequence database exceeds 256 KiB."));
+        if (request.PhaseTrajectories is < 0 or > 16) errors.Add(new("SYNTHESIS_PHASE", "Phase portraits support 0–16 trajectories."));
+        if (request.PhaseX?.Length > 128 || request.PhaseY?.Length > 128 || (request.PhaseX is null) != (request.PhaseY is null))
+            errors.Add(new("SYNTHESIS_PHASE", "Specify both phase-portrait species, each at most 128 characters."));
         return errors.ToArray();
     }
 }

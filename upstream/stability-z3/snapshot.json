@@ -1,0 +1,73 @@
+{
+  "source": "../StabilityZ3/StabilityZ3 (supplied original tree; no commit metadata)",
+  "files": [
+    {
+      "path": "expression.fs",
+      "sha256": "51423c6b7e4888799f8ad0813939c0a1a1dff4eba39832a61c82d6399c521ed0"
+    },
+    {
+      "path": "graphs.fs",
+      "sha256": "407d44dfdb42c193bb3aa0613e9439ea076d001d0212f802b45c691a2aa20b35"
+    },
+    {
+      "path": "MathNetWrapper.fs",
+      "sha256": "88fe01f252d75d7142f4941d1d673f861728f4ad6918da4d9d1e06a573df8918"
+    },
+    {
+      "path": "encoding.fs",
+      "sha256": "dd0c722bc67e579ece0bc4899be011a0e6ee2c567f2bc756ea2eb87f2595544c"
+    },
+    {
+      "path": "matrix.fs",
+      "sha256": "8db75d085e96ab44026a45487350d6e37267652eed8e1a6c8ecf0d60b83f9e2f"
+    },
+    {
+      "path": "complex.fs",
+      "sha256": "34e73df8525b9e3afa1e5fedb0685a67eba3f4cade10e7399dd3dd55a33ca5e2"
+    },
+    {
+      "path": "linearalgebra.fs",
+      "sha256": "54829c61f74372a4ca5c067116cce905db67919d1e526a4bfd403d2d428aa508"
+    },
+    {
+      "path": "invariants.fs",
+      "sha256": "57310639e59ef7448276269729573326615fc5bec077f34ce68df6dd6ff83f62"
+    },
+    {
+      "path": "SymbolicODEs.fs",
+      "sha256": "f6684ad572632df28255cc8f4825a2a803276b04f2630248ad7df2f23fcc480a"
+    },
+    {
+      "path": "dynamical.fs",
+      "sha256": "ef46f160426d33ccf70bde2d25637c75cff5bdf4277c39e5ac0cec97f24cde2c"
+    },
+    {
+      "path": "stability.fs",
+      "sha256": "83dc5313a9ce8447c2bd511d41062fc60aa61b2beb9fd6da74e021866228d7ca"
+    },
+    {
+      "path": "turing.fs",
+      "sha256": "56de2b9edcb774066da6ccd512c735265417e3089cbc61f4a509705e1845ca2b"
+    },
+    {
+      "path": "multistability.fs",
+      "sha256": "a3c45fb2cdd552289e43f24dfb72c3fa19847a29926f447cd890843f37e17ccb"
+    },
+    {
+      "path": "TuringNumerical.fs",
+      "sha256": "7884af13a952e19c14f7e38fb3683185d981bd9acd51773b48a2f6e5361d5666"
+    },
+    {
+      "path": "Z3Strategies.fs",
+      "sha256": "f23881196a550bd68d371b04fcf50893a498eb49180e11fab0de31d335d6178b"
+    },
+    {
+      "path": "solver.fs",
+      "sha256": "5328a8a3dd52d167c463cfc25c144ad3c7ca7a2876a2158787ff76b3fde0544d"
+    },
+    {
+      "path": "visualization.fs",
+      "sha256": "2867f85f0fba3ce4b94ce40a28e1a210fc6cc92a1815909e31f6f640e5878b21"
+    }
+  ]
+}

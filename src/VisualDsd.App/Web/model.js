@@ -3,7 +3,7 @@ import { readDatasets } from './observations.js';
 export const MAX_CODE_BYTES = 256 * 1024;
 export const MAX_DOCUMENTS = 16;
 export const STORAGE_KEY = 'visual-dsd.workspace.v1';
-export const optionDefaults = Object.freeze({ language: 'dsd', nodeId: '', systemId: '', dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30' });
+export const optionDefaults = Object.freeze({ language: 'dsd', nodeId: '', systemId: '', dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30', phaseX: '', phaseY: '', phaseTrajectories: '12' });
 export const byteLength = text => new TextEncoder().encode(text).length;
 export const escapeHtml = text => String(text).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
@@ -72,6 +72,14 @@ export function requestFor(document, operation) {
   if (operation === 'infer') {
     request.data = readDatasets(document.data);
     if (!request.data.length) throw new Error('Import observation CSV files before fitting parameters.');
+  }
+  if (operation === 'synthesize') {
+    const x=(document.options.phaseX??'').trim(),y=(document.options.phaseY??'').trim();
+    if(Boolean(x)!==Boolean(y)||x.length>128||y.length>128)throw new Error('Specify both phase species (at most 128 characters each).');
+    if(x){request.phaseX=x;request.phaseY=y;}
+    const count=Number(document.options.phaseTrajectories??12);
+    if(!Number.isInteger(count)||count<0||count>16)throw new Error('Phase trajectories must be between 0 and 16.');
+    request.phaseTrajectories=count;
   }
   return request;
 }

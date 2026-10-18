@@ -1,0 +1,11 @@
+// Brusselator with a synthesized diffusion coefficient.
+// The homogeneous state is (X,Y) = (1,1.8).
+directive synthesis {mode=turing;solver=nlsat;timeout=10;seed=7}
+directive simulation {final=20;points=100;plots=[X;Y]}
+directive parameters [DY=20,{interval=Real;distribution=Uniform(10,30);variation=Random}]
+directive spatial {diffusibles=[X=1;Y=DY]}
+| 1 X | 1.8 Y
+| ->{1} X
+| X ->{1}
+| X ->{1.8} Y
+| X + X + Y ->{1} 3X

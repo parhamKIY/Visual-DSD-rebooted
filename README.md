@@ -28,6 +28,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
 | Fit parameters | Seeded MCMC with Oslo / Sundials, multiple chains, joint system fits, linked model inference, and imported observation CSV files |
+| Synthesize parameters | Z3 multistability and Turing constraints, equilibrium residuals, dispersion curves, sampled phase trajectories and Jacobian graphs |
 | Inspect probabilities | Joint CME probabilities, marginal population distributions, time heatmaps, logarithmic colors, and exact distribution CSV |
 | Explore states | Finite population state graphs, lazy JIT state generation, reachable-state inspection, and shortest paths |
 | Keep your work | Model files, project files with saved results, and CSV, SVG, and JSON exports |
@@ -91,6 +92,23 @@ CRN programs use the original `system`, `node`, and `edge` syntax. Check the sou
 
 Simulation runs the selected system. Fitting jointly uses each node's observed systems and follows parameter links across the whole graph. Choose a completed node in the result view to inspect its chains, fitted curves and effective priors.
 
+## Synthesize parameters
+
+Open **CRN · bistable synthesis** or **CRN · Turing synthesis**, then select **Synthesize parameters**. Use the original directive syntax:
+
+```text
+directive synthesis {mode=turing;solver=nlsat;timeout=10;seed=7}
+directive spatial {diffusibles=[X=1;Y=DY]}
+```
+
+The modes are `multistability` and `turing`; solvers are `nlsat` and `portfolio`. Synthesis runs the selected system, including expanded DSD networks. It does not infer parameters from observations. As in the original symbolic engine, parameters are synthesis variables: their assigned starting values do not fix them. Prior distributions supply bounds (normal and log-normal priors use their original three-sigma bounds). Use literal coefficients in reactions for fixed constants. Turing diffusion must be declared explicitly; the PDE default diffusion is not a symbolic synthesis constraint.
+
+**SAT** means the encoded constraints have a satisfying assignment. **UNSAT** applies to those constraints and bounds. **UNKNOWN** establishes neither outcome; the enclosing worker deadline can also stop the calculation. Rounded witness values, ODE residuals and maximum real Jacobian eigenvalues are shown separately. They are computational checks, not experimental validation.
+
+For multistability, phase settings choose two species and up to 16 seeded trajectories over the model's simulation interval; zero trajectories skips simulation. Colors indicate the nearest equilibrium at the final time, with final distances listed. This sampling does not prove convergence or identify entire basins. For Turing results, the dispersion curve plots the largest real eigenvalue of `J − q²D`; the solver's `wc` value is the **squared** wave number. The chart focuses on the sampled instability band; exports retain the full sampled range.
+
+Save projects to retain every witness, curve and trajectory. **Open synthesized CRN** creates a separate document with the synthesized parameter and diffusion values. CSV and SVG exports are available in the Synthesis tab.
+
 ## Command line
 
 The same executable supports structured JSON output for scripts. These examples use Linux shell notation; on Windows use `.\VisualDsd.exe`.
@@ -105,6 +123,7 @@ The same executable supports structured JSON output for scripts. These examples 
 ./VisualDsd simulate model.crn --simulator cmesundials
 ./VisualDsd simulate model.crn --simulator mc
 ./VisualDsd infer model.dsd --data observations.csv --seed 42
+./VisualDsd synthesize model.crn --phase-trajectories 8
 ./VisualDsd analyze model.dsd
 ./VisualDsd simulate model.crn --node prediction --system reversible
 ./VisualDsd parse model.txt --language crn
@@ -116,7 +135,9 @@ Responses contain `success`, the requested operation, results when available, an
 
 ## Build & test
 
-Development requires the [.NET SDK pinned in `global.json`](global.json), [PowerShell 7](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell), and [Node.js 22](https://nodejs.org/en/download) for the JavaScript tests. Native solver builds also require CMake and a C/C++ compiler: Visual Studio Build Tools with **Desktop development with C++** and **CMake tools** on Windows, or CMake and GCC on Linux. They are built automatically from checksum-verified, vendored SUNDIALS 3.1.2 sources; downloaded applications include these solvers and need no compiler or separate SUNDIALS installation.
+Development requires the [.NET SDK pinned in `global.json`](global.json), [PowerShell 7](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell), and [Node.js 22](https://nodejs.org/en/download) for the JavaScript tests. On Linux, `libgomp.so.1` is also required by Z3. Native solver builds also require CMake and a C/C++ compiler: Visual Studio Build Tools with **Desktop development with C++** and **CMake tools** on Windows, or CMake and GCC on Linux. They are built automatically from checksum-verified, vendored SUNDIALS 3.1.2 sources; downloaded applications include these solvers and need no compiler or separate SUNDIALS installation.
+
+Z3 is pinned to the official `Microsoft.Z3` 4.12.2 package. The first Linux build also downloads its matching official native library through `eng/z3.ps1`, checking the archive and library SHA-256 hashes. Downloaded applications include Z3 and require no separate solver or Python installation.
 
 Node.js is only a test dependency; the application has no npm installation or frontend build step.
 
@@ -167,12 +188,13 @@ native/      Portable native solver wrapper and preserved SUNDIALS sources
 
 ## Compatibility & scope
 
-The reconstruction preserves a frozen snapshot of **702 original files** and checks **300 recorded reference cases**: 255 baseline cases and 45 additional network/trajectory cases. Reference results are regenerated by the independent original-source build and compared without overwriting the recorded expectations. The snapshot identifies its source repository; the supplied source tree did not include an upstream commit identifier.
+The reconstruction preserves a frozen snapshot of **702 original files** and checks **300 recorded reference cases**: 255 baseline cases and 45 additional network/trajectory cases. Reference results are regenerated by the independent original-source build and compared without overwriting the recorded expectations. An additional 17 original StabilityZ3 source files are preserved separately in `upstream/stability-z3`, with their own checksum manifest. The maintained solver adapts native packaging, current Z3 tactics, witness extraction, invariant numeric encoding and resource cleanup; Python-based equilibrium model reduction is excluded from this standalone path. The snapshot identifies its source repository; the supplied source tree did not include an upstream commit identifier.
 
 These checks establish compatibility for the cases they exercise. They do not establish complete feature parity or experimental scientific validity. Thirteen legacy inputs retain explicitly recorded unsupported outcomes, and one inherited upstream test remains skipped.
 
 Current boundaries:
 
+- Parameter synthesis is bounded to 1–8 species, 128 reactions and 32 parameters in one selected system, with rational rates and integer powers from -16 to 16. Sweeps, named simulation batches, timed/spatial initials and Python-based equilibrium model reduction are unavailable on this path. Whole-request time and memory limits still apply.
 - Just-in-time models use SSA; full-network expansion and inference are unavailable for that mode. State exploration uses the same reaction calculus lazily, including Rules DSD and explicit reactions; it requires nonconstant integer populations, time-independent rates, scale=1, and no timed population inputs.
 - Inference supports Oslo and Sundials, 1–4 distinct chain seeds per node, joint fitting of observed systems within a node, and sequential fitting of linked model nodes. Use the **CRN · linked inference** example to try the complete flow with included synthetic observations. Fitting executes the whole graph; the selected node controls the initial result view. Use **Fitted model node** to inspect other completed fits.
 - Configure multiple chains using the original syntax, for example `directive inference {burnin=200; samples=400; thin=10; seeds=[11;29]}`. Clear the UI seed override when using a seed list. `lowerbound` includes only chains whose maximum log likelihood is strictly greater than the bound; excluded chains remain available in result JSON, traces and CSV. Pooled means, variances and intervals are recomputed from retained draws, and the fit curve comes from the best included chain. Different random seeds share the declared initial parameter values.

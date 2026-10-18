@@ -26,3 +26,5 @@ dialog{max-width:430px;width:calc(100% - 32px);padding:36px;border:1px solid var
 .exploration-toolbar .probability-palette{flex:none;min-width:0;flex-direction:row;align-items:center;padding:8px 0;white-space:nowrap}.probability-palette input{margin:0;accent-color:var(--teal)}
 
 .fit-chains{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--muted);margin:12px 0}.fit-chains span{padding:6px 9px;background:var(--teal-light);border-radius:4px}.posterior-chart{width:100%;display:block;margin:16px 0}.posterior-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.posterior-grid svg{width:100%;display:block}#fit-node{max-width:100%;padding:8px;border:1px solid var(--line);border-radius:5px;background:white}@media(max-width:700px){.posterior-grid{grid-template-columns:1fr}}
+
+.synthesis-chart svg{display:block;width:100%;height:auto;margin:18px 0}.synthesis-equations{white-space:pre-wrap;overflow-wrap:anywhere;font:12px var(--mono);line-height:1.7}.run-toolbar{flex-wrap:wrap}#synthesis-equilibria table{width:100%;font-size:12px;border-collapse:collapse}#synthesis-equilibria td{padding:8px;border-bottom:1px solid var(--line)}

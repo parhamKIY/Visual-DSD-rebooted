@@ -9,9 +9,11 @@
     <Compile Include="Distributions.fs" />
     <Compile Include="JitExploration.fs" />
     <Compile Include="CrnPrograms.fs" />
+    <Compile Include="Synthesis.fs" />
     <Compile Include="Engine.fs" />
     <ProjectReference Include="../VisualDsd.Contracts/VisualDsd.Contracts.csproj" />
     <ProjectReference Include="../ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />
     <ProjectReference Include="../MomentClosure/MomentClosure.fsproj" />
+    <ProjectReference Include="../StabilityZ3/StabilityZ3.fsproj" />
   </ItemGroup>
 </Project>

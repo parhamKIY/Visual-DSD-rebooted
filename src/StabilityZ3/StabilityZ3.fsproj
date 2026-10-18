@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="expression.fs" />
+    <Compile Include="graphs.fs" />
+    <Compile Include="MathNetWrapper.fs" />
+    <Compile Include="encoding.fs" />
+    <Compile Include="matrix.fs" />
+    <Compile Include="complex.fs" />
+    <Compile Include="linearalgebra.fs" />
+    <Compile Include="invariants.fs" />
+    <Compile Include="SymbolicODEs.fs" />
+    <Compile Include="dynamical.fs" />
+    <Compile Include="stability.fs" />
+    <Compile Include="turing.fs" />
+    <Compile Include="multistability.fs" />
+    <Compile Include="TuringNumerical.fs" />
+    <Compile Include="Z3Strategies.fs" />
+    <Compile Include="solver.fs" />
+    <Compile Include="visualization.fs" />
+    <ProjectReference Include="../CRNEngineDotNet/CRNEngineDotNet.fsproj" />
+    <PackageReference Include="Microsoft.Z3" Version="4.12.2" ExcludeAssets="build" />
+    <PackageReference Include="MathNet.Symbolics" Version="0.20.0" />
+    <PackageReference Include="MathNet.Numerics" Version="4.9.0" />
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="4.9.0" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <Content Include="../../artifacts/native/linux-x64/libz3.so" Link="libz3.so" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="PrepareZ3Linux" BeforeTargets="PrepareForBuild" Condition="$([MSBuild]::IsOSPlatform('Linux')) and '$(DesignTimeBuild)' != 'true'">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)../../eng/z3.ps1&quot;" />
+  </Target>
+</Project>

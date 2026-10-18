@@ -1,2 +1,3 @@
 * text=auto eol=lf
 upstream/crn-engine/** -text
+upstream/stability-z3/** -text

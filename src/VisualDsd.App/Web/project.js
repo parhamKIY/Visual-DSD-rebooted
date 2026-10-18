@@ -1,6 +1,7 @@
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, modelForRun, modelForNode } from './model.js';
 import { readDatasets, readObservations } from './observations.js';
 import { splitRHat } from './posterior.js';
+import { readSynthesis } from './synthesis.js';
 
 export const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const fail = message => { throw new Error(`Invalid project: ${message}`); };
@@ -18,7 +19,7 @@ function readDocument(raw) {
   const id = text(raw.id, 80), name = text(raw.name, 120), code = text(raw.code);
   if (!id || byteLength(code) > MAX_CODE_BYTES) fail('invalid model identifier or source size.');
   const options = {};
-  for (const key of Object.keys(optionDefaults)) options[key] = ['language', 'nodeId', 'systemId'].includes(key) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
+  for (const key of Object.keys(optionDefaults)) options[key] = ['language', 'nodeId', 'systemId', 'phaseX', 'phaseY', 'phaseTrajectories'].includes(key) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
   choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde', 'sundials', 'cmesundials', 'mc']);
   const databases = {};
   const sourceDatabases = raw.databases === undefined ? {} : object(raw.databases);
@@ -37,9 +38,11 @@ export function normaliseRequest(raw) {
   for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if (raw[key] !== undefined && raw[key] !== null) options[key] = String(finite(raw[key]));
   if (raw.nodeId != null) options.nodeId = text(raw.nodeId, 128);
   if (raw.systemId != null) options.systemId = raw.systemId === '' ? '$top' : text(raw.systemId, 128);
+  for(const key of ['phaseX','phaseY'])if(raw[key]!=null)options[key]=text(raw[key],128);
+  if(raw.phaseTrajectories!=null)options.phaseTrajectories=String(integer(raw.phaseTrajectories,0,16));
   const databases = {};
   for (const key of ['toeholds', 'specificities']) if (raw[key] !== undefined && raw[key] !== null) { const code = text(raw[key]); if (byteLength(code) > MAX_CODE_BYTES) fail('sequence database exceeds 256 KiB.'); databases[key] = { name: 'Custom database', code }; }
-  return requestFor({ code: text(raw.code), options, databases, data: readDatasets(raw.data) }, choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze']));
+  return requestFor({ code: text(raw.code), options, databases, data: readDatasets(raw.data) }, choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze', 'synthesize']));
 }
 
 export function resultIsCurrent(model, snapshot) {
@@ -238,7 +241,7 @@ export function readProgram(raw) {
 export function readResponse(raw, nested=false) {
   object(raw);
   if (raw.success !== true) fail('only completed successful results can be restored.');
-  const operation = choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze']), dialect = choice(raw.dialect, ['current', 'legacy']);
+  const operation = choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze', 'synthesize']), dialect = choice(raw.dialect, ['current', 'legacy']);
   const source = object(raw.model), settings = readSettings(source.settings);
   if (typeof source.isJit !== 'boolean') fail('invalid JIT flag.');
   const { species, reactions } = readNetwork(source, source.isJit, operation);
@@ -296,13 +299,15 @@ export function readResponse(raw, nested=false) {
   }
   if(!nested && operation==='infer' && model.program?.nodes.length>1 && !model.inferenceNodes?.length)fail('missing linked inference results.');
 
+  if(source.synthesis!=null)model.synthesis=readSynthesis(source.synthesis,species.map(s=>s.id));
+  if((operation==='synthesize')!==Boolean(model.synthesis))fail('synthesis metadata does not match its operation.');
   return { success: true, operation, dialect, diagnostics: [], model };
 }
 
 function readSavedResult(raw, model) {
   object(raw); const request = normaliseRequest(raw.request), response = readResponse(raw.response);
   if (request.operation !== response.operation || (request.dialect !== 'auto' && request.dialect !== response.dialect)) fail('result does not match its request metadata.');
-  if (!['simulate', 'infer', 'analyze'].includes(response.operation) && response.model.simulations.length) fail('unexpected simulation data.');
+  if (!['simulate', 'infer', 'analyze', 'synthesize'].includes(response.operation) && response.model.simulations.length) fail('unexpected simulation data.');
   if (request.language === 'crn') {
     const program = response.model.program;
     if (response.model.kind !== 'crn' || program?.source !== request.code || (request.nodeId != null && program.selectedNodeId !== request.nodeId) || (request.systemId != null && program.selectedSystemId !== request.systemId)) fail('CRN result does not match its source or selection.');
@@ -323,7 +328,7 @@ function readSavedResult(raw, model) {
   const probabilitySpecies = integer(raw.probabilitySpecies ?? 0, 0, Math.max(0, (run?.probabilities?.speciesIds.length || 0) - 1));
   const probabilityFrame = integer(raw.probabilityFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   if (raw.probabilityLog !== undefined && typeof raw.probabilityLog !== 'boolean') fail('invalid probability palette.');
-  return { response, snapshot, fitNodeId, fitParameter, fitPair, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
+  return { response, snapshot, fitNodeId, fitParameter, fitPair, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'synthesis', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
 }
 
 export function parseProject(input) {

@@ -156,7 +156,8 @@ type Crn_settings<'e> when 'e:equality =
     let f (b:bool) (d:string) (s:string) = if b then "" else sprintf "directive %s %s\n" d s in
       f (s.simulation = defaults.simulation) "simulation" (s.simulation.to_string fplots) +
       f (s.simulations = defaults.simulations) "simulations" (simulations_to_string s.simulations) +
-      f (s.simulator = defaults.simulator) "simulator" (s.simulator.to_string) + 
+      f (s.simulator = defaults.simulator) "simulator" (s.simulator.to_string) +
+      f (s.synthesis = defaults.synthesis) "synthesis" (Synthesis_settings.to_string s.synthesis) +
       f (s.stochastic = defaults.stochastic) "stochastic" (Stochastic_settings.to_string s.stochastic) + 
       f (s.deterministic = defaults.deterministic) "deterministic" (Deterministic_settings.to_string s.deterministic) +
       f (s.units = defaults.units) "units" (s.units.to_string) + 
@@ -291,6 +292,7 @@ type Crn_settings<'e> when 'e:equality =
       Parser.kw "sweeps"        >>. Parser.list_of Sweep.parse |>> Sweeps;
       Parser.kw "data"          >>. Parser.list_of Parser.name |>> Data;
       Parser.kw "inference"     >>. Inference_settings.parse_defaults defaults.inference |>> Inference;
+      Parser.kw "synthesis"     >>. Synthesis_settings.parse_defaults defaults.synthesis |>> Synthesis;
       Parser.kw "spatial"       >>. Spatial_settings.parse_defaults defaults.spatial parse_plot |>> Spatial;
       Parser.kw "rates"         >>. parse_rates |>> Rates;
       Parser.kw "plot_settings" >>. Plot_settings.parse_defaults defaults.plot parse_plot |>> Plot;

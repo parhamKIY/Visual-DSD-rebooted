@@ -287,12 +287,12 @@ module private CrnExecution =
         else
             let crn, runs, inference = run request crn
             let network = Conversion.network "initial" crn
-            let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program)
+            let result = ModelData("crn", "source", false, Conversion.settings crn, network.Species, network.Reactions, runs, inference, request.Code, program, null, (if request.Operation = "synthesize" then Synthesis.run request crn else null))
             EngineResponse(true, request.Operation, "current", result, [||])
 
 type Engine private () =
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.13.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"|],
+        EngineInfo("Visual DSD Rebooted", "0.14.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -357,6 +357,8 @@ type Engine private () =
                             failure "INVALID_POINTS" "The model's output point count must be between 1 and 100000."
                         elif request.Operation = "simulate" && not (List.contains simulator [Simulator.Oslo; Simulator.SSA; Simulator.LNA; Simulator.CME; Simulator.PDE; Simulator.Sundials; Simulator.CMESundials; Simulator.MC]) then
                             failure "UNSUPPORTED_SIMULATOR" "This build supports Oslo, SSA, LNA, CME, PDE, Sundials, CMESundials and Moment Closure."
+                        elif request.Operation = "synthesize" && jit then
+                            failure "JIT_SYNTHESIS" "Parameter synthesis requires a fully expanded model."
                         elif request.Operation = "infer" && jit then
                             failure "JIT_INFERENCE" "Parameter inference requires a fully expanded model."
                         elif request.Operation = "simulate" && jit && simulator <> Simulator.SSA then
@@ -424,7 +426,8 @@ type Engine private () =
                                 let model = ModelData((match configured with Dsd.ClassicDSD _ -> "classic" | Dsd.Rules _ -> "rules"),
                                                       compilation.ToString().ToLowerInvariant(), jit, Conversion.settings crn,
                                                       network.Species, network.Reactions, simulations, inference,
-                                                      (if jit || request.Operation = "parse" then null else initialCrn.to_string()))
+                                                      (if jit || request.Operation = "parse" then null else initialCrn.to_string()), null, null,
+                                                      (if request.Operation = "synthesize" then Synthesis.run request crn else null))
                                 EngineResponse(true, request.Operation, dialect, model, [||])
             with
             | ExecutionFailure(code, message) -> failure code message
