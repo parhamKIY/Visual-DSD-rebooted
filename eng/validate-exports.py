@@ -136,7 +136,7 @@ def octave_check(directory, item, trajectory, closure=False):
     assert len(columns[0]) == len(trajectory['series'])
     for j, series in enumerate(trajectory['series']):
         errors = [abs(row[j]-value)/max(1,abs(value)) for row,value in zip(columns,series['values'])]
-        assert max(errors) < .003, (filename, series['name'], max(errors))
+        assert max(errors) < .003, (str(directory), filename, series['name'], max(errors))
         if closure and series.get('standardDeviation') is not None:
             deviations=output['standardDeviation']
             if not isinstance(deviations[0],list): deviations=[[v] for v in deviations]
@@ -156,10 +156,11 @@ fixtures = [
 ]
 count = 0
 def reference_code(code):
-    # Oslo normally emits adaptive samples. Request the export grid explicitly for comparison.
-    if 'times=[' in code: return code
+    # Oslo interpolates its printed adaptive samples, including across discontinuous rates.
+    # Refine only the reference output grid; equations and exported tolerances stay unchanged.
+    if 'times=[' in code: return code.replace('points=40','points=4000')
     grid=';'.join(format(i/40,'.17g') for i in range(41))
-    return code.replace('points=40','points=40;times=['+grid+']')
+    return code.replace('points=40','points=4000;times=['+grid+']')
 
 for name, code, options in fixtures:
     exported=run('export',code,options)
