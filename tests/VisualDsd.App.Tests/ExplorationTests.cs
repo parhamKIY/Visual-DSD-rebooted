@@ -19,8 +19,44 @@ public class ExplorationTests
     public void Spatial_fields_are_identified_instead_of_being_reported_as_a_scalar_initial_population()
     {
         var result = CoreEngine.Execute(new() { Code = "directive simulator pde\ndirective simulation {final=0.1;points=2;plots=[<a>]}\ndirective spatial {nx=5;dt=0.01}\n<a> = {spatial={centralcore={inner=3;outer=0;width=0.2}}}", Operation = "simulate" });
-        Assert.True(result.Success, JsonSerializer.Serialize(result)); Assert.Equal("spatial", Assert.Single(result.Model!.Species).ValueKind);
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var species = Assert.Single(result.Model!.Species);
+        Assert.Equal("spatial", species.ValueKind);
+        Assert.Contains("inner=3", species.SpatialInitial!.Replace(" ", ""));
+        Assert.Contains("width=0.2", species.SpatialInitial.Replace(" ", ""));
         Assert.Equal(new double[] { 0, 0, 3, 0, 0 }, result.Model.Simulations[0].Spatial!.Series[0].Frames[0]);
+    }
+
+    [Theory]
+    [InlineData("dsd", "(<a> = {spatial={points=[{x=0.3;value=2}]}} | <a> = {spatial={points=[{x=0.7;value=4}]}})")]
+    [InlineData("crn", "| A = {spatial={points=[{x=0.3;value=2}]}} | A = {spatial={points=[{x=0.7;value=4}]}}")]
+    public void Spatial_initial_definitions_preserve_DSD_replacement_and_separate_CRN_contributions(string language, string code)
+    {
+        var result = CoreEngine.Execute(new() { Code = "directive simulator pde\n" + code, Language = language });
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var fields = result.Model!.Species;
+        Assert.Equal(fields.Length, fields.Select(species => species.Id).Distinct().Count());
+        if (language == "crn") { Assert.Equal(2, fields.Length); Assert.Equal(fields[0].Id, fields[1].SourceId); }
+        else Assert.Single(fields);
+        Assert.All(fields, species => { Assert.Equal("spatial", species.ValueKind); Assert.NotNull(species.SpatialInitial); });
+        string definitions = string.Join("\n", fields.Select(species => species.SpatialInitial));
+        if (language == "crn") Assert.Contains("x=0.3", definitions);
+        else Assert.DoesNotContain("x=0.3", definitions);
+        Assert.Contains("x=0.7", definitions);
+    }
+
+    [Fact]
+    public void Spatial_metadata_preserves_tiny_widths_and_full_precision_in_every_field_type()
+    {
+        const string field = "{random=0.00001234567890123;centralcore={inner=3.123456789012345;outer=0.0001234567890123;width=0.200000000000123};points=[{x=0.123456789012345;y=0.234567890123456;width=0.00001234567890123;value=1.123456789012345}];rectangles=[{xmin=0.123456789012345;xmax=0.987654321098765;ymin=0.234567890123456;ymax=0.876543210987654;value=2.123456789012345}]}";
+        EngineResponse Parse(string definition) => CoreEngine.Execute(new() { Language = "crn", Code = "| A = {spatial=" + definition + "}" });
+        var result = Parse(field); Assert.True(result.Success, JsonSerializer.Serialize(result));
+        string definition = Assert.Single(result.Model!.Species).SpatialInitial!;
+        foreach (string number in new[] { "3.123456789012345", "0.0001234567890123", "0.200000000000123", "0.123456789012345", "0.234567890123456", "1.123456789012345", "0.987654321098765", "0.876543210987654", "2.123456789012345" })
+            Assert.Contains(number, definition);
+        Assert.Contains((0.00001234567890123).ToString("R", System.Globalization.CultureInfo.InvariantCulture), definition);
+        var restored = Parse(definition); Assert.True(restored.Success, JsonSerializer.Serialize(restored));
+        Assert.Equal(definition, Assert.Single(restored.Model!.Species).SpatialInitial);
     }
 
     [Theory]

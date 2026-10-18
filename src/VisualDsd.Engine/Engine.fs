@@ -7,6 +7,22 @@ open VisualDsd.Contracts
 
 module private Conversion =
     let value (expression: Value) = Expression.to_string id expression
+    let spatialInitial (spatial: Spatial_initial.t) =
+        // The upstream display formatter rounds to three decimal places.
+        // Saved metadata must also preserve small widths and precise coordinates.
+        let number (value: float) = value.ToString("R", Globalization.CultureInfo.InvariantCulture)
+        let record fields = "{" + (fields |> List.map (fun (name, value) -> name + "=" + number value) |> String.concat "; ") + "}"
+        let fields = [
+            if spatial.random <> 0.0 then yield "random=" + number spatial.random
+            match spatial.core with
+            | Some core -> yield "centralcore=" + record ["inner", core.inner; "outer", core.outer; "width", core.width]
+            | None -> ()
+            if not spatial.points.IsEmpty then
+                yield "points=[" + (spatial.points |> List.map (fun point -> record ["x", point.x; "y", point.y; "width", point.width; "value", point.value]) |> String.concat "; ") + "]"
+            if not spatial.rectangles.IsEmpty then
+                yield "rectangles=[" + (spatial.rectangles |> List.map (fun rectangle -> record ["xmin", rectangle.xmin; "xmax", rectangle.xmax; "ymin", rectangle.ymin; "ymax", rectangle.ymax; "value", rectangle.value]) |> String.concat "; ") + "]"
+        ]
+        "{ " + String.concat "; " fields + " }"
     let rate (r: Rate<Value, Functional>) =
         match r with
         | Rate.MassAction expression -> RateData("massAction", value expression)
@@ -27,7 +43,8 @@ module private Conversion =
                     attributes |> Option.map (fun a -> a.svg) |> Option.defaultValue "",
                     value initial.value, initial.constant,
                     initial.time |> Option.map value |> Option.defaultValue null,
-                    if initial.spatial.IsSome then "spatial" elif valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind)
+                    (if initial.spatial.IsSome then "spatial" elif valueKind = "finalPopulation" && initial.time.IsSome then "scheduledInput" else valueKind),
+                    null, initial.spatial |> Option.map spatialInitial |> Option.defaultValue null)
 
     let settings (crn: Crn) =
         let simulation = crn.settings.simulation
@@ -44,11 +61,11 @@ module private Conversion =
             let entry = species valueKind crn initial
             let first = entry.ValueKind <> "scheduledInput" && seen.Add entry.Id
             if entry.ValueKind = "scheduledInput" || not first then
-                let kind = if entry.ValueKind = "scheduledInput" then "scheduledInput" elif initial.time.IsSome then "timedInput" else "initialContribution"
+                let kind = if entry.ValueKind = "spatial" then "spatial" elif entry.ValueKind = "scheduledInput" then "scheduledInput" elif initial.time.IsSome then "timedInput" else "initialContribution"
                 SpeciesData(sprintf "initial:%d:%s" index entry.Id, entry.Name, entry.Structure, entry.Svg,
-                            entry.Initial, entry.Constant, entry.Time, kind, entry.Id)
+                            entry.Initial, entry.Constant, entry.Time, kind, entry.Id, entry.SpatialInitial)
             elif initial.time.IsSome && entry.ValueKind = "initial" then
-                SpeciesData(entry.Id, entry.Name, entry.Structure, entry.Svg, entry.Initial, entry.Constant, entry.Time, "timedInput")
+                SpeciesData(entry.Id, entry.Name, entry.Structure, entry.Svg, entry.Initial, entry.Constant, entry.Time, "timedInput", null, entry.SpatialInitial)
             else entry)
         NetworkData(entries |> List.toArray,
                     crn.reactions |> List.map reaction |> List.toArray)
@@ -318,7 +335,7 @@ module private CrnExecution =
 type Engine private () =
     static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.17.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.18.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =

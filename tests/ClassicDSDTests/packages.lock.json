@@ -59,6 +59,15 @@
           "Microsoft.NET.Test.Sdk": "15.0.0"
         }
       },
+      "FParsec": {
+        "type": "Transitive",
+        "resolved": "1.0.3",
+        "contentHash": "0VoZapcSUHsNCixYawx8RFZHJMRVykaKsks5OOUXRP0bZCpr7UCP6kIjbVFGHIqqBGPtICUMy7j521sH0ZcmrQ==",
+        "dependencies": {
+          "FSharp.Core": "4.2.3",
+          "NETStandard.Library": "1.6.1"
+        }
+      },
       "FSharp.Collections.ParallelSeq": {
         "type": "Transitive",
         "resolved": "1.1.2",
@@ -73,6 +82,31 @@
         "contentHash": "6IAvKbu+E1uDnxmvrPFOr6y7Gy7rC1yGKhXITnOJO86UuKGdAwLhPVeshaLffYFnOfhNcyNwc4HRHrKU4J2W0w==",
         "dependencies": {
           "FSharp.Core": "4.3.4"
+        }
+      },
+      "MathNet.Numerics": {
+        "type": "Transitive",
+        "resolved": "4.9.0",
+        "contentHash": "4cYzhuMDq57oC6lwhMmuigdhP+oywmp1bMtFzvzz4wYr5eWbg0JLDPo/L1juqDkIBj+rc3FrxUEX7jcHRmnF+w=="
+      },
+      "MathNet.Numerics.FSharp": {
+        "type": "Transitive",
+        "resolved": "4.9.0",
+        "contentHash": "nemF7fUAoIV7NMx+cKezhhT1nWgx18ajrnjPzEY4kW8XZ3rjb0uG9608isKxJDdP/6FNhf1/rOu4ajXkijuqRg==",
+        "dependencies": {
+          "FSharp.Core": "4.3.3",
+          "MathNet.Numerics": "4.9.0"
+        }
+      },
+      "MathNet.Symbolics": {
+        "type": "Transitive",
+        "resolved": "0.20.0",
+        "contentHash": "62I8QUNFi4CxWsSv/4TPWvZSSWmXngnD2YNMyk+YK85KzPHfWCwWO0xeTVLG2H2DJ4ttZ6Z6dLipRnzGsNt76g==",
+        "dependencies": {
+          "FParsec": "1.0.3",
+          "FSharp.Core": "4.3.3",
+          "MathNet.Numerics": "4.7.0",
+          "MathNet.Numerics.FSharp": "4.7.0"
         }
       },
       "Microsoft.CodeCoverage": {
@@ -98,6 +132,11 @@
           "Microsoft.TestPlatform.ObjectModel": "17.12.0",
           "Newtonsoft.Json": "13.0.1"
         }
+      },
+      "Microsoft.Z3": {
+        "type": "Transitive",
+        "resolved": "4.12.2",
+        "contentHash": "dOV/D1K+OH2Ris7HcXHM2OIyHaFc6t3twNg9d8xqRKs3JZBvWgTp+OmzVfNGPn+Yz/wQDAHeWgecJly5aHGYAw=="
       },
       "NETStandard.Library": {
         "type": "Transitive",
@@ -210,6 +249,16 @@
           "WebSharper.Core": "[4.5.19.349, )"
         }
       },
+      "momentclosure": {
+        "type": "Project",
+        "dependencies": {
+          "CRNEngineDotNet": "[1.0.0, )",
+          "FSharp.Core": "[10.1.402, )",
+          "MathNet.Numerics": "[4.9.0, )",
+          "MathNet.Numerics.FSharp": "[4.9.0, )",
+          "MathNet.Symbolics": "[0.20.0, )"
+        }
+      },
       "oslo.fsharp": {
         "type": "Project",
         "dependencies": {
@@ -239,6 +288,30 @@
           "ParserCombinators": "[1.0.0, )",
           "QuikGraph": "[2.5.0, )",
           "WebSharper.Core": "[4.5.19.349, )"
+        }
+      },
+      "stabilityz3": {
+        "type": "Project",
+        "dependencies": {
+          "CRNEngineDotNet": "[1.0.0, )",
+          "FSharp.Core": "[10.1.402, )",
+          "MathNet.Numerics": "[4.9.0, )",
+          "MathNet.Numerics.FSharp": "[4.9.0, )",
+          "MathNet.Symbolics": "[0.20.0, )",
+          "Microsoft.Z3": "[4.12.2, )"
+        }
+      },
+      "visualdsd.contracts": {
+        "type": "Project"
+      },
+      "visualdsd.engine": {
+        "type": "Project",
+        "dependencies": {
+          "ClassicDSDDotNet": "[1.0.0, )",
+          "FSharp.Core": "[10.1.402, )",
+          "MomentClosure": "[1.0.0, )",
+          "StabilityZ3": "[1.0.0, )",
+          "VisualDsd.Contracts": "[1.0.0, )"
         }
       }
     }

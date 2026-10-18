@@ -49,7 +49,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.17.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.18.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -295,7 +295,7 @@ try {
         $remoteResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($remoteJob.id)" -TimeoutSec 10
         if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote calculation timed out.' }
     } while(!$remoteResult.finishedAt)
-    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.17.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
+    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.18.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
     $events=Invoke-WebRequest "$gatewayAddress/api/jobs/$($remoteJob.id)/events" -TimeoutSec 10
     if($events.Headers['Content-Type'] -notmatch 'text/event-stream' -or $events.Content -notmatch 'event: job') { throw 'Standalone job streaming failed.' }
     $slowBody=@{code="directive simulator stochastic`n(1000 * <a> | rxn <a> ->{1.0} <a>)";operation='simulate';final=1e12;points=1;seed=42;timeoutSeconds=600} | ConvertTo-Json

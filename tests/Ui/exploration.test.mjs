@@ -68,6 +68,19 @@ test('spatial initial conditions are labeled as fields rather than scalar concen
   const restored = readResponse(view.response); assert.match(populationLabel(restored.model.species[0]), /Spatial initial field/); assert.doesNotMatch(populationLabel(restored.model.species[0]), /Initial: 1/);
 });
 
+test('spatial initial definitions survive project roundtrips and cannot be attached to scalar species', () => {
+  const { document, view } = fixture();
+  const species = view.response.model.species[0];
+  species.valueKind = 'spatial';
+  species.spatialInitial = '{ points = [{x=0.300; y=0.300; width=0.400; value=10.000}] }';
+  const saved = serialiseProject([document], document.id, new Map([[document.id, view]]), '0.18.0');
+  const restored = parseProject(saved).views.get(document.id).response.model.species[0];
+  assert.equal(restored.spatialInitial, species.spatialInitial);
+  species.valueKind = 'initial'; assert.throws(() => readResponse(view.response), /spatial initial definition/);
+  species.valueKind = 'spatial'; species.spatialInitial = { points: [] }; assert.throws(() => readResponse(view.response));
+  delete species.spatialInitial; assert.equal(readResponse(view.response).model.species[0].valueKind, 'spatial');
+});
+
 test('scheduled JIT inputs use remaining time and ordinary timed inputs use absolute time', () => {
   const species = { initial: '3', time: '0.5', constant: false };
   assert.equal(populationLabel({ ...species, valueKind: 'timedInput' }), 'Timed input: 3 · at 0.5');

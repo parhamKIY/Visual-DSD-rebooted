@@ -66,6 +66,8 @@ function readNetwork(source, isJit, operation) {
     const valueKind = item.valueKind ?? (isJit && operation === 'simulate' ? item.time == null ? 'finalPopulation' : 'scheduledInput' : 'initial');
     const result = { id: text(item.id, 512), name: text(item.name), structure: text(item.structure), svg: text(item.svg, 8 * 1024 * 1024), initial: text(item.initial), constant: item.constant, time: nullableText(item.time), valueKind: choice(valueKind, ['initial', 'finalPopulation', 'scheduledInput', 'spatial', 'timedInput', 'initialContribution']) };
     if (item.sourceId !== undefined) result.sourceId = nullableText(item.sourceId);
+    if (item.spatialInitial !== undefined) result.spatialInitial = item.spatialInitial == null ? null : text(item.spatialInitial, 8 * 1024 * 1024);
+    if (result.spatialInitial != null && result.valueKind !== 'spatial') fail('spatial initial definition on a scalar species.');
     return result;
   });
   const ids = new Set(species.map(item => item.id)); if (ids.size !== species.length) fail('duplicate species identifiers.');

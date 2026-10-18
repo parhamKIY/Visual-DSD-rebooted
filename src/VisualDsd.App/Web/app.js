@@ -448,6 +448,10 @@ function renderSpecies() {
     if (species.svg) { const image = svgImage(species.svg); image.alt = species.structure || species.name; drawing.append(image); } else drawing.textContent = species.structure;
     const structure = element('div', 'species-structure', species.structure); structure.title = species.structure;
     footer.append(element('span', '', populationLabel(species)));
+    if (species.spatialInitial) {
+      const details = element('details'), summary = element('summary', '', 'Spatial initial definition');
+      details.append(summary, element('pre', 'species-structure', species.spatialInitial)); footer.append(details);
+    }
     if (species.svg) { const save = element('button', 'text-button', 'Save SVG'); save.type = 'button'; save.setAttribute('aria-label', `Save ${species.id} SVG`); save.addEventListener('click', () => download(`${stem()}-${species.id}.svg`, species.svg, 'image/svg+xml')); footer.append(save); }
     card.append(heading, drawing, structure, footer); return card;
   }));

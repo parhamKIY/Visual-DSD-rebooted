@@ -15,5 +15,7 @@ try {
     foreach ($project in @('tests/ClassicDSDTests/ClassicDSDTests.fsproj', 'tests/VisualDsd.App.Tests/VisualDsd.App.Tests.csproj')) {
         Invoke-RebootDotNet @('test', $project, '--no-build', '--no-restore', '--configuration', 'Release', '--verbosity', 'minimal', '--logger', 'trx', '--results-directory', (Join-Path $repoRoot 'artifacts/test-results'), '--blame-hang', '--blame-hang-timeout', '60s')
     }
+    & node (Join-Path $repoRoot 'eng/validate-parity.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Public JSON and project compatibility verification failed.' }
 }
 finally { Pop-Location }
