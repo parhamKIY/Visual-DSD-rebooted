@@ -109,6 +109,19 @@ For multistability, phase settings choose two species and up to 16 seeded trajec
 
 Save projects to retain every witness, curve and trajectory. **Open synthesized CRN** creates a separate document with the synthesized parameter and diffusion values. CSV and SVG exports are available in the Synthesis tab.
 
+## Scientific model exports
+
+Choose **Export model**, then select a resolved run and file in **Exports**. The same operation is available as `./VisualDsd export model.crn` (JSON containing each file and its metadata).
+
+- **SBML Level 3 Version 2** preserves the selected system's deterministic concentration equations, initial populations, constant species, reversible/catalytic reactions, model time and concentration units, named functional rates and time-dependent expressions. Safe generated identifiers retain original species names in `name` attributes. Kinetic laws convert concentration rates to amount rates through the compartment volume.
+- **MATLAB / Octave** files integrate the ODEs and return `times`, `populations`, `species`, `plots` and `names`. Keep the downloaded filename: its entry function has the same name. Array indexing avoids collisions with user species or lifted parameter names. Plot expressions use elementwise arithmetic and the actual integration time.
+- **LaTeX** contains the resolved ODEs and initial conditions. **SVG** contains the original molecular initial-population and reaction drawings. Completed JIT runs also offer **Final populations SVG** in Species; scheduled future inputs are excluded from that snapshot.
+- With **moment closure** selected, additional files contain the unclosed moment equations, closure equations and executable closure MATLAB. The latter preserves the configured `initial_minimum`, numerical clamping, moment plots and available standard deviations; unavailable deviations are `NaN`.
+
+Use **Oslo** or **Sundials** for deterministic model exports. Stochastic/statistical and spatial dynamics are not silently replaced by ODEs. Scheduled inputs currently remain in the resolved CRN file; SBML/MATLAB/LaTeX report an unavailable-format diagnostic rather than dropping those inputs. Other valid files remain downloadable. Every sweep or named simulation run has its own files and assignment metadata, capped at 32 runs and 4 MiB per request. Saved projects retain file contents and diagnostics. SBML does not encode the requested simulation grid, plots, inference configuration or moment-closure solver; it represents the resolved reaction model.
+
+CI checks SBML consistency with pinned **libSBML 5.21.2**, integrates its MathML equations independently, and executes the MATLAB files with **Octave** on Linux, including moment-closure means and uncertainties. These validation tools are development dependencies; the downloaded application remains standalone.
+
 ## Command line
 
 The same executable supports structured JSON output for scripts. These examples use Linux shell notation; on Windows use `.\VisualDsd.exe`.
@@ -124,6 +137,7 @@ The same executable supports structured JSON output for scripts. These examples 
 ./VisualDsd simulate model.crn --simulator mc
 ./VisualDsd infer model.dsd --data observations.csv --seed 42
 ./VisualDsd synthesize model.crn --phase-trajectories 8
+./VisualDsd export model.crn --simulator oslo
 ./VisualDsd analyze model.dsd
 ./VisualDsd simulate model.crn --node prediction --system reversible
 ./VisualDsd parse model.txt --language crn

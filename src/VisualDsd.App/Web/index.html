@@ -63,7 +63,7 @@
           <button id="edit-crn" class="button secondary edit-crn" disabled>Open expanded network as editable CRN</button>
           <details class="observation-panel"><summary>Observation data &amp; parameter fitting</summary><p>CSV: Time (or Time with a unit), then plot names or species structures. Values use the model's units. Dataset names must match <code>directive data</code>.</p><button id="import-data" class="button secondary compact">Import CSV files</button><input id="data-input" type="file" accept=".csv" multiple hidden><div id="dataset-list"></div><p>Set priors and <code>directive inference</code> in the source. Fitting uses Oslo or Sundials. Use <code>seeds=[11;29]</code> in the inference directive for multiple chains.</p></details>
           <details class="synthesis-settings observation-panel"><summary>Parameter synthesis</summary><p>Set <code>directive synthesis {mode=turing;solver=nlsat;timeout=10;seed=7}</code> or <code>mode=multistability</code>. Turing synthesis also requires explicit spatial diffusibles.</p><div class="settings-grid"><label>Phase species X (optional)<input id="phaseX" maxlength="128" placeholder="Automatic"></label><label>Phase species Y (optional)<input id="phaseY" maxlength="128" placeholder="Automatic"></label><label>Phase trajectories<input id="phaseTrajectories" type="number" min="0" max="16" step="1" value="12"></label></div><p>Phase options apply to multistability. Set trajectories to 0 to skip simulations. Sampling uses the model's simulation interval.</p></details>
-          <div class="run-toolbar"><button id="check" class="button secondary" title="Check model syntax">Check</button><button id="expand" class="button secondary">Expand network</button><button id="analyze" class="button secondary">Explore states</button><button id="synthesize" class="button secondary">Synthesize parameters</button><button id="infer" class="button secondary">Fit parameters</button><button id="simulate" class="button primary"><span aria-hidden="true">▶</span> Simulate</button><button id="cancel" class="button danger" hidden>Stop</button></div>
+          <div class="run-toolbar"><button id="check" class="button secondary" title="Check model syntax">Check</button><button id="expand" class="button secondary">Expand network</button><button id="analyze" class="button secondary">Explore states</button><button id="scientific-export" class="button secondary">Export model</button><button id="synthesize" class="button secondary">Synthesize parameters</button><button id="infer" class="button secondary">Fit parameters</button><button id="simulate" class="button primary"><span aria-hidden="true">▶</span> Simulate</button><button id="cancel" class="button danger" hidden>Stop</button></div>
           <div class="source-hint"><span id="run-state" role="status" aria-live="polite">Ready when you are.</span><kbd>Ctrl ↵</kbd></div>
         </section>
         <section class="results-pane" aria-label="Model results">
@@ -76,6 +76,7 @@
             <button id="tab-network" type="button" role="tab" data-tab="network" aria-controls="panel-network" aria-selected="false" tabindex="-1">Network</button>
             <button id="tab-data" type="button" role="tab" data-tab="data" aria-controls="panel-data" aria-selected="false" tabindex="-1">Data</button>
             <button id="tab-program" type="button" role="tab" data-tab="program" aria-controls="panel-program" aria-selected="false" tabindex="-1" hidden>Models</button>
+            <button id="tab-exports" type="button" role="tab" data-tab="exports" aria-controls="panel-exports" aria-selected="false" tabindex="-1" hidden>Exports</button>
             <button id="tab-synthesis" type="button" role="tab" data-tab="synthesis" aria-controls="panel-synthesis" aria-selected="false" tabindex="-1" hidden>Synthesis</button>
             <button id="tab-fit" type="button" role="tab" data-tab="fit" aria-controls="panel-fit" aria-selected="false" tabindex="-1" hidden>Fit</button>
             <button id="tab-spatial" type="button" role="tab" data-tab="spatial" aria-controls="panel-spatial" aria-selected="false" tabindex="-1" hidden>Spatial</button>
@@ -105,6 +106,14 @@
               <p id="state-summary" class="exploration-note"></p><div id="state-path" class="state-path" aria-label="Shortest path from initial state"></div>
               <div id="state-populations" class="data-table"></div><h3 class="state-heading">Outgoing transitions</h3><div id="state-transitions" class="state-transitions"></div>
               <p class="exploration-note">Complete reachable CTMC graph for the selected run, limited to 1000 states. Transition rates use the model's time unit; they are not probabilities. Absorbing states have no outgoing state changes. Shortest paths minimize the number of transitions. This view does not perform temporal-logic model checking. Export result JSON preserves all transition rates.</p>
+            </section>
+            <section id="panel-exports" class="result-panel" role="tabpanel" aria-labelledby="tab-exports" hidden>
+              <div class="view-toolbar"><span class="eyebrow">SCIENTIFIC EXPORTS</span><span id="exports-summary"></span></div>
+              <p class="exploration-note">Each file belongs to one resolved run of the selected model system. SBML, ODE MATLAB and ODE LaTeX describe deterministic concentration equations; choose Oslo or Sundials. Moment closure has separate equation and MATLAB files. Download MATLAB files with their original names so the entry function matches the file.</p>
+              <div class="exploration-toolbar"><label>Resolved run<select id="export-run" aria-label="Export run"></select></label><label>File<select id="export-file" aria-label="Export file"></select></label><button id="export-download" class="button secondary compact">Download file ↓</button></div>
+              <p id="export-diagnostic" class="exploration-note" role="status"></p>
+              <img id="export-image" class="export-image" alt="Exported molecular diagram" hidden>
+              <pre id="export-preview" class="export-preview" tabindex="0" aria-label="Scientific file preview"></pre>
             </section>
             <section id="panel-synthesis" class="result-panel" role="tabpanel" aria-labelledby="tab-synthesis" hidden>
               <div class="view-toolbar"><span class="eyebrow">PARAMETER SYNTHESIS</span><button id="synthesis-csv" class="button secondary compact">Values &amp; curves CSV ↓</button><button id="synthesis-svg" class="button secondary compact">Figures SVG ↓</button><button id="synthesis-open" class="button secondary compact">Open synthesized CRN</button></div>
@@ -138,7 +147,7 @@
               <div id="run-details" class="run-details"></div>
             </section>
             <section id="panel-species" class="result-panel" role="tabpanel" aria-labelledby="tab-species" hidden>
-              <div class="view-toolbar"><label class="sr-only" for="species-search">Find a species</label><input id="species-search" type="search" placeholder="Find a species…"><span id="species-page-label" class="muted"></span></div>
+              <div class="view-toolbar"><label class="sr-only" for="species-search">Find a species</label><input id="species-search" type="search" placeholder="Find a species…"><button id="species-populations" class="button secondary compact" hidden>Final populations SVG ↓</button><span id="species-page-label" class="muted"></span></div>
               <div id="species-grid" class="species-grid"></div><div class="pagination"><button id="species-prev" class="button secondary compact">← Previous</button><button id="species-next" class="button secondary compact">Next →</button></div>
             </section>
             <section id="panel-reactions" class="result-panel" role="tabpanel" aria-labelledby="tab-reactions" hidden>

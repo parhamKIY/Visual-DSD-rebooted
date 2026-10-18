@@ -48,10 +48,16 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.14.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.15.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
+$exported = Invoke-Standalone @('export','-','--language','crn','--simulator','oslo','--node','prediction','--system','reversible') $crnSource | ConvertFrom-Json
+if (!$exported.success -or $exported.model.exports.Count -ne 6 -or $exported.model.exports.Where({$null -ne $_.diagnostic}).Count -ne 0) { throw 'Standalone scientific exports failed.' }
+$sbml = [xml]($exported.model.exports | Where-Object id -eq 'sbml').content
+if ($sbml.sbml.level -ne '3' -or $sbml.sbml.version -ne '2') { throw 'Standalone SBML format mismatch.' }
+$matlab = $exported.model.exports | Where-Object id -eq 'matlab'
+if ($matlab.fileName -ne 'crn_export_run_001.m' -or !$matlab.content.StartsWith('function sol = crn_export_run_001()')) { throw 'Standalone MATLAB file and entry function mismatch.' }
 $crnFile = Join-Path $directory 'linked.crn'
 Set-Content -LiteralPath $crnFile -Value $crnSource -Encoding utf8NoBOM
 $detected = Invoke-Standalone @('parse', $crnFile, '--node', 'calibration', '--system', 'decay') | ConvertFrom-Json
@@ -212,7 +218,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10

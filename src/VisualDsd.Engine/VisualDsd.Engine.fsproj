@@ -10,6 +10,7 @@
     <Compile Include="JitExploration.fs" />
     <Compile Include="CrnPrograms.fs" />
     <Compile Include="Synthesis.fs" />
+    <Compile Include="Exports.fs" />
     <Compile Include="Engine.fs" />
     <ProjectReference Include="../VisualDsd.Contracts/VisualDsd.Contracts.csproj" />
     <ProjectReference Include="../ClassicDSDDotNet/ClassicDSDDotNet.fsproj" />

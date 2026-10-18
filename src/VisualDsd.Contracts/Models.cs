@@ -67,8 +67,9 @@ public sealed record PhasePortraitData(string SpeciesX, string SpeciesY, double[
 public sealed record SynthesisData(string Mode, string Solver, string Status, double SolverSeconds, SynthesisValueData[] Values,
     string RateEquations, string Jacobian, string Diffusion, string Constraints, EquilibriumData[] Equilibria, DispersionData? Dispersion,
     PhasePortraitData? PhasePortrait, string? Code, int? Seed);
+public sealed record ExportData(string Id, string Name, string FileName, string ContentType, string? Content, Diagnostic? Diagnostic, string Run, string Sweep, string Assignment);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
-    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null, SynthesisData? Synthesis = null);
+    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null, SynthesisData? Synthesis = null, ExportData[]? Exports = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>
@@ -94,7 +95,7 @@ public static class RequestValidation
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));
-        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze" or "synthesize")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, analyze, or synthesize."));
+        if (request.Operation is not ("parse" or "expand" or "simulate" or "infer" or "analyze" or "synthesize" or "export")) errors.Add(new("INVALID_OPERATION", "Operation must be parse, expand, simulate, infer, analyze, synthesize, or export."));
         if (request.Dialect is not ("auto" or "current" or "legacy")) errors.Add(new("INVALID_DIALECT", "Dialect must be auto, current, or legacy."));
         if (request.Compilation is not ("source" or "default" or "detailed" or "finite" or "infinite")) errors.Add(new("INVALID_COMPILATION", "Unknown compilation mode."));
         if (request.Simulator is not ("source" or "oslo" or "ssa" or "lna" or "cme" or "pde" or "sundials" or "cmesundials" or "mc")) errors.Add(new("INVALID_SIMULATOR", "Simulator must be source, oslo, ssa, lna, cme, pde, sundials, cmesundials, or mc."));

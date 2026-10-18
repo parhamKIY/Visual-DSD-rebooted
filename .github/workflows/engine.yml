@@ -42,6 +42,21 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Install independent SBML validator
+        run: |
+          python -m venv artifacts/export-validation-venv
+          $python = if ($IsWindows) { 'artifacts/export-validation-venv/Scripts/python.exe' } else { 'artifacts/export-validation-venv/bin/python' }
+          & $python -m pip install --disable-pip-version-check --only-binary=:all: python-libsbml==5.21.2
+          if ($LASTEXITCODE -ne 0) { throw 'Independent SBML validator installation failed.' }
+      - name: Install MATLAB-compatible validation runtime
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y octave
       - name: Build portable native solvers from verified sources
         run: ./eng/native.ps1 -Runtime '${{ matrix.runtime }}'
       - name: Verify original reference and rebooted engine
@@ -52,6 +67,7 @@ jobs:
         run: |
           ./eng/publish.ps1 -Runtime '${{ matrix.runtime }}'
           ./eng/smoke.ps1 -Runtime '${{ matrix.runtime }}'
+          ./eng/test-exports.ps1 -Runtime '${{ matrix.runtime }}'
           git diff --exit-code
           if ($LASTEXITCODE -ne 0) { throw 'Build or publish changed tracked files.' }
           if (git ls-files --others --exclude-standard) { throw 'Build or publish created untracked files.' }
