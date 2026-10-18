@@ -588,11 +588,11 @@ function renderSynthesis(){
   const result=state().response?.model.synthesis;if(!result)return;
   $('synthesis-summary').textContent=`${result.mode==='turing'?'Turing instability':'Multistability'} · ${result.status} · ${result.solver} · ${numberLabel(result.solverSeconds)} s solving${result.seed==null?'':' · seed '+result.seed}`;
   $('synthesis-note').textContent=result.status==='SAT'?'Z3 found a satisfying assignment to the symbolic constraints. Displayed values are double-precision approximations. Residuals and eigenvalues below are numerical checks; this is not experimental validation.':result.status==='UNSAT'?'No assignment satisfies this model’s encoded constraints and bounds. This statement applies to the selected symbolic formulation.':'The solver returned UNKNOWN. A time limit or incomplete solving does not establish that no solution exists.';
-  const table=rows=>{const t=element('table');for(const row of rows){const tr=element('tr');for(const cell of row)tr.append(element('td','',String(cell)));t.append(tr);}return t;};
+  const table=rows=>{const t=element('table');for(const [index,row] of rows.entries()){const tr=element('tr');for(const cell of row)tr.append(element(index?'td':'th','',String(cell)));t.append(tr);}return t;};
   $('synthesis-values').replaceChildren(table([['Variable','Kind','Value','Lower bound','Upper bound'],...result.values.map(v=>[v.name,v.kind,numberLabel(v.value),v.lowerBound==null?'—':numberLabel(v.lowerBound),v.upperBound==null?'—':numberLabel(v.upperBound)])]));
   const eqNodes=[];
   for(const eq of result.equilibria){eqNodes.push(element('h3','state-heading',`${eq.name} · max Re(λ) = ${numberLabel(eq.maximumRealEigenvalue)}`));eqNodes.push(table([['Species','Concentration','ODE residual'],...eq.species.map((name,i)=>[name,numberLabel(eq.values[i]),numberLabel(eq.residuals[i])])]));}
-  if(result.phasePortrait){eqNodes.push(element('h3','state-heading','Sampled trajectories · distance at final time'));eqNodes.push(table([['Trajectory','Nearest equilibrium','Final distance'],...result.phasePortrait.trajectories.map((t,i)=>[i+1,t.nearestEquilibrium+1,numberLabel(t.finalDistance)])]));}
+  if(result.phasePortrait){const details=element('details');details.append(element('summary','','Sampled trajectories · distance at final time'),table([['Trajectory','Nearest equilibrium','Final distance'],...result.phasePortrait.trajectories.map((t,i)=>[i+1,t.nearestEquilibrium+1,numberLabel(t.finalDistance)])]));eqNodes.push(details);}
   $('synthesis-equilibria').replaceChildren(...eqNodes);
   $('synthesis-dispersion').innerHTML=result.dispersion?dispersionSvg(result):'';
   $('synthesis-phase').innerHTML=result.phasePortrait?phaseSvg(result):'';
@@ -602,5 +602,5 @@ function renderSynthesis(){
   $('synthesis-svg').disabled=!result.equilibria.length;
 }
 $('synthesis-csv').addEventListener('click',()=>download(`${stem()}-synthesis.csv`,synthesisCsv(state().response.model.synthesis),'text/csv;charset=utf-8'));
-$('synthesis-svg').addEventListener('click',()=>{const figures=[...$('panel-synthesis').querySelectorAll('.synthesis-chart svg')];const body=figures.map((svg,i)=>`<g transform="translate(0 ${i*340})">${svg.innerHTML}</g>`).join('');download(`${stem()}-synthesis.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 ${figures.length*340}">${body}</svg>`,'image/svg+xml');});
+$('synthesis-svg').addEventListener('click',()=>{const figures=[...$('panel-synthesis').querySelectorAll('.synthesis-chart svg')];const body=figures.map((svg,i)=>`<g transform="translate(0 ${i*340})">${svg.innerHTML}</g>`).join('');download(`${stem()}-synthesis.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 ${figures.length*340}" style="font-family:system-ui,sans-serif;fill:#344b54">${body}</svg>`,'image/svg+xml');});
 $('synthesis-open').addEventListener('click',()=>{try{const result=state().response.model.synthesis;if(!result?.code)return;const doc=createDocument(`${stem()}-synthesized.crn`,result.code,'current');addDocument(doc);}catch(error){toast(error.message);}});

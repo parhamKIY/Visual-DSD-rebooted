@@ -62,7 +62,7 @@ function canvas(xs,ys,xlabel,ylabel,title){
   content+=`<text x="375" y="330" text-anchor="middle" font-size="12">${esc(xlabel)}</text><text x="16" y="165" text-anchor="middle" font-size="11" transform="rotate(-90 16 165)">${esc(ylabel)}</text>`;
   return{x,y,content,yl,yh};
 }
-function svg(content){return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 340" role="img" style="font-family:system-ui,sans-serif;fill:#344b54">${content}</svg>`;}
+function svg(content,label="Jacobian influence graph"){return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 340" role="img" aria-label="${esc(label)}" style="font-family:system-ui,sans-serif;fill:#344b54">${content}</svg>`;}
 const line=(xs,ys,x,y)=>xs.map((v,i)=>`${i?'L':'M'}${x(v).toFixed(3)} ${y(ys[i]).toFixed(3)}`).join('');
 export function dispersionSvg(result){
   const d=result?.dispersion;if(!d)return svg('<text x="40" y="80">No dispersion curve for this result.</text>');
@@ -71,14 +71,14 @@ export function dispersionSvg(result){
   const c=canvas(waves,growth,'Wave number q · instability band','Largest real eigenvalue','Dispersion · J − q²D');let out=c.content;
   if(c.yl<0&&c.yh>0)out+=`<path d="M70 ${c.y(0)}H680" stroke="#7f929c" stroke-dasharray="4 4"/>`;
   out+=`<path d="${line(waves,growth,c.x,c.y)}" fill="none" stroke="${colors[0]}" stroke-width="2"/><circle cx="${c.x(d.witnessWaveNumber)}" cy="${c.y(d.witnessGrowthRate)}" r="4" fill="${colors[1]}"><title>Synthesized witness: q=${d.witnessWaveNumber}, growth=${d.witnessGrowthRate}</title></circle>`;
-  return svg(out);
+  return svg(out,"Turing dispersion curve");
 }
 export function phaseSvg(result){
   const p=result?.phasePortrait;if(!p)return svg('<text x="40" y="80">No phase trajectories requested for this result.</text>');
   const xs=[...p.equilibriumX,...p.trajectories.flatMap(t=>t.x)],ys=[...p.equilibriumY,...p.trajectories.flatMap(t=>t.y)],c=canvas(xs,ys,p.speciesX,p.speciesY,'Phase portrait · sampled initial conditions');let out=c.content;
   for(const t of p.trajectories)out+=`<path d="${line(t.x,t.y,c.x,c.y)}" fill="none" stroke="${colors[t.nearestEquilibrium]}" stroke-width="1.5" opacity=".75"><title>Initial (${t.initialX}, ${t.initialY}); final distance ${t.finalDistance}</title></path><circle cx="${c.x(t.initialX)}" cy="${c.y(t.initialY)}" r="2.5" fill="white" stroke="${colors[t.nearestEquilibrium]}"/>`;
   p.equilibriumX.forEach((x,i)=>{out+=`<circle cx="${c.x(x)}" cy="${c.y(p.equilibriumY[i])}" r="6" stroke="white" stroke-width="2" fill="${colors[i]}"><title>Equilibrium ${i+1}: (${x}, ${p.equilibriumY[i]})</title></circle>`;});
-  return svg(out);
+  return svg(out,"Phase portrait");
 }
 export function jacobianSvg(result){
   const eqs=result?.equilibria??[];let out='<rect width="750" height="340" fill="white"/>';
