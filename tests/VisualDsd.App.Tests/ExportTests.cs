@@ -127,6 +127,31 @@ public class ExportTests
         var model=Run(ScientificTests.Decay,language:"dsd");Assert.Equal("classic",model.Kind);Assert.Contains("<svg",File(model,"initials").Content);Assert.Contains("<svg",File(model,"reactions").Content);Assert.NotNull(Sbml(model));
     }
     [Fact]
+    public void Conditional_rate_SVG_is_valid_XML_and_retains_its_less_than_comparison()
+    {
+        var content=File(Run("| 0 A | ->[if [time]<0.5 then 1 else 2] A"),"reactions").Content!;
+        var svg=XDocument.Parse(content);Assert.Contains("[time] < 0.5",string.Concat(svg.Descendants().Where(e=>e.Name.LocalName=="text").Select(e=>e.Value)));
+    }
+    [Fact]
+    public void Resolved_code_retains_moments_precision_and_zero_constants()
+    {
+        const string source="directive moments {order=2;initial_minimum=1e-16;log_evaluation=true;plots=[<A^2>]}\ndirective simulation {final=1;points=10}\n| 0 A | A ->{0.1}";
+        var exported=File(Run(source,"mc"),"code").Content!;
+        Assert.Contains("initial_minimum=1E-16",exported);
+        var original=CoreEngine.Execute(new(){Code=source,Language="crn",Operation="simulate",Simulator="mc"});
+        var restored=CoreEngine.Execute(new(){Code=exported,Language="crn",Operation="simulate",Simulator="mc"});
+        Assert.True(original.Success);Assert.True(restored.Success,JsonSerializer.Serialize(restored));
+        Assert.Equal(JsonSerializer.Serialize(original.Model!.Simulations),JsonSerializer.Serialize(restored.Model!.Simulations));
+        var constant=File(Run("| constant 0 A | ->{1} B"),"code").Content!;
+        var parsed=CoreEngine.Execute(new(){Code=constant,Language="crn",Operation="parse"});Assert.True(parsed.Success);Assert.True(parsed.Model!.Species.Single(s=>s.Id=="A").Constant);
+    }
+    [Fact]
+    public void Empty_reactions_are_diagnosed_and_source_reactions_have_products()
+    {
+        var invalid=Assert.Single(Run("| 1 A | ->{1}").Exports!,f=>f.Id=="sbml");Assert.Null(invalid.Content);Assert.NotNull(invalid.Diagnostic);
+        var model=Sbml(Run("| 0 A | ->{2} A"));Assert.Single(model.Descendants(S+"listOfProducts"));Assert.Equal(2,Flux(model,0,("A",0)));
+    }
+    [Fact]
     public void JIT_export_is_rejected_without_materializing_an_infinite_network()
     {
         var r=CoreEngine.Execute(new(){Code="directive compilation infinite\ndirective jit\n< a b >",Operation="export"});Assert.False(r.Success);Assert.Contains(r.Diagnostics,d=>d.Code=="JIT_EXPORT");

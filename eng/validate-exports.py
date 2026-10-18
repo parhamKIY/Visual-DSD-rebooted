@@ -129,7 +129,7 @@ def octave_check(directory, item, trajectory, closure=False):
     result = subprocess.run([octave, '--quiet', '--no-gui', '--eval', script], cwd=directory, text=True, capture_output=True, timeout=60)
     assert result.returncode == 0, result.stderr
     output = json.loads(out.read_text())
-    assert len(output['times']) == len(trajectory['times'])
+    assert len(output['times']) == len(trajectory['times']), (filename, len(output['times']), len(trajectory['times']))
     assert max(abs(a-b) for a,b in zip(output['times'],trajectory['times'])) < 1e-9
     columns = output['plots']
     if trajectory['series'] and not isinstance(columns[0], list): columns = [[value] for value in columns]
@@ -145,6 +145,7 @@ def octave_check(directory, item, trajectory, closure=False):
 settings = 'directive simulator deterministic\ndirective deterministic {reltolerance=1e-9;abstolerance=1e-11}\ndirective simulation {final=1;points=40;plots=[A;B]}\n'
 fixtures = [
     ('decay', settings+'directive units {time=min;concentration=uM}\n| 10 A | A ->{0.5} B', ()),
+    ('requested-times', settings.replace('points=40','points=40;times=[0.1;0.3;1]')+'| 10 A | A ->{0.5} B', ()),
     ('repeated', settings+'| 10 A | A + A ->{0.1} B', ()),
     ('constant-catalyst', settings+'| constant 2 C | 3 A | 4 B | C ~ A <->{0.2}{0.3} B', ()),
     ('functional', settings+'directive parameters [k=0.5]\ndirective rates [loss=k*[A]+[time]*0.01]\n| 10 A | A ->[[loss]] B', ()),
@@ -153,9 +154,15 @@ fixtures = [
     ('conditional', settings+'| 0 A | 0 B | ->[if [time]<0.5 then 1 else 2] A | ->[round([time]*4)+([time]%0.3)] B', ()),
 ]
 count = 0
+def reference_code(code):
+    # Oslo normally emits adaptive samples. Request the export grid explicitly for comparison.
+    if 'times=[' in code: return code
+    grid=';'.join(format(i/40,'.17g') for i in range(41))
+    return code.replace('points=40','points=40;times=['+grid+']')
+
 for name, code, options in fixtures:
     exported=run('export',code,options)
-    simulated=run('simulate',code,options)
+    simulated=run('simulate',reference_code(code),options)
     files=exported['exports']
     for run_index, trajectory in enumerate(simulated['simulations'],1):
         directory=root/(name+'-'+str(run_index));directory.mkdir(exist_ok=True)
@@ -168,14 +175,16 @@ for name, code, options in fixtures:
             if item['id']=='matlab': octave_check(directory,item,trajectory)
             if item['contentType']=='image/svg+xml': assert ET.fromstring(item['content']).tag=='{http://www.w3.org/2000/svg}svg'
         count+=1
-for log in (False,True):
-    code=settings.replace('plots=[A;B]','plots=[A]')+'directive simulator mc\ndirective moments {order=2;plots=[<A>;<A^2>];initial_minimum=1e-8;log_evaluation='+str(log).lower()+'}\n| 0 A | ->{2} A | A ->{0.1}'
-    exported=run('export',code)
-    simulated=run('simulate',code)
-    directory=root/('closure-'+str(log));directory.mkdir(exist_ok=True)
-    item=next(item for item in exported['exports'] if item['id']=='closure-matlab')
-    assert item['diagnostic'] is None, item
-    octave_check(directory,item,simulated['simulations'][0],True)
-    count+=1
+for nonlinear in (False,True):
+    for log in (False,True):
+        reactions='| 3 A | 2 B | A + A ->{0.02} B | B ->{0.1} A' if nonlinear else '| 0 A | ->{2} A | A ->{0.1}'
+        code=settings.replace('plots=[A;B]','plots=[A]')+'directive simulator mc\ndirective moments {order=2;plots=[<A>;<A^2>];initial_minimum=1e-8;log_evaluation='+str(log).lower()+'}\n'+reactions
+        exported=run('export',code)
+        simulated=run('simulate',reference_code(code))
+        directory=root/('closure-'+str(nonlinear)+'-'+str(log));directory.mkdir(exist_ok=True)
+        item=next(item for item in exported['exports'] if item['id']=='closure-matlab')
+        assert item['diagnostic'] is None, item
+        octave_check(directory,item,simulated['simulations'][0],True)
+        count+=1
 label='XML structure and independent numerical checks' if args.structural_only else 'libSBML 5.21.2 consistency and independent numerical checks'
 print(f'{count} scientific export cases passed: {label}'+('; real Octave trajectories and closure uncertainties' if args.octave else '; Octave execution not requested')+'.')

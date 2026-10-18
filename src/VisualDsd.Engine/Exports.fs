@@ -193,6 +193,7 @@ module Exports =
         "% Deterministic concentration model; resolved parameters.\n% Time: "+system.Crn.settings.units.time.to_string+"; concentration: "+system.Crn.settings.units.concentration.to_string+"\n\\begin{align*}\n"+String.concat " \\\\\n" (Array.append equations initials)+"\n\\end{align*}\n"
 
     let private sbmlFile (system: System) =
+        if system.Reactions |> List.exists(fun r -> r.reactants.IsEmpty && r.products.IsEmpty) then fail "SBML reactions require at least one reactant or product. Remove empty reactions before export."
         let ns = XNamespace.Get "http://www.sbml.org/sbml/level3/version2/core"
         let math = XNamespace.Get "http://www.w3.org/1998/Math/MathML"
         let attr name value = new System.Xml.Linq.XAttribute(XName.Get name, box value)
@@ -327,6 +328,12 @@ module Exports =
          "dx = ["+String.concat ";" equations+"];"
          "end"] |> String.concat "\n" |> fun text -> text+"\n"+matlabConditional
 
+    let private sourceFile (crn: Crn) =
+        // The original serializer omits moment settings and zero initial declarations.
+        let mc=crn.settings.moment_closure
+        let moments=sprintf "directive moments {order=%d;initial_minimum=%s;log_evaluation=%s;plots=[%s]}\n" mc.order (number mc.initial_minimum) (if mc.log_evaluation then "true" else "false") (mc.plots |> List.map Moment_closure_settings.to_string_monomial |> String.concat ";")
+        moments+crn.to_string_zero_initials()
+
     let run (crn: Crn) =
         let instances = Exploration.instances crn
         if instances.Length > 32 then raise (ExecutionFailure("EXPORT_LIMIT", "Export supports at most 32 resolved runs per request. Select a smaller sweep."))
@@ -352,7 +359,7 @@ module Exports =
                 let fileName = if extension=".m" then (if id="closure-matlab" then "crn_closure_run_" else "crn_export_run_")+sprintf "%03d" (runIndex+1)+extension else prefix+"-"+id+extension
                 outputs.Add(ExportData(id,name,fileName,mime,content,diagnostic,instance.name,instance.sweep,instance.assignment))
             let system = lazy (prepare current)
-            add "code" "Resolved CRN" ".crn" "text/plain" (fun () -> current.to_string())
+            add "code" "Resolved CRN" ".crn" "text/plain" (fun () -> sourceFile current)
             add "sbml" "SBML Level 3 Version 2" ".xml" "application/sbml+xml" (fun () -> sbmlFile system.Value)
             add "matlab" "MATLAB / Octave ODE" ".m" "text/plain" (fun () -> matlabFile system.Value)
             add "equations" "ODE equations (LaTeX)" ".tex" "application/x-tex" (fun () -> latexFile system.Value)

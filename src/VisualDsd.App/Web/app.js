@@ -615,7 +615,7 @@ function renderExports(){
   const items=exportItems();if(!items.length)return;
   $('exports-summary').textContent=exportSummary(items);
   const runs=[...new Set(items.map(item=>item.fileName.match(/run[-_](\d+)/)?.[1] || item.run+'|'+item.sweep+'|'+item.assignment))];
-  $('export-run').replaceChildren(...runs.map((key,i)=>{const item=items.find(e=>(e.fileName.match(/run[-_](\d+)/)?.[1] || e.run+'|'+e.sweep+'|'+e.assignment)===key);const node=element('option','',[`Run ${i+1}`,item.run,item.sweep,item.assignment].filter(v=>v&&v!=='[]').join(' · '));node.value=key;return node;}));
+  $('export-run').replaceChildren(...runs.map((key,i)=>{const item=items.find(e=>(e.fileName.match(/run[-_](\d+)/)?.[1] || e.run+'|'+e.sweep+'|'+e.assignment)===key);const node=element('option','',[...new Set([`Run ${i+1}`,item.run,item.sweep,item.assignment].filter(v=>v&&v!=='[]'))].join(' · '));node.value=key;return node;}));
   renderExportFiles();
 }
 function renderExportFiles(){
