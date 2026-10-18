@@ -98,7 +98,7 @@ def sbml_check(content, trajectory):
         env = dict(zip(ids, y), c=1)
         fluxes = [function(t, env) for _, function in reactions]
         return [0 if constants[i] else sum(stoich[i] * flux for (stoich, _), flux in zip(reactions, fluxes)) for i in range(len(y))]
-    end = trajectory['times'][-1]
+    end = trajectory['times'][-1] - trajectory['settings']['initial']
     # Fixed-step RK4 is independent of both .NET ODE solvers and Octave's adaptive solver.
     count = max(4000, math.ceil(end / .0005))
     h = end / count
@@ -145,6 +145,7 @@ def octave_check(directory, item, trajectory, closure=False):
 settings = 'directive simulator deterministic\ndirective deterministic {reltolerance=1e-9;abstolerance=1e-11}\ndirective simulation {final=1;points=40;plots=[A;B]}\n'
 fixtures = [
     ('decay', settings+'directive units {time=min;concentration=uM}\n| 10 A | A ->{0.5} B', ()),
+    ('offset-time', settings.replace('final=1;points=40','initial=2;final=3;points=40;times=['+';'.join(format(2+i/40,'.17g') for i in range(41))+']')+'| 10 A | A ->[[time]*0.1] B', ()),
     ('requested-times', settings.replace('points=40','points=40;times=[0.1;0.3;1]')+'| 10 A | A ->{0.5} B', ()),
     ('repeated', settings+'| 10 A | A + A ->{0.1} B', ()),
     ('constant-catalyst', settings+'| constant 2 C | 3 A | 4 B | C ~ A <->{0.2}{0.3} B', ()),
@@ -179,6 +180,7 @@ for nonlinear in (False,True):
     for log in (False,True):
         reactions='| 3 A | 2 B | A + A ->{0.02} B | B ->{0.1} A' if nonlinear else '| 0 A | ->{2} A | A ->{0.1}'
         code=settings.replace('plots=[A;B]','plots=[A]')+'directive simulator mc\ndirective moments {order=2;plots=[<A>;<A^2>];initial_minimum=1e-8;log_evaluation='+str(log).lower()+'}\n'+reactions
+        if nonlinear and log: code=code.replace('points=40','points=40;times=[0.1;0.3;1]')
         exported=run('export',code)
         simulated=run('simulate',reference_code(code))
         directory=root/('closure-'+str(nonlinear)+'-'+str(log));directory.mkdir(exist_ok=True)

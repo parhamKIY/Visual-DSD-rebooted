@@ -76,6 +76,15 @@ public class ExportTests
         Assert.Contains("<ci>c</ci>",model.ToString());
     }
     [Fact]
+    public void SBML_time_zero_maps_to_nonzero_source_start_time()
+    {
+        var model=Sbml(Run("directive simulation {initial=2;final=3}\n| 3 A | A ->[[time]*[A]] B"));
+        var values=new Dictionary<string,double>{{"s1",3},{"s2",0},{"c",1}};
+        var expression=model.Descendants(M+"math").Single().Elements().Single();
+        Assert.Equal(6,MathValue(expression,values,0));Assert.Equal(9,MathValue(expression,values,1));
+        Assert.Contains("source time 2",model.Element(S+"notes")!.Value);
+    }
+    [Fact]
     public void Catalysts_and_reverse_reactions_have_correct_flux_and_stoichiometry()
     {
         var model=Sbml(Run("| 2 C | 3 A | 4 B | C ~ A <->{2}{3} B"));

@@ -206,7 +206,10 @@ module Exports =
             let unary name x = apply name [render x]
             match expression with
             | E.Key (Key.Species sp) -> value "ci" speciesIds.[sp]
-            | E.Key Key.Time -> XElement(math+"csymbol",attr "encoding" "text",attr "definitionURL" "http://www.sbml.org/sbml/symbols/time","time")
+            | E.Key Key.Time ->
+                let time=XElement(math+"csymbol",attr "encoding" "text",attr "definitionURL" "http://www.sbml.org/sbml/symbols/time","time")
+                if system.Crn.settings.simulation.initial=0.0 then time
+                else apply "plus" [time;render (E.Float system.Crn.settings.simulation.initial)]
             | E.Key _ -> fail "Unresolved SBML expression key."
             | E.Float n ->
                 let text=number n
@@ -252,7 +255,10 @@ module Exports =
             let modifiers = E.mentions system.Fluxes.[i] |> List.choose (function Key.Species sp when not(Set.contains sp used) -> Some sp | _ -> None) |> List.distinct
             let modifierList = if modifiers.IsEmpty then [] else [element "listOfModifiers" [] (modifiers |> List.map (fun sp -> element "modifierSpeciesReference" [attr "species" speciesIds.[sp]] []))]
             element "reaction" [attr "id" ("r"+string(i+1));attr "reversible" "false"] (participants @ modifierList @ [kinetics]))
-        let contents = [units;compartment;species] @ (if reactions.IsEmpty then [] else [element "listOfReactions" [] reactions])
+        let notes=if system.Crn.settings.simulation.initial=0.0 then [] else
+                      let xhtml=XNamespace.Get "http://www.w3.org/1999/xhtml"
+                      [element "notes" [] [XElement(xhtml+"body",XElement(xhtml+"p",sprintf "SBML time zero corresponds to source time %s %s. Functional time references include this offset." (number system.Crn.settings.simulation.initial) system.Crn.settings.units.time.to_string))]]
+        let contents = notes @ [units;compartment;species] @ (if reactions.IsEmpty then [] else [element "listOfReactions" [] reactions])
         let model = element "model" [attr "id" "crn_export";attr "name" (if String.IsNullOrWhiteSpace system.Crn.name then "Visual DSD model" else system.Crn.name);attr "timeUnits" "model_time";attr "substanceUnits" "model_substance";attr "extentUnits" "model_substance";attr "volumeUnits" "litre"] contents
         XDocument(XDeclaration("1.0","utf-8",null),[|box (element "sbml" [attr "level" 3;attr "version" 2] [model])|]).ToString() + "\n"
 
@@ -302,7 +308,10 @@ module Exports =
         let delta = closure.mc_settings.initial_minimum
         let initials = closure.monomials |> List.map (fun powers -> Array.fold2 (fun value power population -> value * (if population=0.0 then delta else population)**float power) 1.0 powers (closure.populations.index_to_species |> Array.map (fun p -> p.value)))
         let sim = closure.sim_settings
-        if sim.final<=sim.initial || sim.points<1 || sim.points>100000 || not sim.times.IsEmpty then fail "Moment MATLAB requires an increasing interval, 1–100000 points and a uniform output grid."
+        if sim.final<=sim.initial || sim.points<1 || sim.points>100000 then fail "Moment MATLAB requires an increasing interval and 1–100000 points."
+        if sim.times |> List.exists(fun t -> not(Double.IsFinite t) || t<sim.initial || t>sim.final) then fail "Requested output times must lie within the integration interval."
+        if sim.times |> List.pairwise |> List.exists(fun (a,b) -> b<=a) then fail "Requested output times must be strictly increasing."
+        let requested=if sim.times.IsEmpty then sprintf "linspace(%s,%s,%d)'" (number sim.initial) (number sim.final) (sim.points+1) else "["+(sim.times |> List.map number |> String.concat ";")+"]"
         let equations = Moments.combine_equations closure |> List.map (snd >> expression)
         let plots = closure.mc_settings.plots |> List.mapi (fun i (plot,second) ->
             let render = matlab (fun j -> sprintf "x(:,%d)" (j+1)) plot
@@ -313,11 +322,12 @@ module Exports =
         let ode=closure.ode_settings
         ["function sol = crn_export()"
          "% Moment closure; zero initial species use the model initial_minimum, matching the engine."
-         sprintf "t = linspace(%s,%s,%d)';" (number sim.initial) (number sim.final) (sim.points+1)
+         "t = "+requested+";"
+         sprintf "span = unique([%s;t;%s;(%s+%s)/2]);" (number sim.initial) (number sim.final) (number sim.initial) (number sim.final)
          "names = {"+(names |> Array.map quote |> String.concat ",")+"};"
          "x0 = ["+(initials |> List.map number |> String.concat ";")+"];"
          sprintf "options = odeset('RelTol',%s,'AbsTol',%s);" (number ode.reltolerance) (number ode.abstolerance)
-         sprintf "[ti,x] = %s(@rhs,t,x0,options);" (if ode.stiff then "ode15s" else "ode45")
+         sprintf "[ti,x] = %s(@rhs,span,x0,options);" (if ode.stiff then "ode15s" else "ode45")
          "x = interp1(ti,x,t,'linear');"
          sprintf "plots = zeros(numel(t),%d); deviations = NaN(numel(t),%d);" closure.mc_settings.plots.Length closure.mc_settings.plots.Length
          yield! plots
