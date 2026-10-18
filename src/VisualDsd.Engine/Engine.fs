@@ -335,7 +335,7 @@ module private CrnExecution =
 type Engine private () =
     static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.18.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.18.1", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -343,7 +343,7 @@ type Engine private () =
         let validation = RequestValidation.Validate request
         if validation.Length > 0 then EngineResponse(false, "", "", null, validation)
         else
-            let dialect =
+            let mutable dialect =
                 if request.Language = "crn" then "current"
                 elif request.Dialect = "auto" then
                     if request.Code.Contains("//old_syntax", StringComparison.Ordinal) then "legacy" else "current"
@@ -354,11 +354,26 @@ type Engine private () =
                 Globalization.CultureInfo.CurrentUICulture <- Globalization.CultureInfo.InvariantCulture
                 if request.Language = "crn" then CrnExecution.executeProgram request
                 else
-                    let code = if dialect = "legacy" then SLConversion.convertSL request.Code else request.Code
                     let toeholds = if isNull request.Toeholds then Options.getToeholdsText Options.default_options else request.Toeholds
                     let specificities = if isNull request.Specificities then Options.getSpecificitiesText Options.default_options else request.Specificities
                     LiveProgress.phase "expanding" "Parsing DSD and preparing the reaction network."
-                    let original, _ = Dsd.parse_extended_with_options (DsdWorkspace.configure request) Environment.empty toeholds specificities code
+                    let parse code = Dsd.parse_extended_with_options (DsdWorkspace.configure request) Environment.empty toeholds specificities code |> fst
+                    let code, original =
+                        if dialect = "legacy" then
+                            let code = SLConversion.convertSL request.Code
+                            code, parse code
+                        else
+                            try request.Code, parse request.Code
+                            with :? Parser.Exception as currentError ->
+                                // Pasted Silverlight source often has neither a .vdsd extension nor the marker.
+                                // Valid current programs always keep the current parser's interpretation.
+                                if request.Dialect <> "auto" then raise currentError
+                                let converted = try Some (SLConversion.convertSL request.Code) with _ -> None
+                                match converted with
+                                | Some code ->
+                                    dialect <- "legacy"
+                                    code, parse code
+                                | None -> raise currentError
                     let originalOptions = Dsd.get_options original
                     let compilation =
                         match request.Compilation with

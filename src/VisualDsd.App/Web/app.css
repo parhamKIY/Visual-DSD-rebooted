@@ -38,3 +38,17 @@ dialog{max-width:430px;width:calc(100% - 32px);padding:36px;border:1px solid var
 .jobs-panel{margin:16px 24px;padding:16px;border:1px solid var(--line);border-radius:8px;background:white}.jobs-panel .view-toolbar{flex-wrap:wrap}.jobs-panel .muted{flex:1}.jobs-panel #job-list{max-height:300px;overflow:auto}.job-row{padding:12px 0;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}.job-row>span{flex:1;min-width:200px;overflow-wrap:anywhere;font-size:11px}.job-row small{display:block;color:var(--muted);margin-top:5px}.live-progress{padding:16px;border-bottom:1px solid var(--line);background:#f5faf8}.live-progress .view-toolbar{flex-wrap:wrap}.live-progress p{font-size:11px;line-height:1.6;margin-top:8px;overflow-wrap:anywhere}#live-chart{width:100%;height:280px}.live-progress .legend{display:flex;flex-wrap:wrap;gap:8px}#execution-mode{font-size:10px}
 
 .example-list{max-height:48vh;overflow-y:auto;overscroll-behavior:contain}
+
+/* A shared divider keeps the editor and results within the available workspace. */
+.workbench{grid-template-columns:minmax(0,var(--editor-share,1fr)) 20px minmax(0,var(--result-share,1fr));gap:0;align-items:stretch}
+.source-pane,.results-pane{display:flex;flex-direction:column}
+.editor-wrap{flex:1 0 auto;min-height:300px;resize:vertical;overflow:hidden}
+.result-panel{flex:1}
+.pane-divider{align-self:stretch;position:relative;padding:0;background:transparent;cursor:col-resize;touch-action:none;min-height:80px;border-radius:5px}
+.pane-divider::before{content:"";position:absolute;top:12px;bottom:12px;left:9px;width:2px;background:var(--line);border-radius:2px}
+.pane-divider::after{content:"⋮";position:absolute;top:24px;left:0;width:100%;color:var(--muted);font-size:19px;background:#f6f8f8}
+.pane-divider:hover::before,.pane-divider:focus-visible::before,.resizing .pane-divider::before{background:var(--teal)}
+.resizing{user-select:none;cursor:col-resize}
+.source-heading{height:auto;min-height:53px;gap:10px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.syntax-control{display:flex;gap:6px;align-items:center;min-width:0}.syntax-control label{font-size:10px;color:var(--muted)}.syntax-control select{font-size:10px;max-width:120px}
+@media(max-width:950px){.workbench{grid-template-columns:minmax(0,1fr);gap:18px}.pane-divider{display:none}.editor-wrap{flex:none}.source-pane,.results-pane{min-width:0}}

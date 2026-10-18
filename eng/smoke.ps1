@@ -1,14 +1,15 @@
-param([string] $Runtime = 'win-x64')
+param([string] $Runtime = 'win-x64', [string] $AppDirectory)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if ($Runtime -notin @('win-x64', 'linux-x64')) { throw 'Supported targets: win-x64, linux-x64.' }
 $name = if ($Runtime -eq 'win-x64') { 'VisualDsd.exe' } else { 'VisualDsd' }
-$publishItems = @(Get-ChildItem -LiteralPath (Join-Path $repoRoot "artifacts/publish/$Runtime"))
+if (!$AppDirectory) { $AppDirectory = Join-Path $repoRoot "artifacts/publish/$Runtime" }
+$publishItems = @(Get-ChildItem -LiteralPath $AppDirectory)
 if ($publishItems.Count -ne 1 -or $publishItems[0].Name -ne $name) { throw 'The standalone publish directory must contain only the application executable.' }
 $directory = Join-Path $repoRoot "artifacts/smoke/$([guid]::NewGuid())/standalone app"
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
 $executable = Join-Path $directory $name
-Copy-Item -LiteralPath (Join-Path $repoRoot "artifacts/publish/$Runtime/$name") -Destination $executable
+Copy-Item -LiteralPath (Join-Path $AppDirectory $name) -Destination $executable
 
 function Start-Standalone {
     param([string[]] $Arguments, [hashtable] $ExtraEnvironment = @{})
@@ -49,7 +50,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.18.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.18.1') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -71,6 +72,9 @@ $expanded = Invoke-Standalone @('expand', $catalytic) | ConvertFrom-Json
 if (!$expanded.success -or $expanded.model.species.Count -ne 9 -or $expanded.model.reactions.Count -ne 4) { throw 'Standalone expansion differs from the reference.' }
 $converted = Invoke-Standalone @('expand', $legacy) | ConvertFrom-Json
 if (!$converted.success -or $converted.dialect -ne 'legacy' -or $converted.model.species.Count -ne 7) { throw 'Standalone legacy conversion failed.' }
+$pastedLegacy = (Get-Content -LiteralPath $legacy -Raw).Replace('//old_syntax', '// original example')
+$automaticLegacy = Invoke-Standalone @('expand', '-') $pastedLegacy | ConvertFrom-Json
+if (!$automaticLegacy.success -or $automaticLegacy.dialect -ne 'legacy' -or $automaticLegacy.model.species.Count -ne 7 -or $automaticLegacy.model.reactions.Count -ne 4) { throw 'Pasted legacy syntax auto-detection failed.' }
 foreach ($simulator in @('oslo', 'ssa', 'sundials')) {
     $simulated = Invoke-Standalone @('simulate', $catalytic, '--simulator', $simulator, '--final', '100', '--points', '20', '--seed', '42') | ConvertFrom-Json
     if (!$simulated.success -or $simulated.model.settings.simulator -ne $simulator -or $simulated.model.simulations.Count -lt 1) { throw "Standalone $simulator simulation failed." }
@@ -235,7 +239,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'live-jobs.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'layout.js', 'live-jobs.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -295,7 +299,7 @@ try {
         $remoteResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($remoteJob.id)" -TimeoutSec 10
         if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote calculation timed out.' }
     } while(!$remoteResult.finishedAt)
-    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.18.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
+    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.18.1' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
     $events=Invoke-WebRequest "$gatewayAddress/api/jobs/$($remoteJob.id)/events" -TimeoutSec 10
     if($events.Headers['Content-Type'] -notmatch 'text/event-stream' -or $events.Content -notmatch 'event: job') { throw 'Standalone job streaming failed.' }
     $slowBody=@{code="directive simulator stochastic`n(1000 * <a> | rxn <a> ->{1.0} <a>)";operation='simulate';final=1e12;points=1;seed=42;timeoutSeconds=600} | ConvertTo-Json

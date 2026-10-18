@@ -84,6 +84,32 @@ public class EngineTests
         Assert.Equal("legacy", response.Dialect);
     }
 
+    [Theory]
+    [InlineData("parse")]
+    [InlineData("expand")]
+    [InlineData("simulate")]
+    public void Pasted_old_syntax_without_a_marker_is_detected_and_preserves_explicit_legacy_results(string operation)
+    {
+        const string code = "directive duration 1 points 10\ndirective plot <a>\ndef N = 3\n(N * <a>)";
+        var request = new ModelRequest { Code = code, Operation = operation, Simulator = "oslo" };
+        var automatic = CoreEngine.Execute(request);
+        var explicitLegacy = CoreEngine.Execute(request with { Dialect = "legacy" });
+        Assert.True(automatic.Success, JsonSerializer.Serialize(automatic));
+        Assert.Equal("legacy", automatic.Dialect);
+        Assert.Equal(JsonSerializer.Serialize(explicitLegacy), JsonSerializer.Serialize(automatic));
+        Assert.Equal(3, double.Parse(Assert.Single(automatic.Model!.Species).Initial, System.Globalization.CultureInfo.InvariantCulture));
+        var explicitCurrent = CoreEngine.Execute(request with { Dialect = "current" });
+        Assert.False(explicitCurrent.Success); Assert.Equal("current", explicitCurrent.Dialect);
+    }
+
+    [Fact]
+    public void Commented_old_directives_do_not_reinterpret_a_valid_current_program()
+    {
+        var result = CoreEngine.Execute(new() { Code = "(* directive duration 3600 points 1000\n directive plot <missing> *)\ndirective simulation {final=2;points=10}\n<a>" });
+        Assert.True(result.Success, JsonSerializer.Serialize(result)); Assert.Equal("current", result.Dialect);
+        Assert.Equal(2, result.Model!.Settings.Final);
+    }
+
     [Fact]
     public void JIT_is_simulated_without_forcing_full_expansion()
     {

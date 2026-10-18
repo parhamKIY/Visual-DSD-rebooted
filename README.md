@@ -85,6 +85,10 @@ dom a = {bind=k; unbind=u}
 
 The `^` marks a toehold domain and `*` its complement. Simulation options can come from the model's directives or the workspace controls. The **Species**, **Reactions**, and **Network** views show the expanded model; the simulation view provides plots and data exports.
 
+The editor and results start at equal widths. Drag their center divider to resize them; arrow keys adjust a focused divider, and Enter or a double-click restores equal widths. The browser remembers the split. The editor can also be resized vertically, and narrow screens stack the two panes.
+
+**Syntax**, beside the editor title, offers **Auto-detect**, **Current**, and **Old syntax**. Auto-detect accepts pasted legacy programs without a filename or `//old_syntax` marker: if current-syntax parsing fails, it tries the original Silverlight converter. A valid current program keeps its current interpretation; explicit syntax choices are always honored. The badge shows the resolved syntax after checking or running. The converter's original unsupported directives remain subject to the compatibility limits below.
+
 The searchable library contains 17 workspace examples and all 108 `.txt` / `.dna` sources from the frozen original DSD example collection, grouped by category. Original source text is preserved. These include research models, Rules DSD and WalkerTalk demonstrations; some need additional declarations or data, and inclusion does not establish that every example successfully simulates.
 
 Spatial initial conditions retain their resolved field definition, with full double precision, in results and saved projects. Open **Spatial initial definition** on a species card to inspect point sources, rectangles, central cores and random initialization settings. For repeated DSD declarations of the same species, the original compiler keeps the last spatial definition; CRN input retains separate contributions. Older projects that did not save this metadata remain readable.

@@ -37,9 +37,9 @@
         <div class="model-title"><label class="sr-only" for="model-name">Model name</label><input id="model-name" value="Untitled.dsd" maxlength="120" spellcheck="false"><div><span id="document-description">Write a model, inspect its network, explore its dynamics.</span><span id="save-status" class="save-status">Saved in browser</span></div></div>
         <div class="model-actions"><button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button><button id="save-project" class="button secondary">Save project</button></div>
       </div>
-      <div class="workbench">
-        <section class="source-pane" aria-label="Model source and settings">
-          <div class="pane-heading"><h1><span class="code-icon" aria-hidden="true">〈/〉</span> Model source</h1><span id="dialect-badge" class="badge">Visual DSD</span></div>
+      <div id="workbench" class="workbench">
+        <section id="source-pane" class="source-pane" aria-label="Model source and settings">
+          <div class="pane-heading source-heading"><h1><span class="code-icon" aria-hidden="true">〈/〉</span> Model source</h1><div class="syntax-control"><label for="dialect">Syntax</label><select id="dialect"><option value="auto">Auto-detect</option><option value="current">Current</option><option value="legacy">Old syntax</option></select><span id="dialect-badge" class="badge">Auto syntax</span></div></div>
           <div class="editor-wrap">
             <div id="line-numbers" class="line-numbers" aria-hidden="true">1</div>
             <div class="code-surface"><pre id="highlight" class="code-layer" aria-hidden="true"></pre><textarea id="editor" class="code-layer" aria-label="Model source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"></textarea></div>
@@ -49,7 +49,6 @@
             <summary><span>Model &amp; simulation settings</span><span class="summary-note">From source by default</span></summary>
             <div class="settings-grid">
               <label>Language<select id="language"><option value="dsd">Visual DSD</option><option value="crn">Chemical reaction network · CRN</option></select></label>
-              <label>Syntax<select id="dialect"><option value="auto">Auto-detect</option><option value="current">Current</option><option value="legacy">Legacy</option></select></label>
               <label>Semantics<select id="compilation"><option value="source">From model</option><option value="default">Default</option><option value="detailed">Detailed</option><option value="finite">Finite</option><option value="infinite">Infinite</option></select></label>
               <label>Simulator<select id="simulator"><option value="source">From model</option><option value="oslo">Deterministic · Oslo</option><option value="ssa">Stochastic · SSA</option><option value="lna">Linear noise · LNA</option><option value="cme">Master equation · CME</option><option value="pde">Reaction diffusion · PDE</option><option value="sundials">Deterministic · Sundials</option><option value="cmesundials">Master equation · Sundials</option><option value="mc">Moment closure · MC</option></select></label>
               <label>Time limit (s)<input id="timeoutSeconds" type="number" value="30" min="1" max="86400" step="1"></label>
@@ -72,6 +71,7 @@
           <div class="run-toolbar"><button id="check" class="button secondary" title="Check model syntax">Check</button><button id="expand" class="button secondary">Expand network</button><button id="analyze" class="button secondary">Explore states</button><button id="scientific-export" class="button secondary">Export model</button><button id="synthesize" class="button secondary">Synthesize parameters</button><button id="infer" class="button secondary">Fit parameters</button><button id="simulate" class="button primary"><span aria-hidden="true">▶</span> Simulate</button><button id="cancel" class="button danger" hidden>Stop</button></div>
           <div class="source-hint"><span id="run-state" role="status" aria-live="polite">Ready when you are.</span><kbd>Ctrl ↵</kbd></div>
         </section>
+        <button id="pane-divider" class="pane-divider" type="button" role="separator" aria-label="Resize source and results" aria-orientation="vertical" aria-controls="source-pane" aria-valuemin="20" aria-valuemax="80" aria-valuenow="50" title="Drag to resize panes. Arrow keys adjust width; Enter or double-click restores equal widths."></button>
         <section class="results-pane" aria-label="Model results">
           <div class="pane-heading"><h2>Results</h2><div class="result-heading-meta"><span id="stale" class="badge warning" hidden>Source changed</span><span id="result-summary" class="muted">No run yet</span><button id="export-json" class="icon-button" title="Export result JSON" aria-label="Export result JSON" disabled>↓</button></div></div>
           <section id="live-progress" class="live-progress" hidden aria-label="Provisional calculation preview"><div class="view-toolbar"><strong>Live · provisional</strong><button id="detach-job" class="text-button">Keep running in background</button><button id="save-preview" class="text-button" disabled>Preview CSV ↓</button></div><p id="live-status" role="status"></p><svg id="live-chart" role="img" tabindex="0" viewBox="0 0 800 420" aria-label="Provisional simulation preview"></svg><div id="live-legend" class="legend"></div><div id="live-tooltip" class="chart-tooltip" hidden></div><p class="exploration-note">Latest 200 solver rows, first 8 plots; may be incomplete. Preview data is separate from completed results. Some solvers report run or chain progress without intermediate curves.</p></section>

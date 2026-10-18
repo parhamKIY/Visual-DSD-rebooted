@@ -1,4 +1,5 @@
 import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
+import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta, filterExamples } from './dsd-workspace.js';
 import { exportSummary, populationSnapshotSvg } from './exports.js';
 import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
@@ -15,6 +16,7 @@ import { programSvg, locationLabel } from './program.js';
 import { drawTrace, drawMarginal, drawPair, posteriorCsv } from './posterior.js';
 
 const $ = id => document.getElementById(id);
+installPaneLayout($('workbench'), $('pane-divider'));
 for(const field of dsdFields){
   const label=document.createElement('label');label.textContent=field.label;
   let input;
@@ -143,7 +145,7 @@ async function openExample(id) {
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
   const loaded = documents.find(model => model.exampleId === id);
   if (loaded) return selectDocument(loaded.id);
-  const document=createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect, id);
+  const document=createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect === 'current' ? 'auto' : example.dialect, id);
   document.data=readDatasets(example.data??[]);addDocument(document);
 }
 async function openFiles(files) {
@@ -157,7 +159,8 @@ async function openFiles(files) {
 
 function renderLanguage() {
   const crn = current().options.language === 'crn';
-  $('dialect-badge').textContent = crn ? 'CRN' : current().options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD';
+  const view = state(), resolved = view.response && view.snapshot && resultIsCurrent(current(), view.snapshot) ? view.response.dialect : null;
+  $('dialect-badge').textContent = crn ? 'CRN' : current().options.dialect === 'legacy' ? 'Old syntax' : current().options.dialect === 'current' ? 'Current syntax' : resolved === 'legacy' ? 'Old · auto' : resolved === 'current' ? 'Current · auto' : 'Auto syntax';
   $('program-selection').hidden = !crn; $('edit-crn').hidden = crn;
   $('dialect').disabled = $('compilation').disabled = crn;
   document.querySelector('.sequence-settings').hidden = crn; document.querySelector('.dsd-settings').hidden=crn;
@@ -196,6 +199,7 @@ function renderProgram() {
 }
 
 function renderEditor() {
+  renderLanguage();
   $('highlight').innerHTML = highlightSource(editor.value);
   const lines = editor.value.split('\n').length;
   const errorLines = new Set(state().diagnostics.filter(error => error.line).map(error => error.line));
@@ -346,6 +350,7 @@ function updateStamp() {
 }
 function renderResults() {
   const view = state(), response = view.response;
+  renderLanguage();
   renderProgramSelection(); renderProgram();
   $('tab-program').hidden = !response?.model.program;
   if (view.tab === 'program' && !response?.model.program) view.tab = 'plot';
@@ -614,7 +619,7 @@ async function initialize() {
     $('example-category').replaceChildren(new Option('All categories',''),...categories.map(value=>new Option(value,value)));
     engineVersion = info.version; examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
-    if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
+    if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, 'auto', example.id); documents = [model]; selectDocument(model.id); } }
     await restorePendingJob();
   } catch (error) { connection(false); toast(error.message); }
 }
