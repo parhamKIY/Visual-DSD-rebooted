@@ -1,3 +1,4 @@
+import { dsdFields, dsdOverrides, readDsdOptions, readDsdWorkspace } from './dsd-workspace.js';
 import { readExports } from './exports.js';
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, modelForRun, modelForNode } from './model.js';
 import { readDatasets, readObservations } from './observations.js';
@@ -20,8 +21,9 @@ function readDocument(raw) {
   const id = text(raw.id, 80), name = text(raw.name, 120), code = text(raw.code);
   if (!id || byteLength(code) > MAX_CODE_BYTES) fail('invalid model identifier or source size.');
   const options = {};
-  for (const key of Object.keys(optionDefaults)) options[key] = ['language', 'nodeId', 'systemId', 'phaseX', 'phaseY', 'phaseTrajectories'].includes(key) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
+  for (const key of Object.keys(optionDefaults)) options[key] = (['language', 'nodeId', 'systemId', 'phaseX', 'phaseY', 'phaseTrajectories'].includes(key)||key.startsWith('dsd')) && raw.options[key] === undefined ? optionDefaults[key] : text(object(raw.options)[key], key.endsWith('Id') ? 128 : 100);
   choice(options.language, ['dsd', 'crn']); choice(options.dialect, ['auto', 'current', 'legacy']); choice(options.compilation, ['source', 'default', 'detailed', 'finite', 'infinite']); choice(options.simulator, ['source', 'oslo', 'ssa', 'lna', 'cme', 'pde', 'sundials', 'cmesundials', 'mc']);
+  dsdOverrides(options);
   const databases = {};
   const sourceDatabases = raw.databases === undefined ? {} : object(raw.databases);
   for (const key of ['toeholds', 'specificities']) if (sourceDatabases[key] !== undefined) {
@@ -39,6 +41,7 @@ export function normaliseRequest(raw) {
   for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if (raw[key] !== undefined && raw[key] !== null) options[key] = String(finite(raw[key]));
   if (raw.nodeId != null) options.nodeId = text(raw.nodeId, 128);
   if (raw.systemId != null) options.systemId = raw.systemId === '' ? '$top' : text(raw.systemId, 128);
+  if(raw.dsdOptions!=null){const overrides=readDsdOptions(raw.dsdOptions);if(options.language==='crn')fail('DSD options require DSD input.');for(const field of dsdFields)if(overrides[field.name]!=null)options[field.id]=String(overrides[field.name]);}
   for(const key of ['phaseX','phaseY'])if(raw[key]!=null)options[key]=text(raw[key],128);
   if(raw.phaseTrajectories!=null)options.phaseTrajectories=String(integer(raw.phaseTrajectories,0,16));
   const databases = {};
@@ -304,6 +307,7 @@ export function readResponse(raw, nested=false) {
   if((operation==='synthesize')!==Boolean(model.synthesis))fail('synthesis metadata does not match its operation.');
   if(source.exports!=null)model.exports=readExports(source.exports);
   if((operation==='export')!==Boolean(model.exports))fail('export metadata does not match its operation.');
+  if(source.dsd!=null){if(model.kind==='crn')fail('CRN results cannot contain DSD metadata.');model.dsd=readDsdWorkspace(source.dsd);if(model.dsd.options.jit!==model.isJit)fail('DSD JIT metadata differs from the result.');}
   return { success: true, operation, dialect, diagnostics: [], model };
 }
 
@@ -315,6 +319,7 @@ function readSavedResult(raw, model) {
     const program = response.model.program;
     if (response.model.kind !== 'crn' || program?.source !== request.code || (request.nodeId != null && program.selectedNodeId !== request.nodeId) || (request.systemId != null && program.selectedSystemId !== request.systemId)) fail('CRN result does not match its source or selection.');
   } else if (response.model.kind === 'crn') fail('a DSD request cannot contain a CRN result.');
+  if(request.dsdOptions && Object.entries(request.dsdOptions).some(([key,value])=>response.model.dsd?.options[key]!==value))fail('DSD result differs from its requested settings.');
   const snapshot = { name: text(raw.name, 120), engineVersion: text(raw.engineVersion || 'unknown', 50), request };
   const networkFocus = text(raw.networkFocus ?? '', 512);
   const fitNodeId=text(raw.fitNodeId??response.model.program?.selectedNodeId??'',128);
@@ -331,7 +336,7 @@ function readSavedResult(raw, model) {
   const probabilitySpecies = integer(raw.probabilitySpecies ?? 0, 0, Math.max(0, (run?.probabilities?.speciesIds.length || 0) - 1));
   const probabilityFrame = integer(raw.probabilityFrame ?? 0, 0, Math.max(0, (run?.times.length || 0) - 1));
   if (raw.probabilityLog !== undefined && typeof raw.probabilityLog !== 'boolean') fail('invalid probability palette.');
-  return { response, snapshot, fitNodeId, fitParameter, fitPair, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'synthesis', 'exports', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
+  return { response, snapshot, fitNodeId, fitParameter, fitPair, spatialSeries, spatialFrame, stateIndex, probabilitySpecies, probabilityFrame, probabilityLog: raw.probabilityLog ?? false, revision: resultIsCurrent(model, snapshot) ? 0 : -1, runIndex, tab: choice(raw.tab ?? 'plot', ['plot', 'species', 'reactions', 'data', 'network', 'fit', 'synthesis', 'exports', 'dsd', 'spatial', 'states', 'program', 'probabilities']), networkFocus };
 }
 
 export function parseProject(input) {

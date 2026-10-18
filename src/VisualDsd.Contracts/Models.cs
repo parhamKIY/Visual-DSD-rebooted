@@ -20,12 +20,42 @@ public sealed record ModelRequest
     public int? Seed { get; init; }
     public string? Toeholds { get; init; }
     public string? Specificities { get; init; }
+    public DsdOptionsData? DsdOptions { get; init; }
     public string? PhaseX { get; init; }
     public string? PhaseY { get; init; }
     public int PhaseTrajectories { get; init; } = 12;
     public int TimeoutSeconds { get; init; } = 30;
     public DatasetData[] Data { get; init; } = [];
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record DsdOptionsData
+{
+    public bool? Leaks { get; init; }
+    public bool? PinLeaks { get; init; }
+    public bool? Polymers { get; init; }
+    public bool? Unproductive { get; init; }
+    public bool? SequenceRates { get; init; }
+    public bool? DeclareDomains { get; init; }
+    public bool? CheckDna { get; init; }
+    public bool? ColourToeholds { get; init; }
+    public bool? PlotNames { get; init; }
+    public bool? StateImages { get; init; }
+    public bool? Jit { get; init; }
+    public double? ToeholdBindRate { get; init; }
+    public double? ToeholdUnbindRate { get; init; }
+    public int? ToeholdLength { get; init; }
+    public int? SpecificityLength { get; init; }
+    public double? Temperature { get; init; }
+    public string? Predicates { get; init; }
+    public string? Renderer { get; init; }
+    public string? RenderMode { get; init; }
+    public string? Arrange { get; init; }
+    public bool? RotateLabels { get; init; }
+}
+public sealed record SequenceDatabasesData(string Toeholds, string Specificities);
+public sealed record DomainSequenceData(string Domain, bool IsToehold, string? Sequence, string? ReverseComplement);
+public sealed record DsdWorkspaceData(DsdOptionsData Options, string SequenceStatus, DomainSequenceData[] Sequences, int RemainingToeholds, int RemainingSpecificities);
 
 public sealed record Diagnostic(string Code, string Message, int? Line = null, int? Column = null);
 public sealed record Participant(string SpeciesId, int Multiplicity);
@@ -69,7 +99,7 @@ public sealed record SynthesisData(string Mode, string Solver, string Status, do
     PhasePortraitData? PhasePortrait, string? Code, int? Seed);
 public sealed record ExportData(string Id, string Name, string FileName, string ContentType, string? Content, Diagnostic? Diagnostic, string Run, string Sweep, string Assignment);
 public sealed record ModelData(string Kind, string Compilation, bool IsJit, SettingsData Settings, SpeciesData[] Species, ReactionData[] Reactions, SimulationData[] Simulations,
-    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null, SynthesisData? Synthesis = null, ExportData[]? Exports = null);
+    InferenceData? Inference = null, string? CrnCode = null, CrnProgramData? Program = null, InferenceNodeData[]? InferenceNodes = null, SynthesisData? Synthesis = null, ExportData[]? Exports = null, DsdWorkspaceData? Dsd = null);
 public sealed record EngineResponse(bool Success, string Operation, string Dialect, ModelData? Model, Diagnostic[] Diagnostics)
 {
     public static EngineResponse Failure(ModelRequest request, string code, string message) =>
@@ -92,6 +122,15 @@ public static class RequestValidation
         if (request.Language == "dsd" && (request.NodeId is not null || request.SystemId is not null)) errors.Add(new("INVALID_SELECTION", "Node and system selection requires CRN input."));
         if (request.Language == "crn" && (request.Dialect == "legacy" || request.Compilation != "source" || request.Toeholds is not null || request.Specificities is not null))
             errors.Add(new("CRN_OPTIONS", "CRN input uses current syntax and does not use DSD compilation or sequence databases."));
+        if (request.Language == "crn" && request.DsdOptions is not null) errors.Add(new("CRN_OPTIONS", "DSD options require DSD input."));
+        if (request.DsdOptions is { } dsd)
+        {
+            if (dsd.Renderer is not (null or "classic" or "circles" or "branches") || dsd.RenderMode is not (null or "complement" or "condensed" or "nucleotides") || dsd.Arrange is not (null or "wide" or "babylon") || dsd.Predicates is not (null or "all" or "none"))
+                errors.Add(new("DSD_OPTIONS", "Unknown DSD rendering or predicate setting."));
+            if (new[] { dsd.ToeholdBindRate, dsd.ToeholdUnbindRate }.Any(v => v.HasValue && (!double.IsFinite(v.Value) || v.Value < 0))) errors.Add(new("DSD_OPTIONS", "Toehold rates must be finite and nonnegative."));
+            if (dsd.ToeholdLength is < 1 or > 256 || dsd.SpecificityLength is < 1 or > 256) errors.Add(new("DSD_OPTIONS", "Domain lengths must be between 1 and 256."));
+            if (dsd.Temperature.HasValue && (!double.IsFinite(dsd.Temperature.Value) || dsd.Temperature.Value <= -273.15 || dsd.Temperature.Value > 1000)) errors.Add(new("DSD_OPTIONS", "Temperature must be finite, above absolute zero and at most 1000 C."));
+        }
         if (string.IsNullOrWhiteSpace(request.Code)) errors.Add(new("EMPTY_CODE", "Model code is required."));
         else if (Encoding.UTF8.GetByteCount(request.Code) > MaximumCodeBytes) errors.Add(new("CODE_TOO_LARGE", "Model code exceeds 256 KiB."));
         if (request.Code?.Contains('\0') == true) errors.Add(new("INVALID_CODE", "Model code contains a null character."));

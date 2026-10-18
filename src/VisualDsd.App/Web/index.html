@@ -26,7 +26,7 @@
       <button id="open-project" class="open-file"><span aria-hidden="true">▱</span> Open project</button>
       <input id="project-input" type="file" accept=".json,.dsdproj" hidden>
       <div class="library-heading"><span class="eyebrow">EXAMPLE LIBRARY</span><span id="example-count" class="count"></span></div>
-      <div id="examples" class="example-list"></div>
+      <label class="sr-only" for="example-search">Search examples</label><input id="example-search" class="example-search" type="search" placeholder="Search examples…"><label class="sr-only" for="example-category">Example category</label><select id="example-category" class="example-category" aria-label="Example category"><option value="">All categories</option></select><div id="examples" class="example-list"></div>
       <div class="sidebar-note"><span class="note-mark" aria-hidden="true">◎</span><p>Same language.<br>A fresh workspace.</p><small>Models stay on this computer.</small></div>
       <div class="sidebar-footer"><span class="status-dot"></span><span id="version">Local workspace</span></div>
     </aside>
@@ -56,7 +56,11 @@
               <label>Output points<input id="points" type="number" placeholder="From model" min="1" max="100000" step="1"></label>
               <label>Random seed<input id="seed" type="number" placeholder="From model" step="1"></label>
             </div>
-            <details class="sequence-settings"><summary>Sequence databases</summary><div class="database-inputs"><label>Toeholds<input id="toeholds-file" type="file" accept=".txt,.csv,.dat"><button id="clear-toeholds" class="text-button" type="button">Use default</button><small id="toeholds-name">Default database</small></label><label>Specificities<input id="specificities-file" type="file" accept=".txt,.csv,.dat"><button id="clear-specificities" class="text-button" type="button">Use default</button><small id="specificities-name">Default database</small></label></div></details>
+            <details class="dsd-settings"><summary>DSD reactions &amp; molecular rendering</summary><p class="exploration-note">Blank controls follow the source. Controls override directives for this document; save a project to preserve them. Check or expand to inspect the effective settings in DSD &amp; Sequences.</p><div id="dsd-option-controls" class="settings-grid"></div><button id="dsd-reset" class="text-button" type="button">Follow source for all DSD options</button></details>
+            <details class="sequence-settings"><summary>Sequence databases</summary><p class="exploration-note">One uppercase DNA sequence per line. Changes are saved with this document. Toeholds have fewer than 10 bases; specificities have at least 10. Database checking follows the DSD setting above.</p><div class="database-editors">
+              <section><label for="toeholds-text">Toeholds</label><textarea id="toeholds-text" aria-label="Toeholds database" spellcheck="false" wrap="off" disabled></textarea><p id="toeholds-stats" class="database-stats" role="status"></p><div class="database-actions"><label class="text-button">Load file<input id="toeholds-file" type="file" accept=".txt,.csv,.dat"></label><button id="save-toeholds" class="text-button" type="button">Save database</button><button id="clear-toeholds" class="text-button" type="button">Use default</button></div><small id="toeholds-name">Default database</small></section>
+              <section><label for="specificities-text">Specificities</label><textarea id="specificities-text" aria-label="Specificities database" spellcheck="false" wrap="off" disabled></textarea><p id="specificities-stats" class="database-stats" role="status"></p><div class="database-actions"><label class="text-button">Load file<input id="specificities-file" type="file" accept=".txt,.csv,.dat"></label><button id="save-specificities" class="text-button" type="button">Save database</button><button id="clear-specificities" class="text-button" type="button">Use default</button></div><small id="specificities-name">Default database</small></section>
+            </div></details>
             <button id="reset-settings" class="text-button" type="button">Reset overrides</button>
           </details>
           <div id="program-selection" class="program-selection" hidden><label>Model node<select id="nodeId"><option value="">Automatic</option></select></label><label>System<select id="systemId"><option value="">Automatic</option></select></label><p>Check the source to refresh the model list. Calculations use the selected system.</p></div>
@@ -76,6 +80,7 @@
             <button id="tab-network" type="button" role="tab" data-tab="network" aria-controls="panel-network" aria-selected="false" tabindex="-1">Network</button>
             <button id="tab-data" type="button" role="tab" data-tab="data" aria-controls="panel-data" aria-selected="false" tabindex="-1">Data</button>
             <button id="tab-program" type="button" role="tab" data-tab="program" aria-controls="panel-program" aria-selected="false" tabindex="-1" hidden>Models</button>
+            <button id="tab-dsd" type="button" role="tab" data-tab="dsd" aria-controls="panel-dsd" aria-selected="false" tabindex="-1" hidden>DSD &amp; Sequences</button>
             <button id="tab-exports" type="button" role="tab" data-tab="exports" aria-controls="panel-exports" aria-selected="false" tabindex="-1" hidden>Exports</button>
             <button id="tab-synthesis" type="button" role="tab" data-tab="synthesis" aria-controls="panel-synthesis" aria-selected="false" tabindex="-1" hidden>Synthesis</button>
             <button id="tab-fit" type="button" role="tab" data-tab="fit" aria-controls="panel-fit" aria-selected="false" tabindex="-1" hidden>Fit</button>
@@ -106,6 +111,12 @@
               <p id="state-summary" class="exploration-note"></p><div id="state-path" class="state-path" aria-label="Shortest path from initial state"></div>
               <div id="state-populations" class="data-table"></div><h3 class="state-heading">Outgoing transitions</h3><div id="state-transitions" class="state-transitions"></div>
               <p class="exploration-note">Complete reachable CTMC graph for the selected run, limited to 1000 states. Transition rates use the model's time unit; they are not probabilities. Absorbing states have no outgoing state changes. Shortest paths minimize the number of transitions. This view does not perform temporal-logic model checking. Export result JSON preserves all transition rates.</p>
+            </section>
+            <section id="panel-dsd" class="result-panel" role="tabpanel" aria-labelledby="tab-dsd" hidden>
+              <div class="view-toolbar"><span class="eyebrow">DOMAIN SEQUENCES</span><button id="sequences-csv" class="button secondary compact">CSV ↓</button><button id="sequences-fasta" class="button secondary compact">FASTA ↓</button></div>
+              <p id="sequence-summary" class="exploration-note"></p><p class="exploration-note">Both columns use the 5′ to 3′ orientation. Assignments come from the compiler and include inline domain sequences. Unassigned domains are retained in CSV and omitted from FASTA. The mapping describes the compiled source; a dynamically generated JIT domain may not have an assignment here.</p>
+              <label class="sr-only" for="domain-search">Search assigned domains</label><input id="domain-search" type="search" placeholder="Find a domain or sequence…"><div id="domain-table" class="data-table domain-table"></div><div class="pagination"><button id="domain-prev" class="button secondary compact">← Previous</button><span id="domain-page-label"></span><button id="domain-next" class="button secondary compact">Next →</button></div>
+              <details><summary>Effective DSD settings for this result</summary><dl id="dsd-effective" class="dsd-effective"></dl></details>
             </section>
             <section id="panel-exports" class="result-panel" role="tabpanel" aria-labelledby="tab-exports" hidden>
               <div class="view-toolbar"><span class="eyebrow">SCIENTIFIC EXPORTS</span><span id="exports-summary"></span></div>

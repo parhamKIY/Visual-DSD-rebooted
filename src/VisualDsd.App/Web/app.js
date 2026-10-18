@@ -1,3 +1,4 @@
+import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta, filterExamples } from './dsd-workspace.js';
 import { exportSummary, populationSnapshotSvg } from './exports.js';
 import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
@@ -13,11 +14,20 @@ import { programSvg, locationLabel } from './program.js';
 import { drawTrace, drawMarginal, drawPair, posteriorCsv } from './posterior.js';
 
 const $ = id => document.getElementById(id);
+for(const field of dsdFields){
+  const label=document.createElement('label');label.textContent=field.label;
+  let input;
+  if(field.kind==='bool'||field.kind==='string'){
+    input=document.createElement('select');
+    for(const [value,text]of [['','From source'],...(field.kind==='bool'?[['true','On'],['false','Off']]:field.choices.map(value=>[value,value]))]){const option=document.createElement('option');option.value=value;option.textContent=text;input.append(option);}
+  }else{input=document.createElement('input');input.type='number';input.step=field.kind==='int'?'1':'any';input.placeholder='From source';}
+  input.id=field.id;label.append(input);$('dsd-option-controls').append(label);
+}
 const editor = $('editor');
 const chart = new SimulationChart($('chart'), $('legend'), $('chart-tooltip'));
 const network = new ReactionNetwork($('network'), $('network-details'), $('network-caption'));
 const views = new Map();
-let exportImageUrl;
+let exportImageUrl, sequenceDefaults;
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
@@ -90,10 +100,11 @@ function renderDocuments() {
   }));
 }
 function renderExamples() {
-  $('example-count').textContent = String(examples.length);
-  $('examples').replaceChildren(...examples.map(example => {
+  const filtered=filterExamples(examples,$('example-search').value,$('example-category').value);
+  $('example-count').textContent=filtered.length===examples.length?String(examples.length):`${filtered.length} / ${examples.length}`;
+  $('examples').replaceChildren(...filtered.map(example => {
     const button = element('button', 'example-button'); button.type = 'button'; button.title = example.description;
-    button.append(element('strong', '', example.name), element('small', '', example.language === 'crn' ? 'Chemical reaction network' : example.dialect === 'legacy' ? 'Original syntax' : example.id === 'jit' ? 'Stochastic · just-in-time' : 'Visual DSD'));
+    button.append(element('strong', '', example.name), element('small', '', example.category?.startsWith('Original')?example.category:example.language === 'crn' ? 'Chemical reaction network' : example.dialect === 'legacy' ? 'Original syntax' : example.id === 'jit' ? 'Stochastic · just-in-time' : 'Visual DSD'));
     button.addEventListener('click', () => openExample(example.id).catch(showError)); return button;
   }));
 }
@@ -107,7 +118,7 @@ function selectDocument(id) {
   $('model-name').value = model.name; editor.value = model.code;
   renderProgramSelection();
   for (const key of Object.keys(optionDefaults)) $(key).value = model.options[key];
-  for (const key of ['toeholds', 'specificities']) { $(`${key}-name`).textContent = model.databases[key]?.name || 'Default database'; $(`${key}-file`).value = ''; }
+  renderDatabases();
   renderDatasets();
   $('species-search').value = state().search;
   $('document-description').textContent = examples.find(example => example.id === model.exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
@@ -146,7 +157,7 @@ function renderLanguage() {
   $('dialect-badge').textContent = crn ? 'CRN' : current().options.dialect === 'legacy' ? 'Legacy syntax' : 'Visual DSD';
   $('program-selection').hidden = !crn; $('edit-crn').hidden = crn;
   $('dialect').disabled = $('compilation').disabled = crn;
-  document.querySelector('.sequence-settings').hidden = crn;
+  document.querySelector('.sequence-settings').hidden = crn; document.querySelector('.dsd-settings').hidden=crn;
 }
 function renderProgramSelection() {
   const options = current().options, program = state().response?.model.program;
@@ -267,7 +278,7 @@ async function run(operation) {
   const model = current(), documentId = model.id, revision = model.revision;
   let request;
   try {
-    for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds']) if ($(key).validity.badInput) throw new Error(`${key}: enter a valid number.`);
+    for (const key of ['initial', 'final', 'points', 'seed', 'timeoutSeconds',...(model.options.language==='crn'?[]:dsdFields.filter(f=>f.kind==='int'||f.kind==='double').map(f=>f.id))]) if ($(key).validity.badInput) throw new Error(`${key}: enter a valid number.`);
     for (const input of $('dataset-list').querySelectorAll('input')) if (!input.validity.valid) throw new Error(input.validationMessage);
     request = requestFor(model, operation);
   }
@@ -340,6 +351,7 @@ function renderResults() {
   renderProgramSelection(); renderProgram();
   $('tab-program').hidden = !response?.model.program;
   if (view.tab === 'program' && !response?.model.program) view.tab = 'plot';
+  $('tab-dsd').hidden=!response?.model.dsd; if(view.tab==='dsd'&&!response?.model.dsd)view.tab='plot';
   $('tab-exports').hidden = !response?.model.exports;
   if(view.tab==='exports'&&!response?.model.exports)view.tab='plot';
   $('tab-synthesis').hidden = !response?.model.synthesis;
@@ -359,7 +371,7 @@ function renderResults() {
   $('fit-node-toolbar').hidden=!nodes.length;
   $('fit-node').replaceChildren(...nodes.map(n=>{const option=element('option','',n.nodeId||'Model');option.value=n.nodeId;return option;}));
   $('fit-node').value=state().fitNodeId ?? response.model.program?.selectedNodeId ?? '';
-  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderSynthesis(); renderExports(); renderExploration(); renderProbabilities();
+  renderRuns(); renderSpecies(); renderReactions(); renderData(); renderNetwork(); renderFit(); renderSynthesis(); renderExports(); renderDsdWorkspace(); renderExploration(); renderProbabilities();
 }
 function renderNetwork() {
   const view = state(), model = selectedModel();
@@ -502,15 +514,42 @@ for (const key of Object.keys(optionDefaults)) $(key).addEventListener('input', 
   if (key === 'nodeId') { current().options.systemId = ''; renderProgramSelection(); }
   renderLanguage(); changed();
 });
-for (const key of ['toeholds', 'specificities']) {
-  $(`${key}-file`).addEventListener('change', async event => {
-    const file = event.target.files[0], model = current(); if (!file) return;
-    try { if (file.size > MAX_CODE_BYTES) throw new Error('Sequence databases must be no larger than 256 KiB.'); const code = await file.text(); if (byteLength(code) > MAX_CODE_BYTES) throw new Error('The sequence database exceeds 256 KiB.'); model.databases[key] = { name: file.name, code }; model.revision++; persist(); if (model.id === activeId) { $(`${key}-name`).textContent = file.name; updateStamp(); } }
-    catch (error) { toast(error.message); }
-    event.target.value = '';
-  });
-  $(`clear-${key}`).addEventListener('click', () => { delete current().databases[key]; $(`${key}-name`).textContent = 'Default database'; changed(); });
+function effectiveDatabase(key){return current().databases[key]?.code??sequenceDefaults?.[key];}
+function databaseStatus(key){
+  const value=$(`${key}-text`).value,result=databaseIssues(value,key);
+  const cross=key==='specificities'?new Set(($('toeholds-text').value).split(/\r\n?|\n/).map(v=>v.trim()).filter(Boolean)):null;
+  if(cross && value.split(/\r\n?|\n/).some(v=>cross.has(v.trim())&&v.trim()))result.issues.push('A sequence also occurs in the toehold database.');
+  if(!result.count)result.issues.push('No sequences: domains may remain unassigned.');
+  $(`${key}-stats`).textContent=`${result.count} sequences${result.issues.length?' · '+result.issues.slice(0,3).join(' ')+(result.issues.length>3?' …':''):''}`;
+  $(`${key}-stats`).classList.toggle('has-issues',Boolean(result.issues.length));
 }
+function renderDatabases(){
+  for(const key of ['toeholds','specificities']){
+    const value=effectiveDatabase(key);$(`${key}-text`).value=value??'';$(`${key}-text`).disabled=value===undefined;$(`save-${key}`).disabled=value===undefined;
+    $(`${key}-name`).textContent=current().databases[key]?.name||'Default database';$(`${key}-file`).value='';
+  }
+  databaseStatus('toeholds');databaseStatus('specificities');
+}
+function setDatabase(model,key,code,name){
+  if(byteLength(code)>MAX_CODE_BYTES)throw new Error('Sequence databases must be no larger than 256 KiB.');
+  model.databases[key]={name,code};model.revision++;persist();
+  if(model.id===activeId){renderDatabases();updateStamp();}
+}
+for (const key of ['toeholds', 'specificities']) {
+  $(`${key}-file`).addEventListener('change',async event=>{
+    const file=event.target.files[0],model=current();if(!file)return;
+    try{if(file.size>MAX_CODE_BYTES+3)throw new Error('Sequence databases must be no larger than 256 KiB.');setDatabase(model,key,await file.text(),file.name);}catch(error){toast(error.message);}finally{event.target.value='';}
+  });
+  $(`${key}-text`).addEventListener('input',()=>{
+    const code=$(`${key}-text`).value;
+    if(byteLength(code)>MAX_CODE_BYTES){$(`${key}-text`).value=effectiveDatabase(key)??'';toast('The sequence database exceeds 256 KiB.');return;}
+    current().databases[key]={name:`Edited ${key}.txt`,code};$(`${key}-name`).textContent=`Edited ${key}.txt`;databaseStatus('toeholds');databaseStatus('specificities');changed();
+  });
+  $(`clear-${key}`).addEventListener('click',()=>{delete current().databases[key];renderDatabases();changed();});
+  $(`save-${key}`).addEventListener('click',()=>{const code=effectiveDatabase(key);if(code!==undefined)download(`${key}.txt`,code);});
+}
+$('dsd-reset').addEventListener('click',()=>{for(const field of dsdFields){current().options[field.id]='';$(field.id).value='';}changed();});
+$('example-search').addEventListener('input',renderExamples);$('example-category').addEventListener('change',renderExamples);
 $('reset-settings').addEventListener('click', () => { current().options = { ...optionDefaults }; for (const key of Object.keys(optionDefaults)) $(key).value = optionDefaults[key]; renderProgramSelection(); renderLanguage(); changed(); });
 $('toggle-models').addEventListener('click', () => { const open = $('model-sidebar').classList.toggle('mobile-open'); $('toggle-models').setAttribute('aria-expanded', String(open)); });
 $('new-crn').addEventListener('click', () => { try { addDocument(createDocument('Untitled.crn', 'directive simulator deterministic\ndirective simulation {final=10;plots=[A;B]}\n| 10 A\n| A ->{0.25} B\n')); $('settings-panel').open = true; } catch (error) { toast(error.message); } });
@@ -566,7 +605,10 @@ async function initialize() {
   selectDocument(activeId);
   const initialDocumentId = activeId;
   try {
-    const [info, library] = await Promise.all([api('/api/info'), api('/api/examples')]);
+    const [info, library, databases] = await Promise.all([api('/api/info'), api('/api/examples'),api('/api/sequences/defaults')]);
+    sequenceDefaults=databases;renderDatabases();
+    const categories=[...new Set(library.map(e=>e.category||'Workspace'))].sort();
+    $('example-category').replaceChildren(new Option('All categories',''),...categories.map(value=>new Option(value,value)));
     engineVersion = info.version; examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
     if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
@@ -589,11 +631,12 @@ $('fit-svg').addEventListener('click',()=>{
   download(`${stem()}-posterior.svg`,new XMLSerializer().serializeToString(svg),'image/svg+xml');
 });
 
+function table(rows){const t=element('table');for(const [index,row] of rows.entries()){const tr=element('tr');for(const cell of row)tr.append(element(index?'td':'th','',String(cell)));t.append(tr);}return t;}
 function renderSynthesis(){
   const result=state().response?.model.synthesis;if(!result)return;
   $('synthesis-summary').textContent=`${result.mode==='turing'?'Turing instability':'Multistability'} · ${result.status} · ${result.solver} · ${numberLabel(result.solverSeconds)} s solving${result.seed==null?'':' · seed '+result.seed}`;
   $('synthesis-note').textContent=result.status==='SAT'?'Z3 found a satisfying assignment to the symbolic constraints. Displayed values are double-precision approximations. Residuals and eigenvalues below are numerical checks; this is not experimental validation.':result.status==='UNSAT'?'No assignment satisfies this model’s encoded constraints and bounds. This statement applies to the selected symbolic formulation.':'The solver returned UNKNOWN. A time limit or incomplete solving does not establish that no solution exists.';
-  const table=rows=>{const t=element('table');for(const [index,row] of rows.entries()){const tr=element('tr');for(const cell of row)tr.append(element(index?'td':'th','',String(cell)));t.append(tr);}return t;};
+
   $('synthesis-values').replaceChildren(table([['Variable','Kind','Value','Lower bound','Upper bound'],...result.values.map(v=>[v.name,v.kind,numberLabel(v.value),v.lowerBound==null?'—':numberLabel(v.lowerBound),v.upperBound==null?'—':numberLabel(v.upperBound)])]));
   const eqNodes=[];
   for(const eq of result.equilibria){eqNodes.push(element('h3','state-heading',`${eq.name} · max Re(λ) = ${numberLabel(eq.maximumRealEigenvalue)}`));eqNodes.push(table([['Species','Concentration','ODE residual'],...eq.species.map((name,i)=>[name,numberLabel(eq.values[i]),numberLabel(eq.residuals[i])])]));}
@@ -643,3 +686,20 @@ $('export-file').addEventListener('change',renderExportPreview);
 $('export-download').addEventListener('click',()=>{const item=selectedExport();if(item?.content!=null)download(item.fileName,item.content,item.contentType+';charset=utf-8');});
 
 $('species-populations').addEventListener('click',()=>{try{download(`${stem()}-final-populations.svg`,populationSnapshotSvg(selectedModel(),selectedRun()),'image/svg+xml');}catch(error){toast(error.message);}});
+
+function renderDsdWorkspace(){
+  const data=state().response?.model.dsd;if(!data)return;
+  const missing=data.sequences.filter(s=>s.sequence===null).length;
+  $('sequence-summary').textContent=data.sequenceStatus==='unavailable'?'This Rules DSD result does not expose a classic domain-to-DNA mapping.':`${data.sequences.length} domain assignments · ${missing} unassigned · ${data.remainingToeholds} unused toeholds · ${data.remainingSpecificities} unused specificities`;
+  $('sequences-csv').disabled=!data.sequences.length;$('sequences-fasta').disabled=!data.sequences.some(s=>s.sequence!==null);
+  const dl=$('dsd-effective');dl.replaceChildren(...dsdFields.flatMap(field=>[element('dt','',field.label),element('dd','',String(data.options[field.name]))]));
+  const term=$('domain-search').value.toUpperCase(),entries=data.sequences.filter(s=>(s.domain+' '+(s.sequence??'')+' '+(s.reverseComplement??'')).toUpperCase().includes(term));
+  const view=state();view.domainPage=Math.max(0,Math.min(view.domainPage||0,Math.ceil(entries.length/50)-1));const start=view.domainPage*50;
+  $('domain-table').replaceChildren(table([['Domain','Type','DNA · 5′ → 3′','Reverse complement · 5′ → 3′'],...entries.slice(start,start+50).map(s=>[s.domain,s.isToehold?'Toehold':'Specificity',s.sequence??'Unassigned',s.reverseComplement??'Unassigned'])]));
+  $('domain-page-label').textContent=entries.length?`${start+1}–${Math.min(start+50,entries.length)} of ${entries.length}`:'No matching domains';
+  $('domain-prev').disabled=!view.domainPage;$('domain-next').disabled=start+50>=entries.length;
+}
+$('domain-search').addEventListener('input',()=>{state().domainPage=0;renderDsdWorkspace();});
+$('domain-prev').addEventListener('click',()=>{state().domainPage--;renderDsdWorkspace();});$('domain-next').addEventListener('click',()=>{state().domainPage++;renderDsdWorkspace();});
+$('sequences-csv').addEventListener('click',()=>download(`${stem()}-sequences.csv`,sequenceCsv(state().response.model.dsd),'text/csv;charset=utf-8'));
+$('sequences-fasta').addEventListener('click',()=>download(`${stem()}-sequences.fasta`,sequenceFasta(state().response.model.dsd),'text/plain;charset=utf-8'));

@@ -24,6 +24,8 @@ The application ships with its web interface and runtime. Downloaded builds need
 | --- | --- |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
+| Configure DSD | Source defaults or per-document overrides for reactions, kinetics, domain checking, JIT and molecular rendering |
+| Manage DNA | Editable default/custom sequence databases, compiler domain assignments, reverse complements, CSV and FASTA |
 | Generate networks | Default, detailed, finite, and infinite compilation; species diagrams and reaction graphs |
 | Simulate | Deterministic Oslo, stochastic SSA, just-in-time SSA, LNA, CME, native Sundials / CMESundials, moment closure, and bounded 1D/2D reaction–diffusion |
 | Compare runs | Parameter sweeps, named runs, time-series plots, uncertainty traces, and numerical tables |
@@ -82,7 +84,11 @@ dom a = {bind=k; unbind=u}
 
 The `^` marks a toehold domain and `*` its complement. Simulation options can come from the model's directives or the workspace controls. The **Species**, **Reactions**, and **Network** views show the expanded model; the simulation view provides plots and data exports.
 
-The example library also includes a CRN moment-closure model, catalytic and AND circuits, a legacy model, a just-in-time model, a reversible state switch, and a 2D diffusion pulse.
+The searchable library contains 17 workspace examples and all 108 `.txt` / `.dna` sources from the frozen original DSD example collection, grouped by category. Original source text is preserved. These include research models, Rules DSD and WalkerTalk demonstrations; some need additional declarations or data, and inclusion does not establish that every example successfully simulates.
+
+Open **DSD settings** to override individual source options without rewriting the source. Empty controls use the source directives and original engine defaults. **Sequence databases** supports editing, importing, saving and independently resetting the toehold and specificity databases. Entries are uppercase A/C/G/T, one sequence per line. Inline diagnostics flag sequence lengths, invalid bases and duplicates; the engine applies the original **Check DNA** setting.
+
+After checking, expanding or running a model, **DSD & Sequences** shows effective options and the compiler's domain-to-DNA assignments, with both strands written 5′ to 3′. Search the assignments or download CSV and FASTA. Missing assignments remain explicit and are excluded from FASTA. This is the classic compiler mapping, not an oligonucleotide design/ordering tool; Rules DSD does not expose that mapping, and domains generated later during JIT execution may be absent. Projects preserve overrides, databases and assignment results; model-source downloads preserve the source alone.
 
 ## Edit a reaction network
 
@@ -130,6 +136,7 @@ The same executable supports structured JSON output for scripts. These examples 
 ./VisualDsd --help
 ./VisualDsd parse model.dsd
 ./VisualDsd expand model.dsd --compilation detailed
+./VisualDsd parse model.dsd --toeholds toeholds.txt --specificities specificities.txt --dsd-options options.json
 ./VisualDsd simulate model.dsd --simulator oslo --final 100 --points 200
 ./VisualDsd simulate model.dsd --simulator ssa --seed 42
 ./VisualDsd simulate model.crn --simulator sundials
@@ -144,6 +151,8 @@ The same executable supports structured JSON output for scripts. These examples 
 ```
 
 Input may be a file or `-` for standard input. Use `--dialect legacy` explicitly when needed; `.vdsd` files select the legacy dialect automatically. Repeat `--data` for multiple CSV datasets: each file's stem identifies the dataset referenced by the model. Inference also requires the model's inference, prior, and data directives.
+
+`--dsd-options` reads a JSON object of explicit overrides, for example `{"leaks": false, "renderer": "branches", "renderMode": "nucleotides"}`. Omitted fields use source settings; unknown fields and invalid values are rejected. Sequence database and options files are limited to 256 KiB each.
 
 Responses contain `success`, the requested operation, results when available, and structured diagnostics. A successful calculation exits with `0`; calculation failures return `1`, invalid command/input returns `2`, and cancellation returns `130`.
 

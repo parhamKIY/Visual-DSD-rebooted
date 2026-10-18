@@ -48,7 +48,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.15.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.16.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -74,6 +74,22 @@ foreach ($simulator in @('oslo', 'ssa', 'sundials')) {
     $simulated = Invoke-Standalone @('simulate', $catalytic, '--simulator', $simulator, '--final', '100', '--points', '20', '--seed', '42') | ConvertFrom-Json
     if (!$simulated.success -or $simulated.model.settings.simulator -ne $simulator -or $simulated.model.simulations.Count -lt 1) { throw "Standalone $simulator simulation failed." }
 }
+$toeholdPath=Join-Path $directory 'toeholds.txt'
+$specificityPath=Join-Path $directory 'specificities.txt'
+$optionsPath=Join-Path $directory 'dsd-options.json'
+[IO.File]::WriteAllText($toeholdPath,'ACGTAC',[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($specificityPath,'AACCGGTTAA',[Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($optionsPath,'{"leaks":false,"renderer":"branches","renderMode":"nucleotides"}',[Text.UTF8Encoding]::new($false))
+$dsd=Invoke-Standalone -Arguments @('parse','-','--toeholds',$toeholdPath,'--specificities',$specificityPath,'--dsd-options',$optionsPath) -InputText '<a^ b>' | ConvertFrom-Json
+if(!$dsd.success -or $dsd.model.dsd.options.renderer -ne 'branches' -or $dsd.model.dsd.options.leaks -ne $false -or $dsd.model.dsd.sequenceStatus -ne 'assigned') { throw 'Standalone DSD overrides failed.' }
+$toe=$dsd.model.dsd.sequences | Where-Object isToehold
+if($toe.sequence -ne 'ACGTAC' -or $toe.reverseComplement -ne 'GTACGT') { throw 'Standalone DNA mapping failed.' }
+[IO.File]::WriteAllText($optionsPath,'{"imaginary":true}',[Text.UTF8Encoding]::new($false))
+$invalidOptions=Invoke-Standalone -Arguments @('parse','-','--dsd-options',$optionsPath) -InputText '<a>' -ExpectedExit 2 | ConvertFrom-Json
+if($invalidOptions.success -or $invalidOptions.diagnostics[0].code -ne 'COMMAND_ERROR') { throw 'Invalid DSD settings were not rejected.' }
+[IO.File]::WriteAllText($toeholdPath,('A' * (256*1024+4)),[Text.UTF8Encoding]::new($false))
+$oversized=Invoke-Standalone -Arguments @('parse','-','--toeholds',$toeholdPath) -InputText '<a>' -ExpectedExit 2 | ConvertFrom-Json
+if($oversized.success -or $oversized.diagnostics[0].code -ne 'COMMAND_ERROR') { throw 'Oversized sequence input was not rejected.' }
 $invalid = Invoke-Standalone -Arguments @('parse', '-') -InputText '<a^' -ExpectedExit 1 | ConvertFrom-Json
 if ($invalid.success -or $invalid.diagnostics[0].code -ne 'PARSE_ERROR' -or $invalid.diagnostics[0].line -lt 1) { throw 'Standalone parser diagnostics failed.' }
 $jitSource = @'
@@ -218,11 +234,20 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
-    if ($examples.Count -lt 6 -or !(Invoke-RestMethod "$address/api/examples/catalytic" -TimeoutSec 10).code) { throw 'Embedded examples are missing.' }
+    if ($examples.Count -ne 125 -or !(Invoke-RestMethod "$address/api/examples/catalytic" -TimeoutSec 10).code) { throw 'Embedded examples are missing.' }
+    $originals=@($examples | Where-Object source)
+    if($originals.Count -ne 108) { throw 'The original example catalog is incomplete.' }
+    foreach($entry in $originals) {
+        $example=Invoke-RestMethod "$address/api/examples/$($entry.id)" -TimeoutSec 10
+        if(!$example.code -or $example.source -ne $entry.source) { throw 'An original embedded example is unavailable.' }
+    }
+    $defaults=Invoke-RestMethod "$address/api/sequences/defaults" -TimeoutSec 10
+    if(!$defaults.toeholds -or !$defaults.specificities) { throw 'Default sequence databases are missing.' }
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
     $body = @{ code = Get-Content -LiteralPath $catalytic -Raw; operation = 'expand' } | ConvertTo-Json
     $job = Invoke-RestMethod "$address/api/jobs" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 10
     do {

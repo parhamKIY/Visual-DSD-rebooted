@@ -292,8 +292,9 @@ module private CrnExecution =
             EngineResponse(true, request.Operation, "current", result, [||])
 
 type Engine private () =
+    static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.15.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.16.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -314,7 +315,7 @@ type Engine private () =
                     let code = if dialect = "legacy" then SLConversion.convertSL request.Code else request.Code
                     let toeholds = if isNull request.Toeholds then Options.getToeholdsText Options.default_options else request.Toeholds
                     let specificities = if isNull request.Specificities then Options.getSpecificitiesText Options.default_options else request.Specificities
-                    let original, _ = Dsd.parse_extended toeholds specificities code
+                    let original, _ = Dsd.parse_extended_with_options (DsdWorkspace.configure request) Environment.empty toeholds specificities code
                     let originalOptions = Dsd.get_options original
                     let compilation =
                         match request.Compilation with
@@ -431,7 +432,7 @@ type Engine private () =
                                                       network.Species, network.Reactions, simulations, inference,
                                                       (if jit || request.Operation = "parse" then null else initialCrn.to_string()), null, null,
                                                       (if request.Operation = "synthesize" then Synthesis.run request crn else null),
-                                                      (if request.Operation = "export" then Exports.run crn else null))
+                                                      (if request.Operation = "export" then Exports.run crn else null), DsdWorkspace.describe configured)
                                 EngineResponse(true, request.Operation, dialect, model, [||])
             with
             | ExecutionFailure(code, message) -> failure code message

@@ -11,8 +11,113 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Web/**/*" />
+    <Content Remove="OriginalExamples.json" />
     <Content Remove="WebExamples/**/*" />
     <ProjectReference Include="../VisualDsd.Engine/VisualDsd.Engine.fsproj" />
+    <EmbeddedResource Include="OriginalExamples.json" LogicalName="VisualDsd.OriginalExamples" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/2-domain, DCM - Two domain fork-join.txt" LogicalName="VisualDsd.Examples.original-2a542ed6993d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Fork.txt" LogicalName="VisualDsd.Examples.original-e9c18dcf70c3" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Join.txt" LogicalName="VisualDsd.Examples.original-ee69730587c8" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Buffered Transducer.txt" LogicalName="VisualDsd.Examples.original-17edca4e7500" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Oscillating.txt" LogicalName="VisualDsd.Examples.original-10c95e2692dd" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer Composition.txt" LogicalName="VisualDsd.Examples.original-1c031a55895f" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Transducer.txt" LogicalName="VisualDsd.Examples.original-d89e3a85cdba" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/3-domain, DNA 2016 - Ultrasensitive.txt" LogicalName="VisualDsd.Examples.original-d444e0fdbe9d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/CatalyticSequenceRates.txt" LogicalName="VisualDsd.Examples.original-982fb2a21f22" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Co-operative - Lotka.txt" LogicalName="VisualDsd.Examples.original-a99853d00192" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Co-operative - Mapk.txt" LogicalName="VisualDsd.Examples.original-c425d82032df" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized Fanout) SQRT.txt" LogicalName="VisualDsd.Examples.original-b8b5fddd9059" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) Fanout.txt" LogicalName="VisualDsd.Examples.original-b882e7c36b3c" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - (localized) SQRT.txt" LogicalName="VisualDsd.Examples.original-078c0d62e865" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - And.txt" LogicalName="VisualDsd.Examples.original-58f9c823e465" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - Fanout.txt" LogicalName="VisualDsd.Examples.original-a5b67ae883e0" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - Or.txt" LogicalName="VisualDsd.Examples.original-42ed2fc3b079" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Formal Analysis - SQRT.txt" LogicalName="VisualDsd.Examples.original-91d66f9ccc69" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Kim et al., Mol Syst Biol 2011 - Oscillator.txt" LogicalName="VisualDsd.Examples.original-32a91f5aab04" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Remote transmission lines.txt" LogicalName="VisualDsd.Examples.original-46520c8a3012" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt" LogicalName="VisualDsd.Examples.original-d827ef30f367" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Threshold spatial AND.txt" LogicalName="VisualDsd.Examples.original-46811e0436e4" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., DNA 2014 - Transmission lines.txt" LogicalName="VisualDsd.Examples.original-4a679bee52cf" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Buffered oscillators.txt" LogicalName="VisualDsd.Examples.original-bb91accb1f19" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Join gates.txt" LogicalName="VisualDsd.Examples.original-1e8fb72c1ba7" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin et al., Interface 2012 - Unbuffered oscillators.txt" LogicalName="VisualDsd.Examples.original-86ab4549168b" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Lakin, Parker et al., Interface 2012 - Model-checking examples.txt" LogicalName="VisualDsd.Examples.original-83a80fa9ee43" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - AND gate with nicks.txt" LogicalName="VisualDsd.Examples.original-df980a41f2ca" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - AND gate.txt" LogicalName="VisualDsd.Examples.original-52da9edb653f" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR gate with nicks.txt" LogicalName="VisualDsd.Examples.original-487a86b1f1c4" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR gate.txt" LogicalName="VisualDsd.Examples.original-293ab29b661b" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - OR of ANDs.txt" LogicalName="VisualDsd.Examples.original-7bcf645b11f3" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - Square root.txt" LogicalName="VisualDsd.Examples.original-e776f9afe61a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Localization - Wires.txt" LogicalName="VisualDsd.Examples.original-e03462d89215" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-CME.txt" LogicalName="VisualDsd.Examples.original-fdfb1c2cc5b9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-CTMC.txt" LogicalName="VisualDsd.Examples.original-833c6ab3c347" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Inference-Samples.txt" LogicalName="VisualDsd.Examples.original-0e2928f1d2d5" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Inference.txt" LogicalName="VisualDsd.Examples.original-fe0e04cb0726" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Initials.txt" LogicalName="VisualDsd.Examples.original-535e4f33f180" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-LNA.txt" LogicalName="VisualDsd.Examples.original-93369747322a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Leaks.txt" LogicalName="VisualDsd.Examples.original-f2a7b65727b9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Localised.txt" LogicalName="VisualDsd.Examples.original-ab7f25ad8b21" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Nucleotides.txt" LogicalName="VisualDsd.Examples.original-19ca5b13f555" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Reactions.txt" LogicalName="VisualDsd.Examples.original-2a43bcb8a93d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Spatial.txt" LogicalName="VisualDsd.Examples.original-5c93f5f6ab3e" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Stochastic.txt" LogicalName="VisualDsd.Examples.original-1abeb2123a65" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Subdomains.txt" LogicalName="VisualDsd.Examples.original-3747d925e2c9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Manual/Join-Unique.txt" LogicalName="VisualDsd.Examples.original-c1bbaa681d68" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Montagne et al., Mol Syst Biol 2011 - Oscillator.txt" LogicalName="VisualDsd.Examples.original-b0fdbf9b3679" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Modules.txt" LogicalName="VisualDsd.Examples.original-09263f844d1b" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Nature Nanotech 2013 - Consensus Parameterized.txt" LogicalName="VisualDsd.Examples.original-0833df50f953" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/cargo_sorting_DNA_robot.txt" LogicalName="VisualDsd.Examples.original-0ed813a2f9f9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/catalytic.txt" LogicalName="VisualDsd.Examples.original-065a37cc9bfe" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/enzymes.txt" LogicalName="VisualDsd.Examples.original-5ed7ff96bd41" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_infinite.txt" LogicalName="VisualDsd.Examples.original-63f76715e01a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_kinetic_rates.txt" LogicalName="VisualDsd.Examples.original-94919fe69ddc" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/join_simple.txt" LogicalName="VisualDsd.Examples.original-c587150395a6" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/localized_hcr.txt" LogicalName="VisualDsd.Examples.original-b2a8f5f7b33f" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/oligator.txt" LogicalName="VisualDsd.Examples.original-c80f11d7c0d2" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/oligator_nucleotides.txt" LogicalName="VisualDsd.Examples.original-221a3673774d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_AND.txt" LogicalName="VisualDsd.Examples.original-84e5e027acbd" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/ribocomputing_OR.txt" LogicalName="VisualDsd.Examples.original-eaec17ef46a9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/RulesDSD/walker_enzymatic.txt" LogicalName="VisualDsd.Examples.original-f3ad84190f88" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic Directives.txt" LogicalName="VisualDsd.Examples.original-b49411ffdb2a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Scienze 2007 - Catalytic.txt" LogicalName="VisualDsd.Examples.original-ac23e3a573b9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Hairpin-free HCR.txt" LogicalName="VisualDsd.Examples.original-e63f5ac71802" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Migrations.txt" LogicalName="VisualDsd.Examples.original-a80dd8498897" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Simple - Monomers.txt" LogicalName="VisualDsd.Examples.original-ca761b8f278a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Square root - Qian and Winfree 4 bit square root circuit.txt" LogicalName="VisualDsd.Examples.original-16417e9e216a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Stack Machine, DNA17 - Ripple carry adder.txt" LogicalName="VisualDsd.Examples.original-60415361be9a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/TransmissionLines.txt" LogicalName="VisualDsd.Examples.original-358a13508300" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Tutorial - Join.txt" LogicalName="VisualDsd.Examples.original-9a83b1fe13b4" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt" LogicalName="VisualDsd.Examples.original-ca7756fad8b8" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt" LogicalName="VisualDsd.Examples.original-1a4d68353d5a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt" LogicalName="VisualDsd.Examples.original-4f25f8778e9a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt" LogicalName="VisualDsd.Examples.original-26e0bf5ea27a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt" LogicalName="VisualDsd.Examples.original-a65188ccaae4" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - And Gate.txt" LogicalName="VisualDsd.Examples.original-6ee7d8d5fd82" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Autocatalytic.txt" LogicalName="VisualDsd.Examples.original-63db562ce14d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Cross Catalytic.txt" LogicalName="VisualDsd.Examples.original-6589df670bef" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Feed forward.txt" LogicalName="VisualDsd.Examples.original-ee8ee20d2c39" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Fluorescent Catalytic.txt" LogicalName="VisualDsd.Examples.original-4ceead00bf8e" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/Zhang, Science 2007 - Independent Input.txt" LogicalName="VisualDsd.Examples.original-2355f5ef2328" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/01 standard dsd.dna" LogicalName="VisualDsd.Examples.original-cc25052d783d" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/02 standard gates.dna" LogicalName="VisualDsd.Examples.original-c6323e78f396" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/03 standard reaction.dna" LogicalName="VisualDsd.Examples.original-5bed253ea4f4" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/04 rxn basic.dna" LogicalName="VisualDsd.Examples.original-5f385cb66b98" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/05 rxn rate.dna" LogicalName="VisualDsd.Examples.original-e6f5cfcfe0ac" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/06 rxn Michaelis-Menten.dna" LogicalName="VisualDsd.Examples.original-4438232c4ad6" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/07 hairpins basic.dna" LogicalName="VisualDsd.Examples.original-3e6670add42c" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/08 hairpins open.dna" LogicalName="VisualDsd.Examples.original-cc9dcb4dc79c" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/09 hairpins close.dna" LogicalName="VisualDsd.Examples.original-c87fdd98746a" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/10 tethers basic.dna" LogicalName="VisualDsd.Examples.original-52f370cfd2b1" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/11 tethers untethered.dna" LogicalName="VisualDsd.Examples.original-c62e51434527" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/12 tethers free.dna" LogicalName="VisualDsd.Examples.original-a4885c92d392" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/13 tethers free react.dna" LogicalName="VisualDsd.Examples.original-01e89252e000" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/14 tethers tethered react.dna" LogicalName="VisualDsd.Examples.original-2569bd462620" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/15 tethers react compete.dna" LogicalName="VisualDsd.Examples.original-9cb4c29efeb8" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/16 tethers react compete lc.dna" LogicalName="VisualDsd.Examples.original-949f151a3095" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/17 tethers tag intuition.dna" LogicalName="VisualDsd.Examples.original-85cdb0ef84c9" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/circular_walker.dna" LogicalName="VisualDsd.Examples.original-6a3153cee6f0" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/split_circular_walker.dna" LogicalName="VisualDsd.Examples.original-4b2f9a90b998" />
+    <EmbeddedResource Include="../../upstream/crn-engine/ClassicDSD/Examples/DSDModels/WalkerTalk/Walker.dna" LogicalName="VisualDsd.Examples.original-44d2ffce46b6" />
     <EmbeddedResource Include="WebExamples/*.dsd" LogicalName="VisualDsd.Examples.%(Filename)" />
     <EmbeddedResource Include="WebExamples/*.json" LogicalName="VisualDsd.Examples.%(Filename)" />
     <EmbeddedResource Include="WebExamples/*.crn" LogicalName="VisualDsd.Examples.%(Filename)" />

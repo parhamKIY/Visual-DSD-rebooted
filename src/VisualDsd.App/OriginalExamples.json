@@ -1,0 +1,1082 @@
+[
+  {
+    "id": "original-2a542ed6993d",
+    "name": "2-domain, DCM - Two domain fork-join",
+    "description": "Original Visual DSD source: 2-domain, DCM - Two domain fork-join.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 2-domain (DCM)",
+    "source": "2-domain, DCM - Two domain fork-join.txt",
+    "sha256": "81446d8ffea6d1f4c8f976d9dd5db041c65532f5038cac4e2f7c857429c407b9"
+  },
+  {
+    "id": "original-37f94b3d324a",
+    "name": "2-domain, DCM - Two-domain transducer",
+    "description": "Original Visual DSD source: 2-domain, DCM - Two-domain transducer.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 2-domain (DCM)",
+    "source": "2-domain, DCM - Two-domain transducer.txt",
+    "sha256": "ff9990591cccda8972f231829e8e594f9e7ee2ab8494f1c18907d0f06c549ea3"
+  },
+  {
+    "id": "original-e9c18dcf70c3",
+    "name": "3-domain, DNA 2016 - Buffered Fork",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Buffered Fork.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Buffered Fork.txt",
+    "sha256": "51a8b9e6f82de709e8552bf950c9a915416dd1729e5e4ad95223c4d0fc57a788"
+  },
+  {
+    "id": "original-ee69730587c8",
+    "name": "3-domain, DNA 2016 - Buffered Join",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Buffered Join.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Buffered Join.txt",
+    "sha256": "87e6868ab86f9d4b371d452bbbb8cc9ad7bd23970d11a3aa0f420ec9c96279b1"
+  },
+  {
+    "id": "original-17edca4e7500",
+    "name": "3-domain, DNA 2016 - Buffered Transducer",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Buffered Transducer.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Buffered Transducer.txt",
+    "sha256": "7916a8d0a5001d41f87c06818b313299124f1aa9d20495d06ee5fe615a044cc6"
+  },
+  {
+    "id": "original-10c95e2692dd",
+    "name": "3-domain, DNA 2016 - Oscillating",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Oscillating.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Oscillating.txt",
+    "sha256": "039c32a4ce2cd1a624a565df056703019ac021cccb5077c09e64a5f0da550e3a"
+  },
+  {
+    "id": "original-1c031a55895f",
+    "name": "3-domain, DNA 2016 - Transducer Composition",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Transducer Composition.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Transducer Composition.txt",
+    "sha256": "622cde4735f1ef1d6eaaea5b82f90da4555fcba44dd75f36ce0fbe1a752d78a4"
+  },
+  {
+    "id": "original-d89e3a85cdba",
+    "name": "3-domain, DNA 2016 - Transducer",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Transducer.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Transducer.txt",
+    "sha256": "c2eb236b154a7475aa27c5de7bcff284488ada263b608932878b0972cbeb0e8c"
+  },
+  {
+    "id": "original-d444e0fdbe9d",
+    "name": "3-domain, DNA 2016 - Ultrasensitive",
+    "description": "Original Visual DSD source: 3-domain, DNA 2016 - Ultrasensitive.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · 3-domain (DNA 2010)",
+    "source": "3-domain, DNA 2016 - Ultrasensitive.txt",
+    "sha256": "28ec6cf95f13a3374a4fc33c782ae352fb8eef3ed58c5f24bcd7e5cfde134cbe"
+  },
+  {
+    "id": "original-eb39fdd41b10",
+    "name": "Catalytic",
+    "description": "Original Visual DSD source: Catalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Group 1",
+    "source": "Catalytic.txt",
+    "sha256": "b1b866baaf83fe78e447635e9580bdeb931db8ac8e5bd9bf46d084aff487627e"
+  },
+  {
+    "id": "original-982fb2a21f22",
+    "name": "CatalyticSequenceRates",
+    "description": "Original Visual DSD source: CatalyticSequenceRates.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Group 1",
+    "source": "CatalyticSequenceRates.txt",
+    "sha256": "6b46076a263991666c17892d47a70eec1e078d8868dd69f031cc03a2dc05fc5e"
+  },
+  {
+    "id": "original-a99853d00192",
+    "name": "Co-operative - Lotka",
+    "description": "Original Visual DSD source: Co-operative - Lotka.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Co-operative",
+    "source": "Co-operative - Lotka.txt",
+    "sha256": "a343a9cb16456c90048247d9900d1fe26cde5c707715c0d84184f44572396ebd"
+  },
+  {
+    "id": "original-c425d82032df",
+    "name": "Co-operative - Mapk",
+    "description": "Original Visual DSD source: Co-operative - Mapk.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Co-operative",
+    "source": "Co-operative - Mapk.txt",
+    "sha256": "66c778ff62dfce8139b9b8d4c127b470f9c6bd07c4fac1aa8602b3ec125d6312"
+  },
+  {
+    "id": "original-b8b5fddd9059",
+    "name": "Formal Analysis - (localized Fanout) SQRT",
+    "description": "Original Visual DSD source: Formal Analysis - (localized Fanout) SQRT.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - (localized Fanout) SQRT.txt",
+    "sha256": "eeda41bd20b244fb6f8d07a6e911940540f9cb671a3fc523048995fedfd4d40b"
+  },
+  {
+    "id": "original-b882e7c36b3c",
+    "name": "Formal Analysis - (localized) Fanout",
+    "description": "Original Visual DSD source: Formal Analysis - (localized) Fanout.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - (localized) Fanout.txt",
+    "sha256": "c7d572399559939f5010523bf1e6d852a0f87e21b0bf89526be15a57204556db"
+  },
+  {
+    "id": "original-078c0d62e865",
+    "name": "Formal Analysis - (localized) SQRT",
+    "description": "Original Visual DSD source: Formal Analysis - (localized) SQRT.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - (localized) SQRT.txt",
+    "sha256": "9c744615d7dc8cb867611853af1207655f2096b9b2bd9d6651346dbc898eaef2"
+  },
+  {
+    "id": "original-58f9c823e465",
+    "name": "Formal Analysis - And",
+    "description": "Original Visual DSD source: Formal Analysis - And.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - And.txt",
+    "sha256": "f52a7d552fe45694fa4e9d8efeab3f5d0d0707bb068fab355dfa68ff611727c6"
+  },
+  {
+    "id": "original-a5b67ae883e0",
+    "name": "Formal Analysis - Fanout",
+    "description": "Original Visual DSD source: Formal Analysis - Fanout.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - Fanout.txt",
+    "sha256": "509e88de85719bb048107b95ca4d07803cd2c6158c994a382510c679a6b0ca96"
+  },
+  {
+    "id": "original-42ed2fc3b079",
+    "name": "Formal Analysis - Or",
+    "description": "Original Visual DSD source: Formal Analysis - Or.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - Or.txt",
+    "sha256": "8da3a520b232f103971cb185f038555975e2edd03ad49c1f3a9ef75175d28a45"
+  },
+  {
+    "id": "original-91d66f9ccc69",
+    "name": "Formal Analysis - SQRT",
+    "description": "Original Visual DSD source: Formal Analysis - SQRT.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Formal Analysis",
+    "source": "Formal Analysis - SQRT.txt",
+    "sha256": "7c64a389604561be9dabcd9d7ab68c65d1444537b6e6f619b097c979dd5eba0f"
+  },
+  {
+    "id": "original-32a91f5aab04",
+    "name": "Kim et al., Mol Syst Biol 2011 - Oscillator",
+    "description": "Original Visual DSD source: Kim et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Kim et al. (MSB 2011)",
+    "source": "Kim et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "sha256": "8a631d0fe9843eb6335421cf3751b1a07d649ce0ebee8e8ad331cc83bba0688c"
+  },
+  {
+    "id": "original-46520c8a3012",
+    "name": "Lakin et al., DNA 2014 - Remote transmission lines",
+    "description": "Original Visual DSD source: Lakin et al., DNA 2014 - Remote transmission lines.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (DNA 2014)",
+    "source": "Lakin et al., DNA 2014 - Remote transmission lines.txt",
+    "sha256": "614f7d631072b840c2eaf3b2aeaf105f81ef0b8840a5f136ac9988edad66b676"
+  },
+  {
+    "id": "original-d827ef30f367",
+    "name": "Lakin et al., DNA 2014 - Threshold spatial (reporter) AND",
+    "description": "Original Visual DSD source: Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (DNA 2014)",
+    "source": "Lakin et al., DNA 2014 - Threshold spatial (reporter) AND.txt",
+    "sha256": "6473b7c4df624d873a1eff06544ba7192e2ed8f7964d406dacbcebaa309553a5"
+  },
+  {
+    "id": "original-46811e0436e4",
+    "name": "Lakin et al., DNA 2014 - Threshold spatial AND",
+    "description": "Original Visual DSD source: Lakin et al., DNA 2014 - Threshold spatial AND.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (DNA 2014)",
+    "source": "Lakin et al., DNA 2014 - Threshold spatial AND.txt",
+    "sha256": "8058528ef58342f93318fedbe1f7228bcab5b2871e22041acaa0a96223a0dcf8"
+  },
+  {
+    "id": "original-4a679bee52cf",
+    "name": "Lakin et al., DNA 2014 - Transmission lines",
+    "description": "Original Visual DSD source: Lakin et al., DNA 2014 - Transmission lines.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (DNA 2014)",
+    "source": "Lakin et al., DNA 2014 - Transmission lines.txt",
+    "sha256": "490c74c558a6908a4490ed2720a09a8ee3443596b5ec10ba3eb3a62a216406b0"
+  },
+  {
+    "id": "original-bb91accb1f19",
+    "name": "Lakin et al., Interface 2012 - Buffered oscillators",
+    "description": "Original Visual DSD source: Lakin et al., Interface 2012 - Buffered oscillators.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (Interface 2012)",
+    "source": "Lakin et al., Interface 2012 - Buffered oscillators.txt",
+    "sha256": "633f2204160d01460623a05c9d690fdba302235826f1901e301c4d583f66bc52"
+  },
+  {
+    "id": "original-1e8fb72c1ba7",
+    "name": "Lakin et al., Interface 2012 - Join gates",
+    "description": "Original Visual DSD source: Lakin et al., Interface 2012 - Join gates.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (Interface 2012)",
+    "source": "Lakin et al., Interface 2012 - Join gates.txt",
+    "sha256": "558f532b8e86b394c6765756c9b332d68b9b8ae14b3814d14625496a6ce1c371"
+  },
+  {
+    "id": "original-86ab4549168b",
+    "name": "Lakin et al., Interface 2012 - Unbuffered oscillators",
+    "description": "Original Visual DSD source: Lakin et al., Interface 2012 - Unbuffered oscillators.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin et al. (Interface 2012)",
+    "source": "Lakin et al., Interface 2012 - Unbuffered oscillators.txt",
+    "sha256": "41d096ead176b0c9935c8e53abe4907cda0abd67a53bfe43fac1ab4b45daaa90"
+  },
+  {
+    "id": "original-83a80fa9ee43",
+    "name": "Lakin, Parker et al., Interface 2012 - Model-checking examples",
+    "description": "Original Visual DSD source: Lakin, Parker et al., Interface 2012 - Model-checking examples.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Lakin, Parker et al. (Interface 2012)",
+    "source": "Lakin, Parker et al., Interface 2012 - Model-checking examples.txt",
+    "sha256": "c437419370d553b2bc673243d5473652d917db5fbd3ead0b18363ccdf74047fc"
+  },
+  {
+    "id": "original-df980a41f2ca",
+    "name": "Localization - AND gate with nicks",
+    "description": "Original Visual DSD source: Localization - AND gate with nicks.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - AND gate with nicks.txt",
+    "sha256": "258604a4a3b7c2c0206ad11bd6fb259364e5a8de60f30146cc7b9172d316cb8e"
+  },
+  {
+    "id": "original-52da9edb653f",
+    "name": "Localization - AND gate",
+    "description": "Original Visual DSD source: Localization - AND gate.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - AND gate.txt",
+    "sha256": "02002beaac9b27bdd951da12cbd485c0e4c5639216b47ac36ffac7918066e995"
+  },
+  {
+    "id": "original-487a86b1f1c4",
+    "name": "Localization - OR gate with nicks",
+    "description": "Original Visual DSD source: Localization - OR gate with nicks.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - OR gate with nicks.txt",
+    "sha256": "a7997fa01e860312f2a1c37a0978bd9aa640f583b86b078893bbeb39f02a7429"
+  },
+  {
+    "id": "original-293ab29b661b",
+    "name": "Localization - OR gate",
+    "description": "Original Visual DSD source: Localization - OR gate.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - OR gate.txt",
+    "sha256": "00bb9f423e8d5324d0395baae172fade89d28d4c0c44518bc19efe7d55fab28a"
+  },
+  {
+    "id": "original-7bcf645b11f3",
+    "name": "Localization - OR of ANDs",
+    "description": "Original Visual DSD source: Localization - OR of ANDs.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - OR of ANDs.txt",
+    "sha256": "3bc9dbf0f90bc415d9595050679915fd17e189269e46589956789d2d67007012"
+  },
+  {
+    "id": "original-e776f9afe61a",
+    "name": "Localization - Square root",
+    "description": "Original Visual DSD source: Localization - Square root.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - Square root.txt",
+    "sha256": "4a93339e32a81b58f16413a6b21df105bc9bd2b856945b3ff7d50143a5b95d9b"
+  },
+  {
+    "id": "original-e03462d89215",
+    "name": "Localization - Wires",
+    "description": "Original Visual DSD source: Localization - Wires.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Localization",
+    "source": "Localization - Wires.txt",
+    "sha256": "035961f4428fc551825c122c4e746138fd679fea7aecc177b40a7c5c937b7248"
+  },
+  {
+    "id": "original-fdfb1c2cc5b9",
+    "name": "Join-CME",
+    "description": "Original Visual DSD source: Manual/Join-CME.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-CME.txt",
+    "sha256": "6368784800af6498631d464b24d240cb3d859e868c247a40e62dc7826033c8dd"
+  },
+  {
+    "id": "original-833c6ab3c347",
+    "name": "Join-CTMC",
+    "description": "Original Visual DSD source: Manual/Join-CTMC.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-CTMC.txt",
+    "sha256": "c955a80196d02565437f96cc4af809586dbb510c19a0ff21b848f38ec2456e7b"
+  },
+  {
+    "id": "original-0e2928f1d2d5",
+    "name": "Join-Inference-Samples",
+    "description": "Original Visual DSD source: Manual/Join-Inference-Samples.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Inference-Samples.txt",
+    "sha256": "33adb0c382e8a645584b5af0541008c5d4c91bd0e4d8d8021838ac8a0f18f543"
+  },
+  {
+    "id": "original-fe0e04cb0726",
+    "name": "Join-Inference",
+    "description": "Original Visual DSD source: Manual/Join-Inference.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Inference.txt",
+    "sha256": "a67375063a82572fbd13fae8f43e644203181a521a91a00a12941f3ee240e7df"
+  },
+  {
+    "id": "original-535e4f33f180",
+    "name": "Join-Initials",
+    "description": "Original Visual DSD source: Manual/Join-Initials.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Initials.txt",
+    "sha256": "5c4cf29e78451c8dcf6fec9b247a3cefaa3f3de429eb3ca4f7a6573e83bd7f56"
+  },
+  {
+    "id": "original-3d1a3b11f07f",
+    "name": "Join-JIT",
+    "description": "Original Visual DSD source: Manual/Join-JIT.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-JIT.txt",
+    "sha256": "24f1eb39aa1e91d1b2f205de23f531a05878deaf992770f39027035b615b49c6"
+  },
+  {
+    "id": "original-93369747322a",
+    "name": "Join-LNA",
+    "description": "Original Visual DSD source: Manual/Join-LNA.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-LNA.txt",
+    "sha256": "e8d7e4e55ccfdce0c0c2ace755e3766bc764f4d77dacc8c11a23abd918d9cbb3"
+  },
+  {
+    "id": "original-f2a7b65727b9",
+    "name": "Join-Leaks",
+    "description": "Original Visual DSD source: Manual/Join-Leaks.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Leaks.txt",
+    "sha256": "639d09b22c9536036b3f03156ab54d9017c4d30f5972764b447df3e7a49096ca"
+  },
+  {
+    "id": "original-ab7f25ad8b21",
+    "name": "Join-Localised",
+    "description": "Original Visual DSD source: Manual/Join-Localised.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Localised.txt",
+    "sha256": "6b9e2c7a5e633d424f27685446223a920ee797ed0961696fe9b9e110a72fca74"
+  },
+  {
+    "id": "original-19ca5b13f555",
+    "name": "Join-Nucleotides",
+    "description": "Original Visual DSD source: Manual/Join-Nucleotides.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Nucleotides.txt",
+    "sha256": "3f13aeb0a0d36a4299c239560c746974e1da44e457dcd783cdaccaeab137b6d6"
+  },
+  {
+    "id": "original-2a43bcb8a93d",
+    "name": "Join-Reactions",
+    "description": "Original Visual DSD source: Manual/Join-Reactions.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Reactions.txt",
+    "sha256": "4ab6ef3f86858aab7d6c7f89c4beeb5267b54d0710808ba5cd23c1c6aa57670b"
+  },
+  {
+    "id": "original-5c93f5f6ab3e",
+    "name": "Join-Spatial",
+    "description": "Original Visual DSD source: Manual/Join-Spatial.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Spatial.txt",
+    "sha256": "83e20498b5055b54c692c64ea9c071935147227cf063505acab21fbb99fe366c"
+  },
+  {
+    "id": "original-1abeb2123a65",
+    "name": "Join-Stochastic",
+    "description": "Original Visual DSD source: Manual/Join-Stochastic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Stochastic.txt",
+    "sha256": "18c247f789158065abeca79643ed79309dafa09e514bc48d1e698520bf6125c2"
+  },
+  {
+    "id": "original-3747d925e2c9",
+    "name": "Join-Subdomains",
+    "description": "Original Visual DSD source: Manual/Join-Subdomains.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Subdomains.txt",
+    "sha256": "2cdff6c8533fa819e057bc6a0291fafb4897a7889377d05807db04de167d9415"
+  },
+  {
+    "id": "original-c1bbaa681d68",
+    "name": "Join-Unique",
+    "description": "Original Visual DSD source: Manual/Join-Unique.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join-Unique.txt",
+    "sha256": "8b89f3ca11373a182ad5297450301dd06835a34000a921c682ed5f73245197d7"
+  },
+  {
+    "id": "original-b0ad94a20657",
+    "name": "Join",
+    "description": "Original Visual DSD source: Manual/Join.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Manual",
+    "source": "Manual/Join.txt",
+    "sha256": "f5c93e05b5b03e251ef89165fe0223459a3e2588c3858b94c3177278c3c06fc2"
+  },
+  {
+    "id": "original-b0fdbf9b3679",
+    "name": "Montagne et al., Mol Syst Biol 2011 - Oscillator",
+    "description": "Original Visual DSD source: Montagne et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Montagne et al. (MSB 2011)",
+    "source": "Montagne et al., Mol Syst Biol 2011 - Oscillator.txt",
+    "sha256": "67fd1b734fd7933a26c896d4c7966dce6b508c98a8b688bce1be06a28df7a90f"
+  },
+  {
+    "id": "original-09263f844d1b",
+    "name": "Nature Nanotech 2013 - Consensus Modules",
+    "description": "Original Visual DSD source: Nature Nanotech 2013 - Consensus Modules.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Consensus (Nature Nanotechnology 2013)",
+    "source": "Nature Nanotech 2013 - Consensus Modules.txt",
+    "sha256": "008eaa978a06ccdadc50dffc1d67d0497f025ee0dde5ae3f8e92c3681c653fb5"
+  },
+  {
+    "id": "original-0833df50f953",
+    "name": "Nature Nanotech 2013 - Consensus Parameterized",
+    "description": "Original Visual DSD source: Nature Nanotech 2013 - Consensus Parameterized.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Consensus (Nature Nanotechnology 2013)",
+    "source": "Nature Nanotech 2013 - Consensus Parameterized.txt",
+    "sha256": "749e3fed0897ab4ec82fcaaf0f7e285ee50dfc84a4dd846b44e0a0e2c4fabdf9"
+  },
+  {
+    "id": "original-0ed813a2f9f9",
+    "name": "cargo_sorting_DNA_robot",
+    "description": "Original Visual DSD source: RulesDSD/cargo_sorting_DNA_robot.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/cargo_sorting_DNA_robot.txt",
+    "sha256": "ae8bbaba701c5dd8223ff610f9377838d11e4dc0527d3097d1504eaa13c40116"
+  },
+  {
+    "id": "original-065a37cc9bfe",
+    "name": "catalytic",
+    "description": "Original Visual DSD source: RulesDSD/catalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/catalytic.txt",
+    "sha256": "388d659ca20a52c53e41626a66f1da5a2fac87f9e748748663cd41582c1137cd"
+  },
+  {
+    "id": "original-5ed7ff96bd41",
+    "name": "enzymes",
+    "description": "Original Visual DSD source: RulesDSD/enzymes.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/enzymes.txt",
+    "sha256": "c752d31196318dda471c951da6b9c815d4fc7cded7fbe3ebb57eadc23e2b6573"
+  },
+  {
+    "id": "original-63f76715e01a",
+    "name": "join_infinite",
+    "description": "Original Visual DSD source: RulesDSD/join_infinite.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/join_infinite.txt",
+    "sha256": "27399ee821c2973b5759742f6d03c2d393b4207e70ece1c0ac3cde704cb3e95d"
+  },
+  {
+    "id": "original-94919fe69ddc",
+    "name": "join_kinetic_rates",
+    "description": "Original Visual DSD source: RulesDSD/join_kinetic_rates.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/join_kinetic_rates.txt",
+    "sha256": "7aa95c6da862f488490560e908c0313ee9bf4edb81777c8486f5acdedd70e157"
+  },
+  {
+    "id": "original-c587150395a6",
+    "name": "join_simple",
+    "description": "Original Visual DSD source: RulesDSD/join_simple.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/join_simple.txt",
+    "sha256": "59c2ac392af589eedadb315dfcc530d4972c4293450fce50b25bf594f37c725f"
+  },
+  {
+    "id": "original-b2a8f5f7b33f",
+    "name": "localized_hcr",
+    "description": "Original Visual DSD source: RulesDSD/localized_hcr.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/localized_hcr.txt",
+    "sha256": "f1cf888aea1c9960755eae4c5c36e0390f0ca74f56fdb23f8647ff6d9ade3241"
+  },
+  {
+    "id": "original-c80f11d7c0d2",
+    "name": "oligator",
+    "description": "Original Visual DSD source: RulesDSD/oligator.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/oligator.txt",
+    "sha256": "f3684cda5bf972e387078aa04e305fb75df16abb181a605634232dcc184d84e5"
+  },
+  {
+    "id": "original-221a3673774d",
+    "name": "oligator_nucleotides",
+    "description": "Original Visual DSD source: RulesDSD/oligator_nucleotides.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/oligator_nucleotides.txt",
+    "sha256": "d9cba648895960f57e9d7fbeab5c1e30b4216a51be651a98f2d3955f4ee36a9e"
+  },
+  {
+    "id": "original-84e5e027acbd",
+    "name": "ribocomputing_AND",
+    "description": "Original Visual DSD source: RulesDSD/ribocomputing_AND.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/ribocomputing_AND.txt",
+    "sha256": "05daa622d7684ff50b12ae3889721ec007372c67ceaa7435ea4bb965fc93e55a"
+  },
+  {
+    "id": "original-eaec17ef46a9",
+    "name": "ribocomputing_OR",
+    "description": "Original Visual DSD source: RulesDSD/ribocomputing_OR.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/ribocomputing_OR.txt",
+    "sha256": "77ca40b03efc6992115a0aac954d5952a30a98909ab33228384edbf063dceb99"
+  },
+  {
+    "id": "original-f3ad84190f88",
+    "name": "walker_enzymatic",
+    "description": "Original Visual DSD source: RulesDSD/walker_enzymatic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Spaccasassi et al., (ACS Synth Biol 2018)",
+    "source": "RulesDSD/walker_enzymatic.txt",
+    "sha256": "9f9cdc7cf47cfb17c1ff0a795c4af3370959b62f2639a46494e55af9cb6a8a24"
+  },
+  {
+    "id": "original-b49411ffdb2a",
+    "name": "Scienze 2007 - Catalytic Directives",
+    "description": "Original Visual DSD source: Scienze 2007 - Catalytic Directives.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Catalytic (Science 2007)",
+    "source": "Scienze 2007 - Catalytic Directives.txt",
+    "sha256": "17d495082b0bed41a81ec3a7a3e2e7ba152a66344f8774a45d1fde3132551bb7"
+  },
+  {
+    "id": "original-ac23e3a573b9",
+    "name": "Scienze 2007 - Catalytic",
+    "description": "Original Visual DSD source: Scienze 2007 - Catalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Catalytic (Science 2007)",
+    "source": "Scienze 2007 - Catalytic.txt",
+    "sha256": "746a250c5c8dc7bd9dd28725cae4e586d8d665a7ef7bed56c63c9479324be319"
+  },
+  {
+    "id": "original-948752a120f9",
+    "name": "Simple - AND Circuit",
+    "description": "Original Visual DSD source: Simple - AND Circuit.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Simple",
+    "source": "Simple - AND Circuit.txt",
+    "sha256": "bdd958b84419f89d4ce7c6b1b546babb2ec090259e87308b8be857b8de196fc6"
+  },
+  {
+    "id": "original-e63f5ac71802",
+    "name": "Simple - Hairpin-free HCR",
+    "description": "Original Visual DSD source: Simple - Hairpin-free HCR.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Simple",
+    "source": "Simple - Hairpin-free HCR.txt",
+    "sha256": "cfbe7624540215c56de54798731164a049bd35f78a6dd9cfbf64a81d18064bf7"
+  },
+  {
+    "id": "original-a80dd8498897",
+    "name": "Simple - Migrations",
+    "description": "Original Visual DSD source: Simple - Migrations.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Simple",
+    "source": "Simple - Migrations.txt",
+    "sha256": "d1f529a02b123e1e036cef30570d3bae7e1166ec1af257155ff6abfd43d8f3bf"
+  },
+  {
+    "id": "original-ca761b8f278a",
+    "name": "Simple - Monomers",
+    "description": "Original Visual DSD source: Simple - Monomers.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Simple",
+    "source": "Simple - Monomers.txt",
+    "sha256": "517ce2bb0d136a08c52da020e6eaf29925188a0faec821819a046baf18f2e0a9"
+  },
+  {
+    "id": "original-16417e9e216a",
+    "name": "Square root - Qian and Winfree 4 bit square root circuit",
+    "description": "Original Visual DSD source: Square root - Qian and Winfree 4 bit square root circuit.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Square root",
+    "source": "Square root - Qian and Winfree 4 bit square root circuit.txt",
+    "sha256": "8ad36acda38255fc82c98728ddcf323a5ed6ba637583332b93072ba6fe480d4a"
+  },
+  {
+    "id": "original-60415361be9a",
+    "name": "Stack Machine, DNA17 - Ripple carry adder",
+    "description": "Original Visual DSD source: Stack Machine, DNA17 - Ripple carry adder.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Stack machine (DNA 2011)",
+    "source": "Stack Machine, DNA17 - Ripple carry adder.txt",
+    "sha256": "514d89f230ca9e854b4c1bae408f48cfb19410c3670796262e0d179a962f95e6"
+  },
+  {
+    "id": "original-358a13508300",
+    "name": "TransmissionLines",
+    "description": "Original Visual DSD source: TransmissionLines.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Group 1",
+    "source": "TransmissionLines.txt",
+    "sha256": "efc9e015f05b4daa10c3111434f613253708ceaa4f861ac0fcb73e93d2fffa8c"
+  },
+  {
+    "id": "original-9a83b1fe13b4",
+    "name": "Tutorial - Join",
+    "description": "Original Visual DSD source: Tutorial - Join.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Research models",
+    "source": "Tutorial - Join.txt",
+    "sha256": "7c0d3b5801c6473a976fdcf2adbed9bfff0151064e0ece4062a5c5100705d509"
+  },
+  {
+    "id": "original-ca7756fad8b8",
+    "name": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain",
+    "description": "Original Visual DSD source: Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Yordanov et al. (ACS Synth Biol 2014)",
+    "source": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - 2Domain.txt",
+    "sha256": "84497f2c62550d396a46cedb4815f1ec975ada68616891b56e89763820c0eea3"
+  },
+  {
+    "id": "original-1a4d68353d5a",
+    "name": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain",
+    "description": "Original Visual DSD source: Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Yordanov et al. (ACS Synth Biol 2014)",
+    "source": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - 4Domain.txt",
+    "sha256": "c7d93a01192b2c2b9d37327fb917a8d7cab189bcc86860dd22e646f79d0895a0"
+  },
+  {
+    "id": "original-4f25f8778e9a",
+    "name": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN",
+    "description": "Original Visual DSD source: Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Yordanov et al. (ACS Synth Biol 2014)",
+    "source": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - CRN.txt",
+    "sha256": "ff9bd8a9d590db0b6889fb5ac26fac0219355e5e7b62c46047d30f6bdfd92778"
+  },
+  {
+    "id": "original-26e0bf5ea27a",
+    "name": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes",
+    "description": "Original Visual DSD source: Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Yordanov et al. (ACS Synth Biol 2014)",
+    "source": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - DNA Enzymes.txt",
+    "sha256": "83d473a57d62f672096bc6ac4d1ad465db079eec5897a279d96efaabc8cff762"
+  },
+  {
+    "id": "original-a65188ccaae4",
+    "name": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes",
+    "description": "Original Visual DSD source: Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Yordanov et al. (ACS Synth Biol 2014)",
+    "source": "Yordanov et al., ACS Synth Biol 2014 - PI Controller - RNA Enzymes.txt",
+    "sha256": "155f0cf16646d7c4ce2f05ab7a0d98599a8ecb6dc27eb3c4e6e8abff54b69e75"
+  },
+  {
+    "id": "original-6ee7d8d5fd82",
+    "name": "Zhang, Science 2007 - And Gate",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - And Gate.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - And Gate.txt",
+    "sha256": "792e138a5eca1658789a937cb3c43f74348acabc4745ac51b7e67b665b5700f8"
+  },
+  {
+    "id": "original-63db562ce14d",
+    "name": "Zhang, Science 2007 - Autocatalytic",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - Autocatalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - Autocatalytic.txt",
+    "sha256": "5dd07bba46da4cc0cd4c3b4401c908aa103fe79a976c9ffce0de0ef802bda180"
+  },
+  {
+    "id": "original-6589df670bef",
+    "name": "Zhang, Science 2007 - Cross Catalytic",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - Cross Catalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - Cross Catalytic.txt",
+    "sha256": "b0dcada26c23671d08b35c4a095857510d945f3322624500adcc1626710b5dec"
+  },
+  {
+    "id": "original-ee8ee20d2c39",
+    "name": "Zhang, Science 2007 - Feed forward",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - Feed forward.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - Feed forward.txt",
+    "sha256": "33804fc64612d73db7409832c826a06da265565c5e7417b793388a759acf4391"
+  },
+  {
+    "id": "original-4ceead00bf8e",
+    "name": "Zhang, Science 2007 - Fluorescent Catalytic",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - Fluorescent Catalytic.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - Fluorescent Catalytic.txt",
+    "sha256": "25befb8053cc959b851c09eccb53791414532c13fc4c8f832cc4b92c9275af9c"
+  },
+  {
+    "id": "original-2355f5ef2328",
+    "name": "Zhang, Science 2007 - Independent Input",
+    "description": "Original Visual DSD source: Zhang, Science 2007 - Independent Input.txt",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · Zhang (Science 2007)",
+    "source": "Zhang, Science 2007 - Independent Input.txt",
+    "sha256": "6fe9339992427c98609422572270c6e23ff9e4d7c9a82f650918d5d07803a104"
+  },
+  {
+    "id": "original-cc25052d783d",
+    "name": "01 standard dsd",
+    "description": "Original source: WalkerTalk/01 standard dsd.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/01 standard dsd.dna",
+    "sha256": "2d0a96318178f63cbadcf89bce61eee645edb6ccb5997cefa7fe9b2604089dd3"
+  },
+  {
+    "id": "original-c6323e78f396",
+    "name": "02 standard gates",
+    "description": "Original source: WalkerTalk/02 standard gates.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/02 standard gates.dna",
+    "sha256": "a67b3408d559b4a3f97954049f1213b81412fe238a2a3f44cef23cb4d6a95821"
+  },
+  {
+    "id": "original-5bed253ea4f4",
+    "name": "03 standard reaction",
+    "description": "Original source: WalkerTalk/03 standard reaction.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/03 standard reaction.dna",
+    "sha256": "2307fc167001ddfb6dc3ca07b4658433d3d50eb59168f9ee7b19ac8ba125a6f9"
+  },
+  {
+    "id": "original-5f385cb66b98",
+    "name": "04 rxn basic",
+    "description": "Original source: WalkerTalk/04 rxn basic.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/04 rxn basic.dna",
+    "sha256": "164b419835dc1d3c63b6a4c7c39e2dee7b27584bb53ce7ba69f589293a3e6815"
+  },
+  {
+    "id": "original-e6f5cfcfe0ac",
+    "name": "05 rxn rate",
+    "description": "Original source: WalkerTalk/05 rxn rate.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/05 rxn rate.dna",
+    "sha256": "20aa47160d857ebd6c450bae650b260f5a72360f468b227db4f98a07ef8d27cf"
+  },
+  {
+    "id": "original-4438232c4ad6",
+    "name": "06 rxn Michaelis-Menten",
+    "description": "Original source: WalkerTalk/06 rxn Michaelis-Menten.dna; check syntax before running this demonstration.",
+    "dialect": "legacy",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/06 rxn Michaelis-Menten.dna",
+    "sha256": "908906ec52ae0700d6471712314e818ef08c58677de31f3eb62ffd8c17551430"
+  },
+  {
+    "id": "original-3e6670add42c",
+    "name": "07 hairpins basic",
+    "description": "Original source: WalkerTalk/07 hairpins basic.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/07 hairpins basic.dna",
+    "sha256": "94ce06a507a210d223cf8babd41146ef4c0a59af700be8813bb22f9d32ddafb1"
+  },
+  {
+    "id": "original-cc9dcb4dc79c",
+    "name": "08 hairpins open",
+    "description": "Original source: WalkerTalk/08 hairpins open.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/08 hairpins open.dna",
+    "sha256": "9bedd393a27ae1e68c7d42633e512d6e88e990a27444e9a3d4ced5d15798dbc1"
+  },
+  {
+    "id": "original-c87fdd98746a",
+    "name": "09 hairpins close",
+    "description": "Original source: WalkerTalk/09 hairpins close.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/09 hairpins close.dna",
+    "sha256": "7ed16e72f4cf0ffe7479a60e7e0eea6849a442293ed1dbd5390e5ac0e934a14b"
+  },
+  {
+    "id": "original-52f370cfd2b1",
+    "name": "10 tethers basic",
+    "description": "Original source: WalkerTalk/10 tethers basic.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/10 tethers basic.dna",
+    "sha256": "bed23550ae4aac78513f3ea9f9176e2728de96ce8844bcf0d144878bd5c44807"
+  },
+  {
+    "id": "original-c62e51434527",
+    "name": "11 tethers untethered",
+    "description": "Original source: WalkerTalk/11 tethers untethered.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/11 tethers untethered.dna",
+    "sha256": "8193e5ff16ae70f85c66238042dbf764b39890022057094dac6d31a77fd345cf"
+  },
+  {
+    "id": "original-a4885c92d392",
+    "name": "12 tethers free",
+    "description": "Original source: WalkerTalk/12 tethers free.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/12 tethers free.dna",
+    "sha256": "52dea328e64aa769896089146ec4f0743318c873c1a8ab878d4b9d1254184ce3"
+  },
+  {
+    "id": "original-01e89252e000",
+    "name": "13 tethers free react",
+    "description": "Original source: WalkerTalk/13 tethers free react.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/13 tethers free react.dna",
+    "sha256": "6db19f243b611210818d9d9c5b4cffa22b8de39f479e158a2181c2c0e4069647"
+  },
+  {
+    "id": "original-2569bd462620",
+    "name": "14 tethers tethered react",
+    "description": "Original source: WalkerTalk/14 tethers tethered react.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/14 tethers tethered react.dna",
+    "sha256": "4bdf94f0957584a3a149bb41186adf8914299f52244018586ebe364da7cd521b"
+  },
+  {
+    "id": "original-9cb4c29efeb8",
+    "name": "15 tethers react compete",
+    "description": "Original source: WalkerTalk/15 tethers react compete.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/15 tethers react compete.dna",
+    "sha256": "c4c06f41aac5bec2e790abb28a3837ece95be3d4008278d6b595405d6c31bac8"
+  },
+  {
+    "id": "original-949f151a3095",
+    "name": "16 tethers react compete lc",
+    "description": "Original source: WalkerTalk/16 tethers react compete lc.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/16 tethers react compete lc.dna",
+    "sha256": "25da4c392932937b646725914f8da4bf5925735e7c2f0e8d8cb93f401e4e5a11"
+  },
+  {
+    "id": "original-85cdb0ef84c9",
+    "name": "17 tethers tag intuition",
+    "description": "Original source: WalkerTalk/17 tethers tag intuition.dna; check syntax before running this demonstration.",
+    "dialect": "current",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/17 tethers tag intuition.dna",
+    "sha256": "803de6b16453a00c1f079e0201a229020c54b022177b9e2470c510a268f479a4"
+  },
+  {
+    "id": "original-6a3153cee6f0",
+    "name": "circular_walker",
+    "description": "Original source: WalkerTalk/circular_walker.dna; check syntax before running this demonstration.",
+    "dialect": "legacy",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/circular_walker.dna",
+    "sha256": "e3d3e5cbbced60ad182973e617b30c4fc5bcc1025a0de5c18e2f01aab3b3aeb6"
+  },
+  {
+    "id": "original-4b2f9a90b998",
+    "name": "split_circular_walker",
+    "description": "Original source: WalkerTalk/split_circular_walker.dna; check syntax before running this demonstration.",
+    "dialect": "legacy",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/split_circular_walker.dna",
+    "sha256": "d38c02c727626f55b1166a18341e95658e74148c14329ee77bc36bf97b1fe6d7"
+  },
+  {
+    "id": "original-44d2ffce46b6",
+    "name": "Walker",
+    "description": "Original source: WalkerTalk/Walker.dna; check syntax before running this demonstration.",
+    "dialect": "legacy",
+    "language": "dsd",
+    "category": "Original · WalkerTalk",
+    "source": "WalkerTalk/Walker.dna",
+    "sha256": "2e47259f9f49f3f90d861e535b1a5a16aefd1e1219e27d9be4848d52ae55e068"
+  }
+]

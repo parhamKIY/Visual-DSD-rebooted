@@ -19,7 +19,7 @@ public static class Program
         if (args.SequenceEqual(["--version"])) { Console.WriteLine(CoreEngine.Info.Version); return 0; }
         if (args.SequenceEqual(["--help"]) || args.SequenceEqual(["help"]))
         {
-            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze|synthesize|export <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde|sundials|cmesundials|mc] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--phase-x SPECIES] [--phase-y SPECIES] [--phase-trajectories N] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
+            Console.WriteLine("VisualDsd [serve [--port 5800] [--open] | parse|expand|simulate|infer|analyze|synthesize|export <file|-> [--language dsd|crn] [--node NAME] [--system NAME] [--dialect auto|current|legacy] [--compilation default|detailed|finite|infinite] [--simulator oslo|ssa|lna|cme|pde|sundials|cmesundials|mc] [--initial N] [--final N] [--points N] [--seed N] [--timeout-seconds N] [--phase-x SPECIES] [--phase-y SPECIES] [--phase-trajectories N] [--toeholds file.txt] [--specificities file.txt] [--dsd-options options.json] [--data dataset.csv]]\nRepeat --data for multiple datasets. Run without arguments to open the local workspace in your browser.");
             return 0;
         }
         try
@@ -67,7 +67,7 @@ public static class Program
             }
             finally { Console.CancelKeyPress -= cancel; }
         }
-        catch (Exception error) when (error is ArgumentException or FormatException or OverflowException or IOException or UnauthorizedAccessException)
+        catch (Exception error) when (error is ArgumentException or FormatException or OverflowException or IOException or UnauthorizedAccessException or JsonException)
         {
             await WriteAsync(new EngineResponse(false, "", "", null, [new("COMMAND_ERROR", error.Message)]));
             return 2;
@@ -101,11 +101,22 @@ public static class Program
                 "--phase-x" => request with { PhaseX = value },
                 "--phase-y" => request with { PhaseY = value },
                 "--phase-trajectories" => request with { PhaseTrajectories = int.Parse(value, CultureInfo.InvariantCulture) },
+                "--toeholds" => request with { Toeholds = await ReadDatabaseAsync(value) },
+                "--specificities" => request with { Specificities = await ReadDatabaseAsync(value) },
+                "--dsd-options" => request with { DsdOptions = JsonSerializer.Deserialize<DsdOptionsData>(await ReadDatabaseAsync(value), ProcessEngineWorker.Json) ?? throw new ArgumentException("DSD options require a JSON object.") },
                 "--data" => request with { Data = [..request.Data, ObservationCsv.Parse(Path.GetFileNameWithoutExtension(value), await ReadCsvAsync(value))] },
                 _ => throw new ArgumentException($"Unknown option {args[index]}.")
             };
         }
         return request;
+    }
+
+    private static async Task<string> ReadDatabaseAsync(string path)
+    {
+        if (new FileInfo(path).Length > RequestValidation.MaximumCodeBytes + 3) throw new ArgumentException("Options or sequence database file exceeds 256 KiB.");
+        string text=await File.ReadAllTextAsync(path);
+        if (System.Text.Encoding.UTF8.GetByteCount(text)>RequestValidation.MaximumCodeBytes) throw new ArgumentException("Options or sequence database file exceeds 256 KiB.");
+        return text;
     }
 
     private static async Task<string> ReadCsvAsync(string path)

@@ -1,9 +1,10 @@
+import { dsdDefaults, dsdOverrides } from './dsd-workspace.js';
 import { readDatasets } from './observations.js';
 
 export const MAX_CODE_BYTES = 256 * 1024;
 export const MAX_DOCUMENTS = 16;
 export const STORAGE_KEY = 'visual-dsd.workspace.v1';
-export const optionDefaults = Object.freeze({ language: 'dsd', nodeId: '', systemId: '', dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30', phaseX: '', phaseY: '', phaseTrajectories: '12' });
+export const optionDefaults = Object.freeze({ ...dsdDefaults, language: 'dsd', nodeId: '', systemId: '', dialect: 'auto', compilation: 'source', simulator: 'source', initial: '', final: '', points: '', seed: '', timeoutSeconds: '30', phaseX: '', phaseY: '', phaseTrajectories: '12' });
 export const byteLength = text => new TextEncoder().encode(text).length;
 export const escapeHtml = text => String(text).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
@@ -49,6 +50,7 @@ export function restoreWorkspace(raw) {
 export function requestFor(document, operation) {
   if (!['dsd', 'crn'].includes(document.options.language ?? 'dsd')) throw new Error('Choose Visual DSD or CRN as the model language.');
   const request = { code: document.code, operation, dialect: document.options.dialect, compilation: document.options.compilation, simulator: document.options.simulator };
+  if (document.options.language !== 'crn') { const overrides=dsdOverrides(document.options); if(Object.keys(overrides).length)request.dsdOptions=overrides; }
   if (document.options.language === 'crn') {
     request.language = 'crn'; request.dialect = 'current'; request.compilation = 'source';
     if (document.options.nodeId) request.nodeId = document.options.nodeId;

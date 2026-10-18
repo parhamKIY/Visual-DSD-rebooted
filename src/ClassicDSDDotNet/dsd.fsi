@@ -42,6 +42,7 @@ val set_options : bundle -> Options.t -> bundle
 
 val parse    : string -> bundle
 val parse_extended : string -> string -> string -> (bundle*Task option)
+val parse_extended_with_options : (Options.t -> Options.t) -> Environment.t -> string -> string -> string -> (bundle*Task option)
 val parse_extended_with_parameters : Environment.t -> string -> string -> string -> (bundle*Task option)
 val convert_unexpanded : bundle -> term
 val convert_expand : bundle -> term

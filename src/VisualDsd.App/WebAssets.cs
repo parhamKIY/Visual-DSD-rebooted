@@ -5,8 +5,8 @@ using VisualDsd.Contracts;
 
 namespace VisualDsd.App;
 
-public sealed record ExampleInfo(string Id, string Name, string Description, string Dialect, string Language = "dsd");
-public sealed record ExampleModel(string Id, string Name, string Description, string Dialect, string Code, string Language = "dsd", DatasetData[]? Data = null);
+public sealed record ExampleInfo(string Id, string Name, string Description, string Dialect, string Language = "dsd", string Category = "Workspace", string? Source = null, string? Sha256 = null);
+public sealed record ExampleModel(string Id, string Name, string Description, string Dialect, string Code, string Language = "dsd", DatasetData[]? Data = null, string Category = "Workspace", string? Source = null);
 
 internal static class WebAssets
 {
@@ -16,10 +16,10 @@ internal static class WebAssets
         ["index.html"] = "text/html; charset=utf-8", ["app.css"] = "text/css; charset=utf-8",
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
-        ["exports.js"] = "text/javascript; charset=utf-8", ["synthesis.js"] = "text/javascript; charset=utf-8", ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
+        ["dsd-workspace.js"] = "text/javascript; charset=utf-8", ["exports.js"] = "text/javascript; charset=utf-8", ["synthesis.js"] = "text/javascript; charset=utf-8", ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
     };
 
-    public static readonly ExampleInfo[] Examples =
+    private static readonly ExampleInfo[] WorkspaceExamples =
     [
         new("synthesis-bistable", "CRN · bistable synthesis", "Two analytic stable equilibria, synthesized values and sampled phase trajectories.", "current", "crn"),
         new("synthesis-turing", "CRN · Turing synthesis", "Synthesize diffusion for a Brusselator and inspect its dispersion curve.", "current", "crn"),
@@ -40,6 +40,13 @@ internal static class WebAssets
         new("legacy-and", "AND circuit · legacy", "The original Visual DSD syntax, preserved as written.", "legacy")
     ];
 
+    public static readonly ExampleInfo[] Examples = [.. WorkspaceExamples, .. ReadOriginalExamples()];
+    private static ExampleInfo[] ReadOriginalExamples()
+    {
+        using Stream stream = Assembly.GetManifestResourceStream("VisualDsd.OriginalExamples") ?? throw new InvalidOperationException("The original example catalog is missing.");
+        return JsonSerializer.Deserialize<ExampleInfo[]>(stream, ProcessEngineWorker.Json) ?? throw new InvalidOperationException("The original example catalog is invalid.");
+    }
+
     public static IResult Asset(string name)
     {
         if (!Types.TryGetValue(name, out string? type)) return Results.NotFound();
@@ -53,18 +60,28 @@ internal static class WebAssets
     {
         ExampleInfo? info = Examples.FirstOrDefault(example => example.Id == id);
         if (info is null) return Results.NotFound();
-        using Stream stream = Assembly.GetManifestResourceStream($"VisualDsd.Examples.{id}") ?? throw new InvalidOperationException("An embedded example is missing.");
+        string resourceId = info.Source switch
+        {
+            "2-domain, DCM - Two-domain transducer.txt" => "transducer",
+            "Catalytic.txt" => "catalytic",
+            "Manual/Join-JIT.txt" => "jit",
+            "Manual/Join.txt" => "join",
+            "Simple - AND Circuit.txt" => "and-gate",
+            _ => id
+        };
+        using Stream stream = Assembly.GetManifestResourceStream($"VisualDsd.Examples.{resourceId}") ?? throw new InvalidOperationException("An embedded example is missing.");
         using var reader = new StreamReader(stream, Encoding.UTF8);
         using Stream? dataStream = Assembly.GetManifestResourceStream($"VisualDsd.Examples.{id}.data");
         using StreamReader? dataReader = dataStream is null ? null : new StreamReader(dataStream, Encoding.UTF8);
         DatasetData[]? data = dataReader is null ? null : JsonSerializer.Deserialize<DatasetData[]>(dataReader.ReadToEnd(), ProcessEngineWorker.Json);
-        return Results.Json(new ExampleModel(info.Id, info.Name, info.Description, info.Dialect, reader.ReadToEnd(), info.Language, data));
+        return Results.Json(new ExampleModel(info.Id, info.Name, info.Description, info.Dialect, reader.ReadToEnd(), info.Language, data, info.Category, info.Source));
     }
 
     public static void Map(WebApplication app)
     {
         app.MapGet("/", () => Asset("index.html"));
         app.MapGet("/assets/{name}", (string name) => Asset(name));
+        app.MapGet("/api/sequences/defaults", () => Results.Json(VisualDsd.Engine.Engine.SequenceDatabases));
         app.MapGet("/api/examples", () => Results.Json(Examples));
         app.MapGet("/api/examples/{id}", (string id) => Example(id));
     }
