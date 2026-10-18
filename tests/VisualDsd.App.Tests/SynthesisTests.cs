@@ -155,4 +155,16 @@ public class SynthesisTests
             Assert.Equal(file.GetProperty("sha256").GetString(),Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant());
         }
     }
+
+    [Fact]
+    public void Implicit_synthesized_rate_parameters_are_assigned_in_phase_runs_and_exported_code()
+    {
+        var result=Run(Bistable.Replace("->{6} X","->{q} X"),2);
+        Assert.Equal("SAT",result.Status);
+        var q=Assert.Single(result.Values,p=>p.Name=="q");Assert.Equal("parameter",q.Kind);Assert.True(q.Value>0);
+        Assert.NotNull(result.PhasePortrait);
+        var simulation=CoreEngine.Execute(new(){Code=result.Code!,Language="crn",Operation="simulate",Final=1,Points=10,Simulator="oslo"});
+        Assert.True(simulation.Success,JsonSerializer.Serialize(simulation));Assert.NotEmpty(simulation.Model!.Simulations);
+        var collision=Execute(Bistable.Replace("->{6} X","->{wc} X"));Assert.False(collision.Success);Assert.Equal("SYNTHESIS_NAMES",Assert.Single(collision.Diagnostics).Code);
+    }
 }

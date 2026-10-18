@@ -129,6 +129,11 @@ module internal Synthesis =
         crn.settings.rates |> Map.iter (fun name _ -> visitRate Set.empty name)
         for parameter in crn.settings.parameters do finite parameter.value |> ignore
         let system = Dynamical.fromCRN crn
+        let synthesisParameters = Set.difference system.GetVars speciesNames
+        if synthesisParameters.Count > 32 then fail "SYNTHESIS_LIMIT" "Synthesis supports at most 32 parameters, including implicit rate and diffusion variables."
+        let allSymbols = Set.union symbols synthesisParameters
+        if allSymbols.Contains "w" || allSymbols.Contains "wc" || allSymbols.Contains "wzc" || allSymbols.Contains "w_2" || speciesNames |> Set.exists (fun name -> allSymbols.Contains (name+"_1") || allSymbols.Contains (name+"_2")) then
+            fail "SYNTHESIS_NAMES" "Implicit parameters collide with reserved wave-number or equilibrium variables."
         for expression in system.Eqns do checkExpression expression
         for KeyValue(_,expression) in system.diffusion do checkExpression expression
         for KeyValue(_, (low,high)) in system.bounds do
@@ -164,16 +169,21 @@ module internal Synthesis =
                 let growth = TuringNumerical.dispersion waves result |> Array.map finite
                 let witnessGrowth = TuringNumerical.dispersion [|wave|] result |> Array.head |> finite
                 DispersionData(waves,growth,wave,witnessGrowth)
-        let phase = if isTuring || witness.IsNone then null else portrait request crn values equilibria seed
+        let assignedParameters =
+            let declared = crn.settings.parameters |> List.map (fun p -> match Map.tryFind p.name values with Some v -> {p with value=v} | None -> p)
+            let implicit = Set.difference synthesisParameters parameterNames |> Set.toList |> List.choose (fun name ->
+                Map.tryFind name values |> Option.map (fun value -> Parameter.create(name,value,None)))
+            declared @ implicit
+        let assigned = {crn with settings={crn.settings with parameters=assignedParameters}}
+        let phase = if isTuring || witness.IsNone then null else portrait request assigned values equilibria seed
         let updated =
             if witness.IsNone then null
             else
-                let parameters = crn.settings.parameters |> List.map (fun p -> match Map.tryFind p.name values with Some v -> {p with value=v} | None -> p)
                 let diffusibles = crn.settings.spatial.diffusibles |> List.map (fun (sp,rate) -> sp,Expression.substitute (values |> Map.map (fun _ v -> Expression.Float v)) rate)
-                {crn with settings={crn.settings with parameters=parameters; spatial={crn.settings.spatial with diffusibles=diffusibles}}}.to_string()
+                {assigned with settings={assigned.settings with spatial={crn.settings.spatial with diffusibles=diffusibles}}}.to_string()
         let ode,jacobian,diffusion,constraints = system.ToEquationsSplit false false
         let entries = values |> Map.toArray |> Array.map (fun (name,value) ->
-            let kind = if parameterNames.Contains name then "parameter" elif system.GetDiffVars.Contains name then "diffusion" elif symbols.Contains name || speciesNames |> Set.exists (fun species -> name=species+"_1" || name=species+"_2") then "equilibrium" else "auxiliary"
+            let kind = if synthesisParameters.Contains name then "parameter" elif symbols.Contains name || speciesNames |> Set.exists (fun species -> name=species+"_1" || name=species+"_2") then "equilibrium" else "auxiliary"
             let low,high = Map.tryFind name result.bounds |> Option.defaultValue (None,None)
             SynthesisValueData(name,kind,value,low |> Option.map Nullable |> Option.defaultValue (Nullable()),high |> Option.map Nullable |> Option.defaultValue (Nullable())))
         SynthesisData((if isTuring then "turing" else "multistability"),(if settings.solver=Z3Solver.NLSat then "nlsat" else "portfolio"),result.solution.Status,

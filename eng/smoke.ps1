@@ -169,6 +169,11 @@ foreach($example in @('synthesis-bistable','synthesis-turing')) {
         if($synthesis.dispersion.witnessGrowthRate -le 0 -or $synthesis.equilibria.Count -ne 1) { throw 'Standalone Turing dispersion failed.' }
     } elseif($synthesis.equilibria.Count -ne 2 -or $synthesis.phasePortrait.trajectories.Count -ne 4 -or [Math]::Abs($synthesis.equilibria[0].values[0]-$synthesis.equilibria[1].values[0]) -lt 1.9) { throw 'Standalone bistable roots or trajectories failed.' }
 }
+$implicitSource=(Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/synthesis-bistable.crn') -Raw).Replace('->{6} X','->{q} X')
+$implicit=Invoke-Standalone -Arguments @('synthesize','-','--language','crn','--phase-trajectories','2') -InputText $implicitSource | ConvertFrom-Json
+if(!$implicit.success -or $implicit.model.synthesis.status -ne 'SAT' -or $implicit.model.synthesis.phasePortrait.trajectories.Count -ne 2) { throw 'Implicit synthesis parameter assignment failed.' }
+$implicitRun=Invoke-Standalone -Arguments @('simulate','-','--language','crn','--simulator','oslo','--final','1','--points','10') -InputText $implicit.model.synthesis.code | ConvertFrom-Json
+if(!$implicitRun.success) { throw 'The exported implicit synthesis parameter is not executable.' }
 $spatialSource = @'
 directive simulator pde
 directive simulation {initial=2;final=3;points=10;plots=[<a>]}
