@@ -11,7 +11,7 @@ $executable = Join-Path $directory $name
 Copy-Item -LiteralPath (Join-Path $repoRoot "artifacts/publish/$Runtime/$name") -Destination $executable
 
 function Start-Standalone {
-    param([string[]] $Arguments)
+    param([string[]] $Arguments, [hashtable] $ExtraEnvironment = @{})
     $start = [System.Diagnostics.ProcessStartInfo]::new($executable)
     $start.WorkingDirectory = $directory
     $start.UseShellExecute = $false
@@ -23,6 +23,7 @@ function Start-Standalone {
     $start.Environment['DOTNET_ROOT_X64'] = $start.Environment['DOTNET_ROOT']
     $start.Environment['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     $start.Environment['PATH'] = if ($IsWindows) { [Environment]::SystemDirectory } else { '/usr/bin:/bin' }
+    foreach ($key in $ExtraEnvironment.Keys) { $start.Environment[$key] = $ExtraEnvironment[$key] }
     foreach ($argument in $Arguments) { $start.ArgumentList.Add($argument) }
     return [System.Diagnostics.Process]::Start($start)
 }
@@ -48,7 +49,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.16.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.17.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -234,7 +235,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('app.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('app.js', 'live-jobs.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -262,4 +263,60 @@ finally {
     if (!$server.HasExited) { $server.Kill($true); $server.WaitForExit() }
     $server.Dispose()
 }
+function Get-StandaloneAddress($service) {
+    $service.StandardInput.Close()
+    $expires=[DateTime]::UtcNow.AddSeconds(15)
+    while([DateTime]::UtcNow -lt $expires) {
+        $line=$service.StandardOutput.ReadLineAsync().WaitAsync([TimeSpan]::FromSeconds(15)).GetAwaiter().GetResult()
+        if($null -eq $line) { throw 'The compute test service did not start.' }
+        if($line -match 'Now listening on: (http://127\.0\.0\.1:\d+)') { return $Matches[1] }
+    }
+    throw 'The compute test service did not announce an address.'
+}
+$computeSecret=[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+$compute=$null;$gateway=$null
+try {
+    $compute=Start-Standalone -Arguments @('compute','--port','0','--jobs-dir',(Join-Path $directory 'compute-jobs')) -ExtraEnvironment @{ VISUAL_DSD_COMPUTE_TOKEN=$computeSecret }
+    $computeErrors=$compute.StandardError.ReadToEndAsync()
+    $computeAddress=Get-StandaloneAddress $compute
+    $computeOutput=$compute.StandardOutput.ReadToEndAsync()
+    $unauthorized=Invoke-WebRequest "$computeAddress/api/info" -SkipHttpErrorCheck -TimeoutSec 10
+    if($unauthorized.StatusCode -ne 401) { throw 'Unauthenticated compute access was accepted.' }
+    $gateway=Start-Standalone -Arguments @('serve','--port','0','--jobs-dir',(Join-Path $directory 'workspace-jobs')) -ExtraEnvironment @{ VISUAL_DSD_REMOTE_URL=$computeAddress; VISUAL_DSD_REMOTE_TOKEN=$computeSecret }
+    $gatewayErrors=$gateway.StandardError.ReadToEndAsync()
+    $gatewayAddress=Get-StandaloneAddress $gateway
+    $gatewayOutput=$gateway.StandardOutput.ReadToEndAsync()
+    if((Invoke-RestMethod "$gatewayAddress/api/execution" -TimeoutSec 10).mode -ne 'remote') { throw 'The standalone gateway did not select remote execution.' }
+    $remoteBody=@{code='<a^ b>';operation='simulate';simulator='oslo';final=1;points=3;seed=42;timeoutSeconds=600} | ConvertTo-Json
+    $remoteJob=Invoke-RestMethod "$gatewayAddress/api/jobs" -Method Post -ContentType 'application/json' -Body $remoteBody -TimeoutSec 10
+    $expires=[DateTime]::UtcNow.AddSeconds(20)
+    do {
+        Start-Sleep -Milliseconds 50
+        $remoteResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($remoteJob.id)" -TimeoutSec 10
+        if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote calculation timed out.' }
+    } while(!$remoteResult.finishedAt)
+    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.17.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
+    $events=Invoke-WebRequest "$gatewayAddress/api/jobs/$($remoteJob.id)/events" -TimeoutSec 10
+    if($events.Headers['Content-Type'] -notmatch 'text/event-stream' -or $events.Content -notmatch 'event: job') { throw 'Standalone job streaming failed.' }
+    $slowBody=@{code="directive simulator stochastic`n(1000 * <a> | rxn <a> ->{1.0} <a>)";operation='simulate';final=1e12;points=1;seed=42;timeoutSeconds=600} | ConvertTo-Json
+    $slowJob=Invoke-RestMethod "$gatewayAddress/api/jobs" -Method Post -ContentType 'application/json' -Body $slowBody -TimeoutSec 10
+    $expires=[DateTime]::UtcNow.AddSeconds(15)
+    do {
+        Start-Sleep -Milliseconds 50
+        $slowResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($slowJob.id)" -TimeoutSec 10
+        if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote job was not admitted.' }
+    } while(!$slowResult.remoteId)
+    Invoke-RestMethod "$gatewayAddress/api/jobs/$($slowJob.id)" -Method Delete -TimeoutSec 10 | Out-Null
+    do {
+        Start-Sleep -Milliseconds 50
+        $slowResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($slowJob.id)" -TimeoutSec 10
+        if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote cancellation timed out.' }
+    } while(!$slowResult.finishedAt)
+    $remoteStopped=Invoke-RestMethod "$computeAddress/api/jobs/$($slowResult.remoteId)" -Headers @{Authorization="Bearer $computeSecret"} -TimeoutSec 10
+    if($slowResult.state -ne 'cancelled' -or $remoteStopped.state -ne 'cancelled') { throw 'Remote cancellation was not confirmed on both services.' }
+}
+finally {
+    foreach($service in @($gateway,$compute)) { if($null -ne $service) { if(!$service.HasExited) { $service.Kill($true);$service.WaitForExit() };$service.Dispose() } }
+}
+Write-Output "Standalone durable jobs, authenticated remote execution, SSE updates and confirmed remote cancellation passed."
 Write-Output "Standalone $Runtime passed: embedded workspace and examples, current and legacy expansion, Oslo, SSA, LNA, CME, native Sundials/CMESundials, moment closure, spatial PDE, joint probability distributions, lazy JIT state generation, bounded state exploration, Z3 multistability and Turing synthesis with phase portraits and dispersion, seeded and multichain linked inference with CSV data, isolated JIT sweeps and named runs, parser diagnostics, local API."

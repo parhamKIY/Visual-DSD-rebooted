@@ -192,6 +192,29 @@ module private StatisticalSolvers =
             SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, series, run.Seed, run.Settings, null)) |> List.toArray
 
 module private CrnExecution =
+    let ordinary (crn:Crn) =
+        if not EngineTelemetry.Active || not (List.contains crn.settings.simulator [Simulator.Oslo;Simulator.SSA]) then crn.simulate_case() else
+        crn.get_instances() |> List.map(fun instance ->
+            let current=Exploration.configure crn instance
+            let observe=LiveProgress.run current instance
+            let table =
+                if crn.settings.simulator=Simulator.Oslo then
+                    let ode=current.to_oslo()
+                    let rows=ref []
+                    let output row=observe row; rows.Value<-row::rows.Value
+                    ode.simulate_callback (ref false) output ignore |> ignore
+                    ode.process_simulation rows.Value
+                elif crn.settings.simulator=Simulator.SSA then
+                    let ssa=current.to_ssa()
+                    if ssa.settings.trajectories=1 && ssa.simulator.settings.times.IsEmpty then
+                        let rows=ref []
+                        let output row=observe row;rows.Value<-row::rows.Value
+                        ssa.simulate_callback (ref false) output ignore None |> ignore
+                        Table.from_rows_reverse (ssa.simulator.settings.plots |> List.map Functional2.to_string_plot) rows.Value
+                    else ssa.simulate()
+                else current.simulate_case() |> List.exactlyOne |> fun result -> result.table
+            Result<float>.create instance table)
+
     let run (request: ModelRequest) (crn: Crn) =
         let noInference = Unchecked.defaultof<InferenceData>
         match request.Operation with
@@ -222,11 +245,12 @@ module private CrnExecution =
                         SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
                 elif crn.settings.simulator = Simulator.LNA || crn.settings.simulator = Simulator.CME || crn.settings.simulator = Simulator.CMESundials then StatisticalSolvers.simulate crn
                 elif crn.settings.simulator = Simulator.MC then StatisticalSolvers.moments crn
-                else crn.simulate_case() |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
+                else ordinary crn |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
             crn, runs, noInference
         | _ -> crn, [||], noInference
 
     let executeProgram (request: ModelRequest) =
+        LiveProgress.phase "expanding" "Preparing the CRN program."
         let original, program, graph = CrnPrograms.parse request
         let update (simulation: Simulation_settings<Functional>) =
             { simulation with
@@ -294,10 +318,11 @@ module private CrnExecution =
 type Engine private () =
     static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.16.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.17.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
+        LiveProgress.phase "preparing" "Preparing and validating the model."
         let validation = RequestValidation.Validate request
         if validation.Length > 0 then EngineResponse(false, "", "", null, validation)
         else
@@ -315,6 +340,7 @@ type Engine private () =
                     let code = if dialect = "legacy" then SLConversion.convertSL request.Code else request.Code
                     let toeholds = if isNull request.Toeholds then Options.getToeholdsText Options.default_options else request.Toeholds
                     let specificities = if isNull request.Specificities then Options.getSpecificitiesText Options.default_options else request.Specificities
+                    LiveProgress.phase "expanding" "Parsing DSD and preparing the reaction network."
                     let original, _ = Dsd.parse_extended_with_options (DsdWorkspace.configure request) Environment.empty toeholds specificities code
                     let originalOptions = Dsd.get_options original
                     let compilation =
@@ -386,7 +412,7 @@ type Engine private () =
                                             raise (ExecutionFailure("INVALID_SWEEP", "Sweep parameter values must be finite."))
                                         // Reparse before expansion: parameters can also change domain rates and module arguments.
                                         // Each run owns its mutable species caches, reaction dictionaries and random generator.
-                                        let fresh, _ = Dsd.parse_extended_with_parameters instance.environment toeholds specificities code
+                                        let fresh, _ = Dsd.parse_extended_with_options (DsdWorkspace.configure request) instance.environment toeholds specificities code
                                         let fresh = Dsd.set_options fresh (Options.setRules compilation (Dsd.get_options fresh))
                                         let runSettings (settings: Crn_settings<'a>) =
                                             let sim =
@@ -413,10 +439,10 @@ type Engine private () =
                                             let expanded, table =
                                                 match Dsd.to_jit fresh with
                                                 | Choice1Of2 state ->
-                                                    let finalState, table = Jit.simulate state (Dsd.makeDsdCalculus fresh)
+                                                    let finalState, table = Jit.simulate_observed (LiveProgress.run initial instance) state (Dsd.makeDsdCalculus fresh)
                                                     Jit.to_crn finalState initial, table
                                                 | Choice2Of2 state ->
-                                                    let finalState, table = Jit.simulate state (Dsd.to_rules_calculus fresh)
+                                                    let finalState, table = Jit.simulate_observed (LiveProgress.run initial instance) state (Dsd.to_rules_calculus fresh)
                                                     Jit.to_crn finalState initial, table
                                             expanded, Conversion.simulation expanded (Conversion.network "finalPopulation" expanded) instance table
                                     let results = instances |> List.map run

@@ -54,6 +54,7 @@ val simulate_callback : cancel
                         -> Unit
 
 // main entry point
+val simulate_observed : (Row<float> -> unit) -> t<'s> -> Calculus<'s> -> t<'s> * Table<float>
 val simulate : jit               : t<'s>                 (* a JIT data structure *)
                -> calculus       : Calculus<'s>        (* a calculus to find new reactions *)
                -> finalJit       : t<'s>                 (* the final JIT data structure *)

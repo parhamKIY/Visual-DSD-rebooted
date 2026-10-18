@@ -68,7 +68,7 @@ export function requestFor(document, operation) {
   }
   if (request.points !== undefined && (request.points < 1 || request.points > 100000)) throw new Error('Output points must be between 1 and 100000.');
   if (request.seed !== undefined && (request.seed < -2147483648 || request.seed > 2147483647)) throw new Error('The random seed must fit in a 32-bit integer.');
-  if (request.timeoutSeconds < 1 || request.timeoutSeconds > 120) throw new Error('The time limit must be between 1 and 120 seconds.');
+  if (request.timeoutSeconds < 1 || request.timeoutSeconds > 86400) throw new Error('The time limit must be between 1 and 86400 seconds.');
   if (request.initial !== undefined && request.final !== undefined && request.final <= request.initial) throw new Error('Final time must be greater than initial time.');
   for (const key of ['toeholds', 'specificities']) if (document.options.language !== 'crn' && document.databases[key]) request[key] = document.databases[key].code;
   if (operation === 'infer') {

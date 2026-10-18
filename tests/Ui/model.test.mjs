@@ -39,7 +39,7 @@ test('empty overrides preserve source-defined simulation behavior', () => {
 });
 
 test('invalid overrides are rejected before admitting a calculation', () => {
-  for (const [key, value] of [['points', '0'], ['points', '100001'], ['points', '1.5'], ['seed', '2147483648'], ['timeoutSeconds', '121'], ['initial', 'Infinity'], ['final', 'x']]) {
+  for (const [key, value] of [['points', '0'], ['points', '100001'], ['points', '1.5'], ['seed', '2147483648'], ['timeoutSeconds', '86401'], ['initial', 'Infinity'], ['final', 'x']]) {
     const document = createDocument(); document.options[key] = value;
     assert.throws(() => requestFor(document, 'simulate'), Error, `${key}=${value}`);
   }

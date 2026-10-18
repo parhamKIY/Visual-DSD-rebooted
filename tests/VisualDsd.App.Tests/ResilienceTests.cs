@@ -26,6 +26,9 @@ public class ResilienceTests
     [InlineData("bad-exit", "WORKER_EXIT")]
     [InlineData("oversized-output", "OUTPUT_LIMIT")]
     [InlineData("oversized-errors", "OUTPUT_LIMIT")]
+    [InlineData("malformed-progress", "WORKER_PROTOCOL")]
+    [InlineData("invalid-progress", "WORKER_PROTOCOL")]
+    [InlineData("oversized-progress", "OUTPUT_LIMIT")]
     public async Task Broken_worker_output_is_rejected_and_the_next_request_still_completes(string scenario, string code)
     {
         await using var jobs = new JobCoordinator(Probe, parallelism: 1, capacity: 2);

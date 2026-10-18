@@ -26,6 +26,9 @@ var model = new ModelData("classic", "default", false, new("oslo", 0, 1, 10, nul
 var response = new EngineResponse(true, request.Operation, "current", model, []);
 switch (request.Code)
 {
+    case "malformed-progress": Console.WriteLine("@progress {invalid}"); break;
+    case "invalid-progress": Console.WriteLine("@progress "+JsonSerializer.Serialize(new EngineProgress("invalid","Invalid phase"),json)); break;
+    case "oversized-progress": Console.WriteLine("@progress "+new string('x',128*1024)); break;
     case "oversized-output": Console.Write(new string('x', 9 * 1024 * 1024)); return 0;
     case "oversized-errors": Console.Error.Write(new string('x', 70 * 1024)); return 1;
     case "empty": return 0;

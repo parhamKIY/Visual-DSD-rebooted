@@ -118,11 +118,13 @@ module internal ParameterInference =
         work.posteriorValues <- work.posteriorValues + seeds.Length * (options.samples / options.thin) * (variable.Length + 32)
         if work.measurements > 20000 || work.iterations > 20000L || work.posteriorValues > 200000 then fail "INFERENCE_LIMIT" "The complete inference request exceeds 20000 measurements, 20000 chain iterations or 200000 posterior values."
         let modelNames = inferenceParameters |> List.map (fun p -> p.name) |> Set.ofList
-        let runs = seeds |> List.map (fun seed ->
+        let runs = seeds |> List.mapi (fun chainIndex seed ->
+            EngineTelemetry.Report(EngineProgress("inference","Fitting an MCMC chain.",Run=prepared.top.name,Completed=Nullable chainIndex,Total=Nullable seeds.Length),true)
             let settings = {globalSettings with inference={options with seed=seed; seeds=[]; lowerbound=None; print_console=false; print_summary=false}}
             let result = Ode.list_infer settings odes
             if result.mlesims.Length <> tables.Length || not (Double.IsFinite result.summary.mle) || result.summary.mle <= Double.MinValue/2.0 then fail "INFERENCE_FAILED" "A chain did not produce a finite fit for every observation table."
             if result.posterior.Length <> options.samples/options.thin then fail "INFERENCE_FAILED" "A chain returned an invalid posterior sample count."
+            EngineTelemetry.Report(EngineProgress("inference","MCMC chain completed.",Run=prepared.top.name,Completed=Nullable(chainIndex+1),Total=Nullable seeds.Length),true)
             seed, result, options.lowerbound |> Option.forall (fun lower -> result.summary.mle > lower))
         let selected = runs |> List.filter (fun (_,_,included) -> included)
         if selected.IsEmpty then fail "INFERENCE_CHAINS" "No chain exceeded the requested likelihood lower bound."

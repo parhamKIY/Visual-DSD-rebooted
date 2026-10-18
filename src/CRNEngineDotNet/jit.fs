@@ -728,15 +728,17 @@ let createResultsTable (jit:t<'s>) : Table<float> =
                                                         Row.create x.time allPops)
   Table.from_rows columnNames extendedResults
   
-let simulate (jit:t<'s>) calculus =
+let simulate_observed observer (jit:t<'s>) calculus =
   let cancel = ref false
   let result = ref []
-  let output row = result := row::!result
+  let output row = observer row; result := row::!result
   let outputplottable _ = ()
   simulate_callback cancel output outputplottable jit calculus
   jit.dataPoints <- List.rev jit.dataPoints
   let resultsTable = createResultsTable jit
   jit, resultsTable
+
+let simulate jit calculus = simulate_observed ignore jit calculus
 
 let to_ctmc (jit : t<'s>) (calc: Calculus<'s>) =
   let env = jit.parameters |> Parameters.to_env

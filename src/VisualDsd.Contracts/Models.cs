@@ -106,7 +106,7 @@ public sealed record EngineResponse(bool Success, string Operation, string Diale
         new(false, request.Operation, request.Dialect, null, [new(code, message)]);
 }
 
-public sealed record JobView(string Id, string State, DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? FinishedAt, EngineResponse? Result);
+public sealed record JobView(string Id, string State, DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? FinishedAt, EngineResponse? Result, EngineProgress? Progress = null, long Revision = 0, string? RemoteId = null, string? EngineVersion = null);
 public sealed record EngineInfo(string Name, string Version, string[] Operations, string[] Dialects, string[] CompilationModes, string[] Simulators, string[]? Languages = null);
 
 public static class RequestValidation
@@ -144,7 +144,7 @@ public static class RequestValidation
         if (request.Final.HasValue && !double.IsFinite(request.Final.Value)) errors.Add(new("INVALID_TIME", "Final time must be finite."));
         if (request.Initial.HasValue && request.Final.HasValue && request.Final <= request.Initial) errors.Add(new("INVALID_TIME_RANGE", "Final time must be greater than initial time."));
         if (request.Points is < 1 or > 100_000) errors.Add(new("INVALID_POINTS", "Points must be between 1 and 100000."));
-        if (request.TimeoutSeconds is < 1 or > 120) errors.Add(new("INVALID_TIMEOUT", "Timeout must be between 1 and 120 seconds."));
+        if (request.TimeoutSeconds is < 1 or > 86400) errors.Add(new("INVALID_TIMEOUT", "Timeout must be between 1 and 86400 seconds."));
         if ((request.Toeholds is { } toeholds && Encoding.UTF8.GetByteCount(toeholds) > MaximumCodeBytes) ||
             (request.Specificities is { } specificities && Encoding.UTF8.GetByteCount(specificities) > MaximumCodeBytes))
             errors.Add(new("DATABASE_TOO_LARGE", "A sequence database exceeds 256 KiB."));

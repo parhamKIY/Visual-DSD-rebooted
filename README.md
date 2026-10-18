@@ -33,6 +33,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Synthesize parameters | Z3 multistability and Turing constraints, equilibrium residuals, dispersion curves, sampled phase trajectories and Jacobian graphs |
 | Inspect probabilities | Joint CME probabilities, marginal population distributions, time heatmaps, logarithmic colors, and exact distribution CSV |
 | Explore states | Finite population state graphs, lazy JIT state generation, reachable-state inspection, and shortest paths |
+| Run in background | Live solver previews, durable job history, reconnect after reload, explicit cancellation, and optional authenticated remote compute |
 | Keep your work | Model files, project files with saved results, and CSV, SVG, and JSON exports |
 
 Each calculation runs in a separate worker process with cancellation, a deadline, and memory limits. The workspace listens on localhost and serves its own assets; it needs no account or cloud service.
@@ -127,6 +128,46 @@ Choose **Export model**, then select a resolved run and file in **Exports**. The
 Use **Oslo** or **Sundials** for deterministic model exports. Stochastic/statistical and spatial dynamics are not silently replaced by ODEs. Scheduled inputs currently remain in the resolved CRN file; SBML/MATLAB/LaTeX report an unavailable-format diagnostic rather than dropping those inputs. Other valid files remain downloadable. Every sweep or named simulation run has its own files and assignment metadata, capped at 32 runs and 4 MiB per request. Saved projects retain file contents and diagnostics. SBML does not encode the requested simulation grid, plots, inference configuration or moment-closure solver; it represents the resolved reaction model.
 
 CI checks SBML consistency with pinned **libSBML 5.21.2**, integrates its MathML equations independently, and executes the MATLAB files with **Octave** on Linux, including moment-closure means and uncertainties. These validation tools are development dependencies; the downloaded application remains standalone.
+
+## Live calculations and background jobs
+
+The workspace receives server-sent job updates. Oslo, single-trajectory SSA and JIT can show a provisional curve while the solver is running: at most the latest 200 solver rows and the first eight configured plots. Other solvers expose preparation/run status; inference reports actual chain starts and completions. Preview CSV is labelled provisional, and previews never replace a completed result or become a saved successful project result. Completed results retain their original solver output and precision.
+
+Use **Keep running in background**, then **Jobs → Monitor** to reconnect or **Inspect result** to retrieve a completed calculation and its original input. Reloading or closing the browser does not cancel admitted work. The last monitored job reconnects on reload; the Jobs list retains other admitted jobs. **Cancel** explicitly stops a job. Connection failures do not automatically resubmit or cancel calculations.
+
+Time limits range from 1 to 86400 seconds (24 hours), with a 30-second default. The deadline starts when a local worker runs; queued work waits for a slot. Existing memory, network, state-space and output limits remain in force. The service retains at most 32 jobs and evicts the oldest completed job when admitting another. Save projects for permanent archival.
+
+By default, a fixed-port service stores original requests and completed results under the current user's local application data, in `VisualDsdRebooted/jobs-<port>`. Choose a dedicated directory with `serve --jobs-dir PATH`. It contains model sources, sequence databases and imported observation data; protect it as you would the project files. Port `0` is ephemeral unless a directory is explicitly provided. One service can own a directory at a time. Writes use atomic file replacement. After an unexpected service stop, unfinished local jobs become **interrupted** and are not silently rerun; completed results remain available. Graceful service shutdown cancels its workers.
+
+## Optional remote compute
+
+A second copy of the standalone application can run calculations on another computer or a cloud VM. The workspace remains local and forwards requests to that explicitly configured service. This is a portable compute service; the original Azure Batch pool/account/package-management integration is not implemented. CI verifies two local application processes, authentication, cancellation, restart recovery and output equivalence; no cloud account deployment or provider billing has been tested.
+
+Use the same engine version on both machines. Compute mode listens on loopback and requires a shared random secret of 32–4096 characters. Set secrets through the service environment; they are never written into models, saved projects or job records. The following uses an SSH tunnel so the compute API remains bound to localhost.
+
+On the compute machine (Linux shell; enter the shared secret at the masked prompt):
+
+```bash
+read -rsp 'Compute token: ' VISUAL_DSD_COMPUTE_TOKEN
+export VISUAL_DSD_COMPUTE_TOKEN
+./VisualDsd compute --port 5800 --jobs-dir ./compute-jobs
+```
+
+On the desktop, keep a tunnel running in another terminal, replacing the SSH destination with your compute machine:
+
+```bash
+ssh -N -L 5801:127.0.0.1:5800 user@compute-host
+```
+
+Start the local workspace from PowerShell 7, entering the same secret:
+
+```powershell
+$env:VISUAL_DSD_REMOTE_URL = 'http://127.0.0.1:5801/'
+$env:VISUAL_DSD_REMOTE_TOKEN = Read-Host 'Compute token' -MaskInput
+.\VisualDsd.exe serve --jobs-dir .\workspace-jobs
+```
+
+The header displays **Remote compute**. Only authenticated requests reach compute endpoints. The desktop accepts an HTTPS origin or a loopback HTTP origin, rejects redirects and version mismatches, and keeps the remote identifier after admission. If a submission response is lost, its outcome is reported as unknown and it is not retried. If an existing job's connection fails, **Resume connection** reconnects to that identifier without resubmission. Known remote jobs reconnect after a workspace service restart. An unconfirmed remote cancellation is reported explicitly because the remote calculation may still be running. Remove the two `VISUAL_DSD_REMOTE_*` variables before starting the workspace to return to local computation.
 
 ## Command line
 

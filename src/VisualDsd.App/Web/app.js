@@ -1,3 +1,4 @@
+import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta, filterExamples } from './dsd-workspace.js';
 import { exportSummary, populationSnapshotSvg } from './exports.js';
 import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
@@ -28,6 +29,8 @@ const chart = new SimulationChart($('chart'), $('legend'), $('chart-tooltip'));
 const network = new ReactionNetwork($('network'), $('network-details'), $('network-caption'));
 const views = new Map();
 let exportImageUrl, sequenceDefaults;
+const liveChart=new SimulationChart($('live-chart'),$('live-legend'),$('live-tooltip'));
+const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
@@ -265,6 +268,7 @@ async function importData(files, target) {
 }
 
 function updateBusy() {
+  renderLive();
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
   for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'synthesize', 'scientific-export', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
@@ -283,23 +287,16 @@ async function run(operation) {
     request = requestFor(model, operation);
   }
   catch (error) { showError(error); return; }
-  state().diagnostics = []; renderDiagnostics(); renderEditor();
+  state().diagnostics = [];state().live=null; renderDiagnostics(); renderEditor();
   const message = operation === 'export' ? 'Preparing scientific files…' : operation === 'synthesize' ? 'Synthesizing parameters…' : operation === 'analyze' ? 'Exploring reachable states…' : operation === 'infer' ? 'Fitting parameters…' : operation === 'simulate' ? 'Simulating…' : operation === 'expand' ? 'Expanding reaction network…' : 'Checking source…';
   activeJob = { id: null, documentId, revision, operation, request, engineVersion, name: model.name, message, started: performance.now(), cancelling: false };
   const task = activeJob; task.tab = state().tab; updateBusy();
   try {
     const admitted = await api('/api/jobs', { method: 'POST', body: JSON.stringify(request) }); task.id = admitted.id; updateBusy();
-    let failures = 0;
-    while (activeJob === task) {
-      let job;
-      try { job = await api(`/api/jobs/${task.id}`); failures = 0; }
-      catch (error) { if (++failures > 5) { fetch(`/api/jobs/${task.id}`, { method: 'DELETE' }).catch(() => {}); throw error; } task.message = 'Reconnecting to the local service…'; updateBusy(); await new Promise(resolve => setTimeout(resolve, 1500)); continue; }
-      if (job.finishedAt) { finishJob(job, task); break; }
-      task.message = task.cancelling ? 'Stopping…' : job.state === 'queued' ? 'Waiting for a calculation slot…' : message; updateBusy();
-      await new Promise(resolve => setTimeout(resolve, 250));
-    }
+    persist();rememberJob(task);await monitorJob(task);
   } catch (error) {
-    const view = stateFor(documentId); view.diagnostics = [{ code: 'CONNECTION_ERROR', message: error.message }]; view.status = 'Calculation could not be completed.';
+    if(task.detached)return;
+    const view = stateFor(documentId); view.diagnostics = [{ code: 'CONNECTION_ERROR', message: error.message }]; view.status = 'Monitoring stopped. Check Jobs to retrieve the calculation; it was not automatically cancelled.';
   } finally {
     if (activeJob === task) activeJob = null;
     if (activeId === documentId) { renderResults(); renderEditor(); }
@@ -307,7 +304,8 @@ async function run(operation) {
   }
 }
 function finishJob(job, task) {
-  const view = stateFor(task.documentId), elapsed = ((performance.now() - task.started) / 1000).toFixed(1);
+  const view = stateFor(task.documentId), elapsed = (job.startedAt&&job.finishedAt?(Date.parse(job.finishedAt)-Date.parse(job.startedAt))/1000:(performance.now()-task.started)/1000).toFixed(1);
+  if(job.result?.success)view.live=null;
   if (job.state === 'cancelled') { view.status = 'Calculation stopped.'; return; }
   view.diagnostics = job.result?.diagnostics || [{ code: 'WORKER_ERROR', message: 'The calculation ended without a result.' }];
   if (job.result?.success) {
@@ -362,7 +360,7 @@ function renderResults() {
   if (view.tab === 'probabilities' && $('tab-probabilities').hidden) view.tab = 'plot';
   $('tab-spatial').hidden = !selectedRun()?.spatial; $('tab-states').hidden = !selectedRun()?.stateSpace;
   if ((view.tab === 'spatial' && $('tab-spatial').hidden) || (view.tab === 'states' && $('tab-states').hidden)) view.tab = 'plot';
-  renderDiagnostics(); updateStamp(); selectTab(view.tab);
+  renderDiagnostics(); updateStamp(); selectTab(view.tab);renderLive();
   $('empty-state').hidden = Boolean(response); $('results-content').hidden = !response;
   if (!response) { $('result-summary').textContent = 'No run yet'; $('species-count').textContent = '0'; $('reaction-count').textContent = '0'; $('result-note').textContent = 'Results will appear here after you run a model.'; return; }
   const model = selectedModel();
@@ -593,7 +591,7 @@ $('shortcuts').addEventListener('click', () => $('help-dialog').showModal());
 $('close-help').addEventListener('click', () => $('help-dialog').close());
 document.addEventListener('keydown', event => { if (!event.ctrlKey && !event.metaKey) return; if (event.key === 'Enter') { event.preventDefault(); run('simulate'); } else if (event.key.toLowerCase() === 's') { event.preventDefault(); saveModel(); } else if (event.key.toLowerCase() === 'o') { event.preventDefault(); $('file-input').click(); } });
 window.addEventListener('pagehide', persist);
-window.addEventListener('beforeunload', event => { persist(); if (!canPersist || activeJob) { event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('beforeunload', event => { persist(); if (!canPersist) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('dragover', event => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); });
 window.addEventListener('drop', event => { if (!event.dataTransfer.files.length) return; event.preventDefault(); openFiles(event.dataTransfer.files); });
 
@@ -605,13 +603,15 @@ async function initialize() {
   selectDocument(activeId);
   const initialDocumentId = activeId;
   try {
-    const [info, library, databases] = await Promise.all([api('/api/info'), api('/api/examples'),api('/api/sequences/defaults')]);
+    const [info, library, databases,execution] = await Promise.all([api('/api/info'), api('/api/examples'),api('/api/sequences/defaults'),api('/api/execution')]);
+    $('execution-mode').textContent=execution.mode==='remote'?'Remote compute':'Local compute';
     sequenceDefaults=databases;renderDatabases();
     const categories=[...new Set(library.map(e=>e.category||'Workspace'))].sort();
     $('example-category').replaceChildren(new Option('All categories',''),...categories.map(value=>new Option(value,value)));
     engineVersion = info.version; examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
     if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, example.dialect, example.id); documents = [model]; selectDocument(model.id); } }
+    await restorePendingJob();
   } catch (error) { connection(false); toast(error.message); }
 }
 initialize().catch(error => toast(error.message));
@@ -703,3 +703,60 @@ $('domain-search').addEventListener('input',()=>{state().domainPage=0;renderDsdW
 $('domain-prev').addEventListener('click',()=>{state().domainPage--;renderDsdWorkspace();});$('domain-next').addEventListener('click',()=>{state().domainPage++;renderDsdWorkspace();});
 $('sequences-csv').addEventListener('click',()=>download(`${stem()}-sequences.csv`,sequenceCsv(state().response.model.dsd),'text/csv;charset=utf-8'));
 $('sequences-fasta').addEventListener('click',()=>download(`${stem()}-sequences.fasta`,sequenceFasta(state().response.model.dsd),'text/plain;charset=utf-8'));
+
+function rememberJob(task){try{localStorage.setItem(pendingKey,JSON.stringify({id:task.id,documentId:task.documentId,name:task.name}));}catch{toast('Monitoring could not be saved in this browser. Use Jobs to reopen it.');}}
+function forgetJob(id){try{if(JSON.parse(localStorage.getItem(pendingKey)||'null')?.id===id)localStorage.removeItem(pendingKey);}catch{}}
+function renderLive(){
+  const view=documents.length?state():null,p=view?.live;
+  $('live-progress').hidden=!p;$('detach-job').hidden=!activeJob||activeJob.documentId!==activeId;
+  if(!p)return;
+  $('live-status').textContent=[p.message,p.run,p.time!=null?`t = ${p.time}`:'',p.completed!=null&&p.total!=null?`${p.completed} / ${p.total} chains`:''].filter(Boolean).join(' · ');
+  const preview=p.preview,has=preview?.times.length&&preview.series.length;
+  $('live-chart').hidden=!has;$('live-legend').hidden=!has;$('save-preview').disabled=!has;
+  if(has)liveChart.setRun(preview,{timeUnit:'model time',concentrationUnit:'model output'});
+}
+async function monitorJob(task){
+  task.monitor=new AbortController();
+  const done=await watchJob(task.id,job=>{
+    stateFor(task.documentId).live=job.progress;
+    task.message=task.cancelling?'Stopping…':progressLabel(job);
+    if(activeJob===task)updateBusy();
+  },{signal:task.monitor.signal,onDisconnect:()=>{task.message='Reconnecting; the calculation continues on the service…';if(activeJob===task)updateBusy();}});
+  forgetJob(task.id);finishJob(done,task);
+}
+async function inspectJob(id,binding){
+  if(activeJob)return toast('Keep the current calculation in background before opening another.');
+  const request=await api(`/api/jobs/${id}/input`),job=readJob(await api(`/api/jobs/${id}`));
+  if(activeJob)return toast('Keep the current calculation in background before opening another.');
+  let model=documents.find(d=>d.id===binding?.documentId);
+  if(!model){model=documentFromRequest(request,binding?.name||`Job-${id.slice(0,8)}`);addDocument(model);}else selectDocument(model.id);
+  const task={id,documentId:model.id,revision:resultIsCurrent(model,{request})?model.revision:-1,operation:request.operation,request,engineVersion:job.engineVersion||'unknown',name:binding?.name||model.name,message:progressLabel(job),started:performance.now(),cancelling:false,tab:'plot'};
+  state().live=job.progress;
+  if(terminalJob(job)){finishJob(job,task);renderResults();updateBusy();return;}
+  activeJob=task;rememberJob(task);updateBusy();
+  try{await monitorJob(task);}catch(error){if(!task.detached){stateFor(model.id).status='Monitoring stopped; inspect Jobs to reconnect.';toast(error.message);}}
+  finally{if(activeJob===task)activeJob=null;if(activeId===model.id)renderResults();updateBusy();}
+}
+async function restorePendingJob(){
+  let binding;try{binding=JSON.parse(localStorage.getItem(pendingKey)||'null');}catch{return;}
+  if(!binding||!/^[a-f0-9]{32}$/i.test(binding.id))return;
+  inspectJob(binding.id,binding).catch(error=>toast(error.message));
+}
+async function renderJobs(){
+  try{
+    const jobs=await api('/api/jobs');
+    $('job-list').replaceChildren(...jobs.map(raw=>{
+      const job=readJob(raw),row=element('div','job-row'),label=element('span','',`${job.id.slice(0,8)} · ${job.state}`);
+      label.append(element('small','',`${new Date(job.createdAt).toLocaleString()} · ${job.progress?.message||'No progress yet'}${job.remoteId?' · remote '+job.remoteId:''}`));row.append(label);
+      const inspect=element('button','button secondary compact',terminalJob(job)?'Inspect result':'Monitor');inspect.addEventListener('click',()=>inspectJob(job.id).catch(showError));row.append(inspect);
+      if(!terminalJob(job)){const cancel=element('button','text-button','Cancel');cancel.addEventListener('click',async()=>{await api(`/api/jobs/${job.id}`,{method:'DELETE'});renderJobs();});row.append(cancel);}
+      if(job.state==='failed'&&job.remoteId){const resume=element('button','text-button','Resume connection');resume.addEventListener('click',async()=>{await api(`/api/jobs/${job.id}/resume`,{method:'POST'});renderJobs();});row.append(resume);}
+      return row;
+    }));
+    if(!jobs.length)$('job-list').append(element('p','muted','No calculations retained by this service.'));
+  }catch(error){toast(error.message);}
+}
+$('show-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=!$('jobs-panel').hidden;if(!$('jobs-panel').hidden)renderJobs();});
+$('hide-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=true;});$('refresh-jobs').addEventListener('click',renderJobs);
+$('detach-job').addEventListener('click',()=>{const task=activeJob;if(!task)return;task.detached=true;activeJob=null;task.monitor?.abort();updateBusy();toast('Calculation continues. Open Jobs to monitor it again.');});
+$('save-preview').addEventListener('click',()=>{const preview=state().live?.preview;if(preview)download(`${stem()}-provisional-preview.csv`,csvFor(preview),'text/csv;charset=utf-8');});

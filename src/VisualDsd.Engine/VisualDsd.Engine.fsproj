@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="EngineError.fs" />
+    <Compile Include="LiveProgress.fs" />
     <Compile Include="DsdWorkspace.fs" />
     <Compile Include="ParameterInference.fs" />
     <Compile Include="Exploration.fs" />

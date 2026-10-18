@@ -9,6 +9,7 @@ namespace VisualDsd.App;
 public interface IEngineWorker
 {
     Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken cancellationToken);
+    Task<EngineResponse> ExecuteAsync(ModelRequest request, Action<EngineProgress> report, CancellationToken token) => ExecuteAsync(request,token);
 }
 
 public sealed class WorkerFailure(string code, string message) : Exception(message)
@@ -33,7 +34,8 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public const int MaximumResultCharacters = 8 * 1024 * 1024;
 
-    public async Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken cancellationToken)
+    public Task<EngineResponse> ExecuteAsync(ModelRequest request, CancellationToken token) => ExecuteAsync(request,_=>{},token);
+    public async Task<EngineResponse> ExecuteAsync(ModelRequest request, Action<EngineProgress> report, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         Diagnostic[] invalid = RequestValidation.Validate(request);
@@ -49,6 +51,7 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
         };
         foreach (string argument in command.PrefixArguments) start.ArgumentList.Add(argument);
         start.ArgumentList.Add("--worker");
+        start.Environment["VISUAL_DSD_PROGRESS"]="1";
         string pipeName = "visual-dsd-owner-" + Guid.NewGuid().ToString("N");
         using var ownerPipe = new NamedPipeServerStream(pipeName, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
         start.Environment[WorkerLifetime.OwnerVariable] = pipeName;
@@ -59,7 +62,8 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
             Task connection = ownerPipe.WaitForConnectionAsync(token);
             // A startup crash may exit before connecting. Observe cancellation/disposal faults too.
             _ = connection.ContinueWith(task => { _ = task.Exception; }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
-            Task<string> output = ReadLimitedAsync(process.StandardOutput, MaximumResultCharacters, token, () => Kill(process));
+            Task<string> output = ReadOutputAsync(process.StandardOutput,report,token,()=>Kill(process));
+            _=output.ContinueWith(_=>Kill(process),TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
             Task<string> errors = ReadLimitedAsync(process.StandardError, 64 * 1024, token, () => Kill(process));
             Task memory = MonitorMemoryAsync(process, token);
             Task input = SendInputAsync(process, request, token);
@@ -79,15 +83,7 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
             catch (JsonException) { throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an invalid response."); }
             if (response is null || (process.ExitCode != 0 && response.Success))
                 throw new WorkerFailure("WORKER_EXIT", "The model worker exited unexpectedly.");
-            if (response.Operation != request.Operation || response.Dialect is not ("current" or "legacy") ||
-                (response.Success && ((request.Language == "crn") != (response.Model?.Kind == "crn") ||
-                    (request.Language == "crn" && (response.Model?.Program?.Source != request.Code ||
-                        (request.NodeId is not null && response.Model?.Program?.SelectedNodeId != request.NodeId) ||
-                        (request.SystemId is not null && response.Model?.Program?.SelectedSystemId != request.SystemId))))) ||
-                (request.Dialect != "auto" && response.Dialect != request.Dialect) || response.Diagnostics is null ||
-                response.Diagnostics.Any(diagnostic => diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || string.IsNullOrWhiteSpace(diagnostic.Message)) ||
-                (response.Success ? response.Model is null || response.Diagnostics.Length != 0 : response.Model is not null || response.Diagnostics.Length == 0))
-                throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an inconsistent response.");
+            ValidateResponse(request,response);
             await connection;
             return response;
         }
@@ -110,6 +106,53 @@ public sealed class ProcessEngineWorker(WorkerCommand command, long memoryLimitB
             catch (InvalidOperationException) { }
             catch (TimeoutException) { }
         }
+    }
+
+    public static void ValidateResponse(ModelRequest request,EngineResponse response)
+    {
+            if (response.Operation != request.Operation || response.Dialect is not ("current" or "legacy") ||
+                (response.Success && ((request.Language == "crn") != (response.Model?.Kind == "crn") ||
+                    (request.Language == "crn" && (response.Model?.Program?.Source != request.Code ||
+                        (request.NodeId is not null && response.Model?.Program?.SelectedNodeId != request.NodeId) ||
+                        (request.SystemId is not null && response.Model?.Program?.SelectedSystemId != request.SystemId))))) ||
+                (request.Dialect != "auto" && response.Dialect != request.Dialect) || response.Diagnostics is null ||
+                response.Diagnostics.Any(diagnostic => diagnostic is null || string.IsNullOrWhiteSpace(diagnostic.Code) || string.IsNullOrWhiteSpace(diagnostic.Message)) ||
+                (response.Success ? response.Model is null || response.Diagnostics.Length != 0 : response.Model is not null || response.Diagnostics.Length == 0))
+                throw new WorkerFailure("WORKER_PROTOCOL", "The model worker returned an inconsistent response.");
+    }
+
+    private static async Task<string> ReadOutputAsync(StreamReader reader, Action<EngineProgress> report, CancellationToken token, Action abort)
+    {
+        var pending=new StringBuilder();var result=new StringBuilder();var buffer=new char[4096];int count;
+        void Line()
+        {
+            string line=pending.ToString();pending.Clear();
+            if(line.StartsWith("@progress ",StringComparison.Ordinal))
+            {
+                if(line.Length>128*1024)throw new WorkerFailure("OUTPUT_LIMIT","The worker progress message is too large.");
+                EngineProgress? progress;
+                try{progress=JsonSerializer.Deserialize<EngineProgress>(line.AsSpan(10),Json);}
+                catch(JsonException){throw new WorkerFailure("WORKER_PROTOCOL","The worker returned invalid progress.");}
+                if(progress is null || !progress.IsValid())throw new WorkerFailure("WORKER_PROTOCOL","The worker returned inconsistent progress.");
+                report(progress);
+            }
+            else
+            {
+                if(result.Length+line.Length>MaximumResultCharacters){abort();throw new WorkerFailure("OUTPUT_LIMIT","The model output exceeded the interactive result limit.");}
+                result.Append(line);
+            }
+        }
+        while((count=await reader.ReadAsync(buffer,token))>0)
+        {
+            for(int i=0;i<count;i++)
+            {
+                if(buffer[i]=='\n')Line();
+                else pending.Append(buffer[i]);
+                if(pending.Length>MaximumResultCharacters){abort();throw new WorkerFailure("OUTPUT_LIMIT","The model output exceeded the interactive result limit.");}
+            }
+        }
+        if(pending.Length>0)Line();
+        return result.ToString();
     }
 
     private static async Task SendInputAsync(Process process, ModelRequest request, CancellationToken token)

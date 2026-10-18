@@ -15,8 +15,10 @@
     <span class="header-divider"></span><span class="workspace-label">Strand displacement workspace</span>
     <span id="connection" class="connection"><span class="status-dot"></span>Connecting</span>
     <button id="toggle-models" class="icon-button mobile-models" title="Models and examples" aria-label="Models and examples" aria-expanded="false" aria-controls="model-sidebar">☷</button>
+    <button id="show-jobs" class="button secondary compact" type="button">Jobs</button><span id="execution-mode" class="muted"></span>
     <button id="shortcuts" class="icon-button" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
   </header>
+  <section id="jobs-panel" class="jobs-panel" aria-label="Calculation history" hidden><div class="view-toolbar"><strong>Calculations</strong><span class="muted">Closing or reloading this page does not cancel admitted jobs. Only Cancel stops a job.</span><button id="refresh-jobs" class="text-button">Refresh</button><button id="hide-jobs" class="text-button">Close</button></div><div id="job-list"></div></section>
   <div class="workspace">
     <aside id="model-sidebar" class="sidebar" aria-label="Models and examples">
       <div class="section-heading"><h2>Your models</h2><button id="new-crn" class="text-button" title="New CRN model">+ CRN</button><button id="new-model" class="icon-button" title="New model" aria-label="New model">+</button></div>
@@ -50,7 +52,7 @@
               <label>Syntax<select id="dialect"><option value="auto">Auto-detect</option><option value="current">Current</option><option value="legacy">Legacy</option></select></label>
               <label>Semantics<select id="compilation"><option value="source">From model</option><option value="default">Default</option><option value="detailed">Detailed</option><option value="finite">Finite</option><option value="infinite">Infinite</option></select></label>
               <label>Simulator<select id="simulator"><option value="source">From model</option><option value="oslo">Deterministic · Oslo</option><option value="ssa">Stochastic · SSA</option><option value="lna">Linear noise · LNA</option><option value="cme">Master equation · CME</option><option value="pde">Reaction diffusion · PDE</option><option value="sundials">Deterministic · Sundials</option><option value="cmesundials">Master equation · Sundials</option><option value="mc">Moment closure · MC</option></select></label>
-              <label>Time limit (s)<input id="timeoutSeconds" type="number" value="30" min="1" max="120" step="1"></label>
+              <label>Time limit (s)<input id="timeoutSeconds" type="number" value="30" min="1" max="86400" step="1"></label>
               <label>Initial time<input id="initial" type="number" placeholder="From model" step="any"></label>
               <label>Final time<input id="final" type="number" placeholder="From model" step="any"></label>
               <label>Output points<input id="points" type="number" placeholder="From model" min="1" max="100000" step="1"></label>
@@ -72,6 +74,7 @@
         </section>
         <section class="results-pane" aria-label="Model results">
           <div class="pane-heading"><h2>Results</h2><div class="result-heading-meta"><span id="stale" class="badge warning" hidden>Source changed</span><span id="result-summary" class="muted">No run yet</span><button id="export-json" class="icon-button" title="Export result JSON" aria-label="Export result JSON" disabled>↓</button></div></div>
+          <section id="live-progress" class="live-progress" hidden aria-label="Provisional calculation preview"><div class="view-toolbar"><strong>Live · provisional</strong><button id="detach-job" class="text-button">Keep running in background</button><button id="save-preview" class="text-button" disabled>Preview CSV ↓</button></div><p id="live-status" role="status"></p><svg id="live-chart" role="img" tabindex="0" viewBox="0 0 800 420" aria-label="Provisional simulation preview"></svg><div id="live-legend" class="legend"></div><div id="live-tooltip" class="chart-tooltip" hidden></div><p class="exploration-note">Latest 200 solver rows, first 8 plots; may be incomplete. Preview data is separate from completed results. Some solvers report run or chain progress without intermediate curves.</p></section>
           <div id="diagnostics" class="diagnostics" role="alert" hidden></div>
           <div class="result-tabs" role="tablist" aria-label="Result views">
             <button id="tab-plot" type="button" role="tab" data-tab="plot" aria-controls="panel-plot" aria-selected="true">Simulation</button>
