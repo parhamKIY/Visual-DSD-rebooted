@@ -7,6 +7,7 @@
   <title>Visual DSD · Rebooted</title>
   <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
   <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/learning-guide.css">
   <script type="module" src="/assets/app.js"></script>
 </head>
 <body>
@@ -22,12 +23,15 @@
   <div class="workspace">
     <aside id="model-sidebar" class="sidebar" aria-label="Models and examples">
       <div class="section-heading"><h2>Your models</h2><button id="new-crn" class="text-button" title="New CRN model">+ CRN</button><button id="new-model" class="icon-button" title="New model" aria-label="New model">+</button></div>
+      <p id="models-explainer" class="sidebar-explainer" lang="fa" dir="rtl">فایل‌های بازشدهٔ تو؛ برای جابه‌جایی روی نام کلیک کن.</p>
       <nav id="documents" class="document-list" aria-label="Open models"></nav>
       <button id="open-model" class="open-file"><span aria-hidden="true">↗</span> Open model file <kbd>Ctrl O</kbd></button>
       <input id="file-input" type="file" accept=".txt,.dsd,.vdsd,.dna,.crn" hidden multiple>
       <button id="open-project" class="open-file"><span aria-hidden="true">▱</span> Open project</button>
       <input id="project-input" type="file" accept=".json,.dsdproj" hidden>
       <div class="library-heading"><span class="eyebrow">EXAMPLE LIBRARY</span><span id="example-count" class="count"></span></div>
+      <p id="library-explainer" class="sidebar-explainer" lang="fa" dir="rtl">هر مثال یک موضوع را آموزش می‌دهد.</p>
+      <button id="open-learning-guide" class="learning-launch" type="button"><span aria-hidden="true">▤</span><span id="learning-launch-label" lang="fa" dir="rtl">از کجا شروع کنم؟ راهنمای مثال‌ها</span><span aria-hidden="true">↗</span></button>
       <label class="sr-only" for="example-search">Search examples</label><input id="example-search" class="example-search" type="search" placeholder="Search examples…"><label class="sr-only" for="example-category">Example category</label><select id="example-category" class="example-category" aria-label="Example category"><option value="">All categories</option></select><div id="examples" class="example-list"></div>
       <div class="sidebar-note"><span class="note-mark" aria-hidden="true">◎</span><p>Same language.<br>A fresh workspace.</p><small>Models stay on this computer.</small></div>
       <div class="sidebar-footer"><span class="status-dot"></span><span id="version">Local workspace</span></div>
@@ -37,6 +41,7 @@
         <div class="model-title"><label class="sr-only" for="model-name">Model name</label><input id="model-name" value="Untitled.dsd" maxlength="120" spellcheck="false"><div><span id="document-description">Write a model, inspect its network, explore its dynamics.</span><span id="save-status" class="save-status">Saved in browser</span></div></div>
         <div class="model-actions"><button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button><button id="save-project" class="button secondary">Save project</button></div>
       </div>
+      <section id="lesson-context" class="lesson-context" lang="fa" dir="rtl" hidden><div><span id="lesson-context-label" class="lesson-context-label">هدف آموزشی این مثال</span><p id="lesson-context-topic"></p></div><button id="active-learning-guide" type="button" class="button secondary compact">راهنمای این مثال</button></section>
       <div id="workbench" class="workbench">
         <section id="source-pane" class="source-pane" aria-label="Model source and settings">
           <div class="pane-heading source-heading"><h1><span class="code-icon" aria-hidden="true">〈/〉</span> Model source</h1><div class="syntax-control"><label for="dialect">Syntax</label><select id="dialect"><option value="auto">Auto-detect</option><option value="current">Current</option><option value="legacy">Old syntax</option></select><span id="dialect-badge" class="badge">Auto syntax</span></div></div>
@@ -188,6 +193,13 @@
     </main>
   </div>
   <dialog id="help-dialog"><button id="close-help" class="icon-button dialog-close" aria-label="Close shortcuts">×</button><span class="eyebrow">WORKSPACE SHORTCUTS</span><h2>A little less clicking.</h2><dl class="shortcuts"><dt>Run simulation</dt><dd><kbd>Ctrl / ⌘ Enter</kbd></dd><dt>Save model file</dt><dd><kbd>Ctrl / ⌘ S</kbd></dd><dt>Open model file</dt><dd><kbd>Ctrl / ⌘ O</kbd></dd><dt>Indent source</dt><dd><kbd>Tab</kbd></dd></dl><p>Your source is saved in this browser automatically.<br>Use Save model to keep a separate file.</p></dialog>
+  <dialog id="learning-guide" class="learning-dialog" aria-labelledby="learning-guide-title" lang="fa" dir="rtl">
+    <header class="learning-header"><div><span class="learning-eyebrow" dir="ltr">VISUAL DSD · LEARNING PATH</span><h2 id="learning-guide-title" data-guide="heading">هر مثال چه چیزی یاد می‌دهد؟</h2></div><div class="learning-header-actions"><label class="sr-only" for="guide-language">Guide language</label><select id="guide-language" data-guide="language"><option value="fa">فارسی</option><option value="en">English</option></select><button type="button" class="icon-button" data-guide="close" aria-label="بستن راهنمای مثال‌ها">×</button></div></header>
+    <p class="learning-intro" data-guide="intro"></p>
+    <div class="learning-orientation"><section><strong data-guide="models"></strong><p data-guide="modelsHelp"></p></section><section><strong data-guide="library"></strong><p data-guide="libraryHelp"></p></section></div>
+    <div class="learning-body"><nav class="learning-navigation" aria-label="Example lessons"><div class="learning-path-heading"><h3 data-guide="path"></h3><span data-guide="count"></span></div><label for="guide-search" data-guide="searchLabel"></label><input id="guide-search" type="search" data-guide="search"><div data-guide="navigation" class="learning-nav-list"></div></nav><article class="learning-content" data-guide="content" aria-live="polite" aria-atomic="true"></article></div>
+    <footer class="learning-footer"><button type="button" class="button primary" data-guide="open">باز کردن نسخهٔ آموزشی</button><p data-guide="copyNote"></p><p data-guide="error" class="learning-error" role="alert"></p></footer>
+  </dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <noscript>This workspace needs JavaScript. The command-line engine is also available.</noscript>
 </body>

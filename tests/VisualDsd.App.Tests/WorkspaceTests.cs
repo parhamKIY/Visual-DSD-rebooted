@@ -89,7 +89,7 @@ public class WorkspaceTests(LocalHost host) : IClassFixture<LocalHost>
         Assert.Contains("script-src 'self'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Contains("frame-ancestors 'none'", page.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Equal("nosniff", page.Headers.GetValues("X-Content-Type-Options").Single());
-        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "msagl.worker.js", "msagl.runtime.js", "observations.js", "exploration.js", "icon.svg" })
+        foreach (string asset in new[] { "app.css", "app.js", "model.js", "chart.js", "project.js", "network.js", "learning-guide.js", "learning-guide.css", "msagl.worker.js", "msagl.runtime.js", "observations.js", "exploration.js", "icon.svg" })
         {
             HttpResponseMessage response = await host.Client.GetAsync($"/assets/{asset}");
             Assert.True(response.IsSuccessStatusCode, asset);

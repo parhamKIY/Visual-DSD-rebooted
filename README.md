@@ -22,6 +22,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 
 | Workflow | Available now |
 | --- | --- |
+| Learn with examples | 17 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
 | Configure DSD | Source defaults or per-document overrides for reactions, kinetics, domain checking, JIT and molecular rendering |

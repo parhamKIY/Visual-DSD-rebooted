@@ -1,6 +1,7 @@
 import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
 import { installPaneLayout } from './layout.js';
-import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta, filterExamples } from './dsd-workspace.js';
+import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
+import { LearningGuide, lessonFor, filterTeachingExamples, lessonMatchesDocument } from './learning-guide.js';
 import { exportSummary, populationSnapshotSvg } from './exports.js';
 import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
@@ -34,6 +35,7 @@ let exportImageUrl, sequenceDefaults;
 const liveChart=new SimulationChart($('live-chart'),$('live-legend'),$('live-tooltip'));
 const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
+const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); } });
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
@@ -98,20 +100,36 @@ async function api(path, options = {}) {
 function renderDocuments() {
   $('documents').replaceChildren(...documents.map(model => {
     const row = element('div', `document-item${model.id === activeId ? ' active' : ''}`);
-    const button = element('button'); button.type = 'button'; button.title = model.name; button.setAttribute('aria-current', model.id === activeId ? 'page' : 'false');
-    button.append(element('span', 'file-icon', '▤'), element('span', 'document-name', model.name)); button.addEventListener('click', () => selectDocument(model.id));
+    const button = element('button'); button.type = 'button'; button.title = model.name; button.setAttribute('aria-current', model.id === activeId ? 'page' : 'false'); button.setAttribute('aria-label', model.name);
+    const example = examples.find(item => item.id === model.exampleId), label = element('span', 'document-label');
+    label.append(element('span', 'document-name', model.name));
+    const summary = element('small', 'document-summary', example ? lessonFor(example).topic[learningGuide.language].replace(/`/g, '') : learningGuide.t('مدل شخصی', 'Your own model')); summary.dir = 'auto'; label.append(summary);
+    button.append(element('span', 'file-icon', '▤'), label); button.addEventListener('click', () => selectDocument(model.id));
     const close = element('button', 'close-document', '×'); close.type = 'button'; close.title = 'Close model'; close.setAttribute('aria-label', `Close ${model.name}`); close.addEventListener('click', () => closeDocument(model.id));
     row.append(button, close); return row;
   }));
 }
 function renderExamples() {
-  const filtered=filterExamples(examples,$('example-search').value,$('example-category').value);
+  const filtered=filterTeachingExamples(examples,$('example-search').value,$('example-category').value);
   $('example-count').textContent=filtered.length===examples.length?String(examples.length):`${filtered.length} / ${examples.length}`;
   $('examples').replaceChildren(...filtered.map(example => {
-    const button = element('button', 'example-button'); button.type = 'button'; button.title = example.description;
+    const row = element('div', 'example-entry'), lesson = lessonFor(example);
+    const button = element('button', 'example-button'); button.type = 'button'; button.title = example.description; button.setAttribute('aria-label', `Open ${example.name}`);
     button.append(element('strong', '', example.name), element('small', '', example.category?.startsWith('Original')?example.category:example.language === 'crn' ? 'Chemical reaction network' : example.dialect === 'legacy' ? 'Original syntax' : example.id === 'jit' ? 'Stochastic · just-in-time' : 'Visual DSD'));
-    button.addEventListener('click', () => openExample(example.id).catch(showError)); return button;
+    const objective = element('p', 'example-objective', lesson.topic[learningGuide.language].replace(/`/g, '')); objective.dir = learningGuide.language === 'fa' ? 'rtl' : 'ltr'; objective.lang = learningGuide.language;
+    const guide = element('button', 'example-guide-button', learningGuide.t('راهنمای این مثال ←', 'Read this lesson →')); guide.type = 'button'; guide.setAttribute('aria-label', `Guide: ${example.name}`); guide.addEventListener('click', () => learningGuide.open(example.id));
+    button.addEventListener('click', () => openExample(example.id).catch(showError)); row.append(button, objective, guide); return row;
   }));
+}
+function renderLessonContext() {
+  const example = examples.find(item => item.id === current()?.exampleId), fa = learningGuide.language === 'fa';
+  $('models-explainer').textContent = learningGuide.t('فایل‌های بازشدهٔ تو؛ برای جابه‌جایی روی نام کلیک کن.', 'Your open files. Click a name to switch.');
+  $('library-explainer').textContent = learningGuide.t('هر مثال یک موضوع را آموزش می‌دهد.', 'Each example teaches a different idea.');
+  $('learning-launch-label').textContent = learningGuide.t('از کجا شروع کنم؟ راهنمای مثال‌ها', 'Start here · example learning guide');
+  for (const id of ['models-explainer', 'library-explainer', 'learning-launch-label', 'lesson-context']) { $(id).dir = fa ? 'rtl' : 'ltr'; $(id).lang = learningGuide.language; }
+  $('lesson-context').hidden = !example;
+  if (example) { $('lesson-context-label').textContent = learningGuide.t('هدف آموزشیِ نمونهٔ اولیه', 'What the original example teaches'); $('lesson-context-topic').textContent = lessonFor(example).topic[learningGuide.language].replace(/`/g, ''); }
+  $('active-learning-guide').textContent = learningGuide.t('راهنمای این مثال', 'Guide for this example');
 }
 function addDocument(model) {
   if (documents.length >= MAX_DOCUMENTS) throw new Error(`You have ${MAX_DOCUMENTS} models open. Save and close one before opening another.`);
@@ -128,7 +146,7 @@ function selectDocument(id) {
   $('species-search').value = state().search;
   $('document-description').textContent = examples.find(example => example.id === model.exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
   renderLanguage();
-  renderDocuments(); renderEditor(); renderResults(); updateBusy(); persist();
+  renderDocuments(); renderLessonContext(); renderEditor(); renderResults(); updateBusy(); persist();
   $('model-sidebar').classList.remove('mobile-open'); $('toggle-models').setAttribute('aria-expanded', 'false');
 }
 function closeDocument(id) {
@@ -139,14 +157,17 @@ function closeDocument(id) {
   if (!documents.length) documents.push(createDocument());
   selectDocument(activeId === id ? documents[0].id : activeId);
 }
-async function openExample(id) {
+async function openExample(id, { lesson = false } = {}) {
   const existing = documents.find(model => model.exampleId === id);
-  if (existing) return selectDocument(existing.id);
+  if (existing && !lesson) { selectDocument(existing.id); return existing; }
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
-  const loaded = documents.find(model => model.exampleId === id);
-  if (loaded) return selectDocument(loaded.id);
-  const document=createDocument(`${example.name.replace(' · legacy', '')}.${example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd'}`, example.code, example.dialect === 'current' ? 'auto' : example.dialect, id);
-  document.data=readDatasets(example.data??[]);addDocument(document);
+  const loaded = documents.find(model => model.exampleId === id && (!lesson || lessonMatchesDocument(model, example)));
+  if (loaded) { selectDocument(loaded.id); return loaded; }
+  const base = example.name.replace(' · legacy', ''), extension = example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd';
+  let name = `${base}.${extension}`;
+  if (lesson && documents.some(model => model.exampleId === id)) { let number = 1; do { name = `${base}-lesson-${number++}.${extension}`; } while (documents.some(model => model.name === name)); }
+  const document=createDocument(name, example.code, example.dialect === 'current' ? 'auto' : example.dialect, id);
+  document.data=readDatasets(example.data??[]);return addDocument(document);
 }
 async function openFiles(files) {
   for (const file of files) {
@@ -557,6 +578,8 @@ for (const key of ['toeholds', 'specificities']) {
 }
 $('dsd-reset').addEventListener('click',()=>{for(const field of dsdFields){current().options[field.id]='';$(field.id).value='';}changed();});
 $('example-search').addEventListener('input',renderExamples);$('example-category').addEventListener('change',renderExamples);
+$('open-learning-guide').addEventListener('click', () => learningGuide.open('catalytic'));
+$('active-learning-guide').addEventListener('click', () => learningGuide.open(current().exampleId));
 $('reset-settings').addEventListener('click', () => { current().options = { ...optionDefaults }; for (const key of Object.keys(optionDefaults)) $(key).value = optionDefaults[key]; renderProgramSelection(); renderLanguage(); changed(); });
 $('toggle-models').addEventListener('click', () => { const open = $('model-sidebar').classList.toggle('mobile-open'); $('toggle-models').setAttribute('aria-expanded', String(open)); });
 $('new-crn').addEventListener('click', () => { try { addDocument(createDocument('Untitled.crn', 'directive simulator deterministic\ndirective simulation {final=10;plots=[A;B]}\n| 10 A\n| A ->{0.25} B\n')); $('settings-panel').open = true; } catch (error) { toast(error.message); } });
@@ -649,7 +672,7 @@ async function initialize() {
     sequenceDefaults=databases;renderDatabases();
     const categories=[...new Set(library.map(e=>e.category||'Workspace'))].sort();
     $('example-category').replaceChildren(new Option('All categories',''),...categories.map(value=>new Option(value,value)));
-    engineVersion = info.version; examples = library; renderExamples(); connection(true); $('version').textContent = `Version ${info.version}`;
+    engineVersion = info.version; examples = library; renderExamples(); renderDocuments(); renderLessonContext(); if ($('learning-guide').open) learningGuide.refresh(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
     if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, 'auto', example.id); documents = [model]; selectDocument(model.id); } }
     await restorePendingJob();
