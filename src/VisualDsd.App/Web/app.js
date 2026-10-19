@@ -4,7 +4,7 @@ import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-wor
 import { LearningGuide, lessonFor, filterTeachingExamples, lessonMatchesDocument } from './learning-guide.js';
 import { exportSummary, populationSnapshotSvg } from './exports.js';
 import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.js';
-import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
+import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, rateLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
 import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
@@ -488,7 +488,7 @@ function renderReactions() {
   $('reaction-prev').disabled = !view.reactionPage; $('reaction-next').disabled = start + size >= model.reactions.length;
   $('reaction-list').replaceChildren(...model.reactions.slice(start, start + size).map((reaction, index) => {
     const card = element('article', 'reaction-card'), content = element('div'), label = reactionLabel(reaction, model.species);
-    content.append(element('div', 'reaction-equation', label.equation), element('small', '', `${reaction.rate.kind === 'functional' ? 'Functional rate' : 'Rate'}: ${reaction.rate.expression}${reaction.reverseRate ? ` · reverse: ${reaction.reverseRate.expression}` : ''}`));
+    content.append(element('div', 'reaction-equation', label.equation), element('small', '', `${reaction.rate.kind === 'functional' ? 'Functional rate' : 'Rate'}: ${rateLabel(reaction.rate.expression)}${reaction.reverseRate ? ` · reverse: ${rateLabel(reaction.reverseRate.expression)}` : ''}`));
     if (label.catalysts) content.append(element('small', '', `Catalysts: ${label.catalysts}`)); card.append(element('span', 'reaction-index', `${start + index + 1}`), content); return card;
   }));
 }

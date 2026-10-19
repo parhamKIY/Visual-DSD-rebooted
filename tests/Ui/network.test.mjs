@@ -147,3 +147,15 @@ test('stale asynchronous layouts cannot overwrite a newer model and failed layou
   assert.equal(viewer.ready, false); assert.match(viewer.caption.textContent, /test failure/);
   const retry = viewer.render(model, 'c'); pending[3].resolve(pending[3].geometry); await retry; assert.equal(viewer.ready, true);
 });
+
+
+test('forward and reverse decimal rate labels determine network box sizes without changing reaction data', () => {
+  const reaction = { rate: { expression: '1.5E-05' }, reverseRate: { expression: '1E-17' } };
+  const original = structuredClone(reaction), measured = [];
+  const content = nodeContent({ kind: 'reaction', reaction }, {}, (text, size) => { measured.push(text); return text.length * size; });
+  assert.deepEqual(content.lines, ['0.000015', '0.00000000000000001']);
+  assert.deepEqual(measured, content.lines);
+  assert.equal(content.width, content.lines[1].length * 12 + 10);
+  assert.deepEqual(reaction, original);
+  assert.deepEqual(nodeContent({ kind: 'reaction', reaction }, { rates: false }).lines, []);
+});

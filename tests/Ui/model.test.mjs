@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
-import { MAX_CODE_BYTES, STORAGE_KEY, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, reactionLabel } from '../../src/VisualDsd.App/Web/model.js';
+import { MAX_CODE_BYTES, STORAGE_KEY, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, reactionLabel, rateLabel } from '../../src/VisualDsd.App/Web/model.js';
 globalThis.crypto ??= webcrypto;
 
 test('source and settings round-trip without storing simulation results', () => {
@@ -72,4 +72,22 @@ test('CSV exports every original sample at full precision with escaped headers',
 test('reaction labels preserve multiplicity, empty sides, catalysts and reverse rates', () => {
   const reaction = { reactants: [{ speciesId: 'a', multiplicity: 2 }], products: [], catalysts: [{ speciesId: 'c', multiplicity: 1 }], reverseRate: { expression: '2' } };
   assert.deepEqual(reactionLabel(reaction, [{ id: 'a', name: '<x>' }, { id: 'c', name: 'catalyst' }]), { equation: '2 <x> ⇌ ∅', catalysts: 'catalyst' });
+});
+
+
+test('reaction rates use exact decimal literals without rounding tiny or very large values', () => {
+  for (const [source, expected] of [
+    ['1.5E-05', '0.000015'], ['5e-5', '0.00005'], ['1E-17', '0.00000000000000001'],
+    ['-1.25E+3', '-1250'], ['1.2345678901234567E-8', '0.000000012345678901234567'],
+    ['.5e-2', '0.005'], ['0E+30', '0'], ['5E-324', '0.' + '0'.repeat(323) + '5'],
+    ['1.7976931348623157E+308', '17976931348623157' + '0'.repeat(292)]
+  ]) {
+    assert.equal(rateLabel(source), expected);
+    assert.equal(Number(rateLabel(source)), Number(source));
+  }
+});
+
+test('rate formatting preserves algebra, symbolic keys, species and quoted names', () => {
+  assert.equal(rateLabel('(0.0003 * 1.5E-05) + k1E-5 * [S1E-05]'), '(0.0003 * 0.000015) + k1E-5 * [S1E-05]');
+  for (const value of ['k', 'normal * [A]', '10 * 10^(-17)', '1E-99999999', 'NaN', 'Infinity', '"1E-5"', "'1E-5'", 'κ1E-05', '0.000015']) assert.equal(rateLabel(value), value);
 });

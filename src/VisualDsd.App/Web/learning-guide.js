@@ -178,15 +178,20 @@ function prose(tag, text, className = '') {
   return result;
 }
 
+export function guideLanguage(storage) {
+  try { return (storage ?? globalThis.localStorage)?.getItem('visual-dsd.guide.language') === 'fa' ? 'fa' : 'en'; }
+  catch { return 'en'; }
+}
+
 export class LearningGuide {
   constructor(dialog, { examples, openExample, onLanguageChange }) {
     this.dialog = dialog; this.examples = examples; this.openExample = openExample; this.onLanguageChange = onLanguageChange;
-    try { this.language = localStorage.getItem('visual-dsd.guide.language') === 'en' ? 'en' : 'fa'; } catch { this.language = 'fa'; }
+    this.language = guideLanguage();
     this.selected = 'catalytic'; this.query = '';
     this.parts = Object.fromEntries([...dialog.querySelectorAll('[data-guide]')].map(element => [element.dataset.guide, element]));
     this.parts.language.value = this.language;
     this.parts.language.addEventListener('change', () => {
-      this.language = this.parts.language.value === 'en' ? 'en' : 'fa';
+      this.language = this.parts.language.value === 'fa' ? 'fa' : 'en';
       try { localStorage.setItem('visual-dsd.guide.language', this.language); } catch { /* The guide also works without storage. */ }
       this.refresh(); this.onLanguageChange?.();
     });

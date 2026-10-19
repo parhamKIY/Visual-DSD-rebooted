@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createDocument } from '../../src/VisualDsd.App/Web/model.js';
-import { lessons, lessonOrder, glossary, operations, lessonFor, filterTeachingExamples, lessonMatchesDocument } from '../../src/VisualDsd.App/Web/learning-guide.js';
+import { lessons, lessonOrder, glossary, operations, lessonFor, filterTeachingExamples, lessonMatchesDocument, guideLanguage } from '../../src/VisualDsd.App/Web/learning-guide.js';
 
 const assets = readFileSync(new URL('../../src/VisualDsd.App/WebAssets.cs', import.meta.url), 'utf8');
 const workspace = assets.split('private static readonly ExampleInfo[] WorkspaceExamples')[1].split('public static readonly ExampleInfo[] Examples')[0];
@@ -59,4 +59,17 @@ test('teaching copies preserve supplied observation tables and never silently re
   doc.data = []; assert.equal(lessonMatchesDocument(doc, example), false);
   const legacy = { id: 'legacy-and', code: 'old source', dialect: 'legacy', language: 'dsd' };
   assert.equal(lessonMatchesDocument(createDocument('old.vdsd', legacy.code, 'legacy', legacy.id), legacy), true);
+});
+
+
+test('guides default to English while respecting an explicit saved Persian preference', () => {
+  for (const [saved, expected] of [[null, 'en'], ['en', 'en'], ['fa', 'fa'], ['invalid', 'en'], ['', 'en']]) {
+    const storage = { getItem(key) { assert.equal(key, 'visual-dsd.guide.language'); return saved; } };
+    assert.equal(guideLanguage(storage), expected);
+  }
+  assert.equal(guideLanguage({ getItem() { throw new Error('Storage blocked'); } }), 'en');
+  assert.equal(guideLanguage(), 'en');
+  const html = readFileSync(new URL('../../src/VisualDsd.App/Web/index.html', import.meta.url), 'utf8');
+  assert.match(html, /id="learning-guide"[^>]*lang="en" dir="ltr"/);
+  assert.match(html, /<option value="en">English<\/option><option value="fa">فارسی<\/option>/);
 });

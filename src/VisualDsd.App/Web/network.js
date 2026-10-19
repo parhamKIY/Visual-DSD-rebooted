@@ -1,4 +1,4 @@
-import { populationLabel } from './model.js';
+import { populationLabel, rateLabel } from './model.js';
 
 const ns = 'http://www.w3.org/2000/svg';
 const svgNode = (tag, attributes = {}, text) => { const node = document.createElementNS(ns, tag); for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, String(value)); if (text !== undefined) node.textContent = text; return node; };
@@ -49,7 +49,7 @@ export function svgDimensions(source) {
 export function nodeContent(node, settings = {}, measure = (text, size) => [...String(text)].length * size * .62) {
   const options = { ...defaults, ...settings };
   if (node.kind === 'reaction') {
-    const lines = options.rates ? [node.reaction.rate.expression, ...(node.reaction.reverseRate ? [node.reaction.reverseRate.expression] : [])] : [];
+    const lines = options.rates ? [rateLabel(node.reaction.rate.expression), ...(node.reaction.reverseRate ? [rateLabel(node.reaction.reverseRate.expression)] : [])] : [];
     return { lines, width: Math.max(10, ...lines.map(text => measure(text, 12))) + 10, height: Math.max(12, lines.length * 16 + 6), fontSize: 12 };
   }
   const graphic = options.labels === 'molecules' && node.species.svg ? svgDimensions(node.species.svg) : null;
@@ -203,7 +203,7 @@ export class ReactionNetwork {
     for (const geometry of this.geometry.nodes) {
       const node = graphNodes.get(geometry.id), b = geometry.boundaryCurve.bounds, content = nodeContent(node, this.options, this.measure);
       const group = svgNode('g', { 'data-node': node.id, role: 'button', tabindex: 0, 'aria-label': `${node.kind === 'species' ? 'Species' : 'Reaction'} ${node.label}`, 'aria-pressed': 'false' });
-      group.append(svgNode('title', {}, node.kind === 'species' ? `${node.label}\n${node.species.structure}\n${populationLabel(node.species)}` : `Reaction ${node.index + 1}\nForward: ${node.reaction.rate.expression}${node.reaction.reverseRate ? `\nReverse: ${node.reaction.reverseRate.expression}` : ''}`));
+      group.append(svgNode('title', {}, node.kind === 'species' ? `${node.label}\n${node.species.structure}\n${populationLabel(node.species)}` : `Reaction ${node.index + 1}\nForward: ${rateLabel(node.reaction.rate.expression)}${node.reaction.reverseRate ? `\nReverse: ${rateLabel(node.reaction.reverseRate.expression)}` : ''}`));
       group.append(svgNode('rect', { x: b.x, y: b.y, width: b.width, height: b.height, rx: node.kind === 'species' ? 3 : 1, fill: '#fff', stroke: node.kind === 'species' ? node.initial ? '#16232d' : '#9aa4ac' : '#aab2ba', 'stroke-width': node.initial ? 2.3 : .9 }));
       let y = b.y + (node.kind === 'species' ? 8 : 3);
       if (content.graphic) {
@@ -237,7 +237,7 @@ export class ReactionNetwork {
     } else {
       const reaction = node.reaction, names = new Map(this.graph.nodes.filter(n => n.kind === 'species').map(n => [n.species.id, n.label]));
       const side = values => values.map(item => `${item.multiplicity === 1 ? '' : `${item.multiplicity} `}${names.get(item.speciesId) || item.speciesId}`).join(' + ') || '∅';
-      this.details.append(htmlNode('code', `${side(reaction.reactants)} ${reaction.reverseRate ? '⇌' : '→'} ${side(reaction.products)}`), htmlNode('p', `Forward rate: ${reaction.rate.expression}${reaction.reverseRate ? ` · reverse rate: ${reaction.reverseRate.expression}` : ''}`));
+      this.details.append(htmlNode('code', `${side(reaction.reactants)} ${reaction.reverseRate ? '⇌' : '→'} ${side(reaction.products)}`), htmlNode('p', `Forward rate: ${rateLabel(reaction.rate.expression)}${reaction.reverseRate ? ` · reverse rate: ${rateLabel(reaction.reverseRate.expression)}` : ''}`));
       if (reaction.catalysts.length) this.details.append(htmlNode('p', `Catalysts: ${side(reaction.catalysts)}`));
     }
   }

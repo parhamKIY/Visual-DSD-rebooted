@@ -123,6 +123,23 @@ export function numberLabel(value) {
   return number === 0 ? '0' : Math.abs(number) >= 100000 || Math.abs(number) < .001 ? number.toExponential(3).replace(/\.?0+e/, 'e') : Number(number.toPrecision(6)).toString();
 }
 
+// Expand scientific literals as text: no rounding, expression evaluation or
+// changes to rate identifiers, species references, source or simulation data.
+export function rateLabel(expression) {
+  return String(expression).replace(/\[[^\]]*\]|"[^"\n]*"|'[^'\n]*'|[\p{L}_][\p{L}\p{N}_']*|(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/gu, token => {
+    const scientific = /^(\d*\.?\d+)[eE]([+-]?\d+)$/.exec(token);
+    if (!scientific) return token;
+    const exponent = Number(scientific[2]);
+    if (!Number.isInteger(exponent) || Math.abs(exponent) > 324) return token;
+    const mantissa = scientific[1], digits = mantissa.replace('.', '');
+    if (/^0+$/.test(digits)) return '0';
+    const decimal = (mantissa.includes('.') ? mantissa.indexOf('.') : mantissa.length) + exponent;
+    return decimal <= 0 ? `0.${'0'.repeat(-decimal)}${digits}`
+      : decimal >= digits.length ? digits + '0'.repeat(decimal - digits.length)
+      : `${digits.slice(0, decimal)}.${digits.slice(decimal)}`;
+  });
+}
+
 export function populationLabel(species) {
   if (species.valueKind === 'spatial') return 'Spatial initial field · defined in model';
   return `${species.valueKind === 'finalPopulation' ? 'Population at end' : species.valueKind === 'scheduledInput' ? 'Scheduled input' : species.valueKind === 'timedInput' ? 'Timed input' : species.valueKind === 'initialContribution' ? 'Initial contribution' : 'Initial'}: ${species.initial}${species.constant ? ' · constant' : ''}${species.time ? ` · ${species.valueKind === 'scheduledInput' ? 'after' : 'at'} ${species.time}` : ''}`;
