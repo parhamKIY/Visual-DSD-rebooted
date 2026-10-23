@@ -63,6 +63,8 @@ jobs:
         run: ./eng/test.ps1 -Locked
       - name: Verify workspace data handling and plots
         run: ./eng/test-ui.ps1
+      - name: Verify release package validation
+        run: python -m unittest discover -s tests/Release -v
       - name: Publish and verify standalone application
         run: |
           ./eng/publish.ps1 -Runtime '${{ matrix.runtime }}'
@@ -72,17 +74,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Build or publish changed tracked files.' }
           if (git ls-files --others --exclude-standard) { throw 'Build or publish created untracked files.' }
       - name: Package verified application
-        run: |
-          $runtime = '${{ matrix.runtime }}'
-          $name = "visual-dsd-rebooted-$runtime"
-          $stage = Join-Path 'artifacts/packages' $name
-          New-Item -ItemType Directory -Path $stage -Force | Out-Null
-          Copy-Item -Path "artifacts/publish/$runtime/*" -Destination $stage
-          Copy-Item -LiteralPath LICENSE, NOTICE -Destination $stage
-          $zip = Join-Path 'artifacts/packages' "$name.zip"
-          Compress-Archive -Path "$stage/*" -DestinationPath $zip
-          $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  $name.zip" | Set-Content -LiteralPath "$zip.sha256" -Encoding utf8NoBOM
+        run: ./eng/package.ps1 -Runtime '${{ matrix.runtime }}'
       - name: Upload verified application
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

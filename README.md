@@ -22,6 +22,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 
 | Workflow | Available now |
 | --- | --- |
+| Follow a student journey | Start a lesson, import a model or resume a project; Check → Simulate → Review → Download follows current completed results. Switch to Full workspace for advanced tools |
 | Learn with examples | 17 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
@@ -41,7 +42,9 @@ Each calculation runs in a separate worker process with cancellation, a deadline
 
 ## Get the app
 
-Verified builds are attached to successful runs of the [Engine baseline workflow](https://github.com/parhamKIY/Visual-DSD-rebooted/actions/workflows/engine.yml?query=branch%3Amaster).
+Download the Windows x64 or Linux x64 ZIP from [Releases](https://github.com/parhamKIY/Visual-DSD-rebooted/releases/latest). Extract it and read `START-HERE.en.md` or `START-HERE.fa.md`. Packages include example models, `VERSION.json`, licenses and a SHA-256 checksum.
+
+Development builds are also attached to successful runs of the [Engine baseline workflow](https://github.com/parhamKIY/Visual-DSD-rebooted/actions/workflows/engine.yml?query=branch%3Amaster).
 
 1. Open a successful run for `master`.
 2. Under **Artifacts**, download `visual-dsd-rebooted-win-x64` or `visual-dsd-rebooted-linux-x64`.
@@ -74,7 +77,9 @@ For a terminal session without automatic browser launch, use `./VisualDsd serve 
 
 ## Try a model
 
-Choose a built-in example and select **Simulate**, or paste this small model into the editor:
+The Start page offers **Choose a guided example**, **Open model file**, and **Resume workspace / Open project file**. In Student mode, follow **Check model → Simulate → Review simulation → Download project**. The guide resets when source or settings change and never treats provisional solver output as a completed run. **Full workspace** exposes all tools while preserving model settings. The language control changes the student journey and lessons between English and Persian. Advanced lessons automatically open Full workspace.
+
+Choose a built-in example and simulate it, or paste this small model into the editor:
 
 ```text
 directive simulator deterministic
