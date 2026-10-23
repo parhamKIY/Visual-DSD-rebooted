@@ -1,0 +1,55 @@
+{
+  "code": "\ndirective duration 36000.0 points 1000\n\n(* remove the following two lines and set the compilation and simulation modes manually for version v2014-0219 or earlier *)\ndirective compilation infinite\ndirective simulation deterministic\n\ndirective plot <_ _ _ Fluor10> (* output: Fluor[10] *)\n\ndef N = 10 (* 0.1x standard concentration *)\ndef OFF = 1*N (* logic OFF value = 0.1 *)\ndef ON = 9*N (* logic ON value = 0.9 *)\ndef unbind = 0.1126 (* normal toehold dissociation rate constant /s *)\ndef fastunbind = 0.95 (* fast toehold dissociation rate constant /s *)\ndef fast = 0.012 (* fast toehold binding rate constant /nM/s *)\ndef normal = 0.0003 (* normal toehold binding rate constant /nM/s *)\ndef slow = 0.000015 (* slow toehold binding rate constant /nM/s *)\nnew T@slow,fastunbind\n\n(* a seesaw signal *)\ndef signal(N,iL,i,iR,jL,j,jR) = ( N * <iL^ i iR^ T^ jL^ j jR^> )\n\n(* a seesaw gate with signal bound by the left side *)\ndef gateL(N,iL,i,iR,jL,j,jR) = ( N * {T^*}[iL^ i iR^ T^]<jL^ j jR^> )\n\n(* a seesaw gate with signal bound by the right side *)\ndef gateR(N,iL,i,iR,jL,j,jR) = ( N * <iL^ i iR^>[T^ jL^ j jR^]{T^*} )\n\n(* a seesaw threshold with signal coming in from the left side *)\ndef thresholdL(N,iR,jL,j,jR) = ( N * {iR^* T^*}[jL^ j jR^] )\n\n(* a seesaw threshold with signal coming in from the right side *)\ndef thresholdR(N,iL,i,iR,jL) = ( N * [iL^ i iR^]{T^* jL^*} )\n\n(* a seesaw reporter *)\ndef reporter(N,iL,i,iR,Fluor) = ( N * {T^*}[iL^ i iR^]<Fluor> )\n\n(* 2-input 1-output seesaw OR gate *)\ndef seesawOR2I1O(i1L,i1,i1R,i2L,i2,i2R,k1L,k1,k1R) =\n( gateL(20*N,i1L,i1,i1R,i2L,i2,i2R)\n| thresholdL(6*N,i1R,i2L,i2,i2R)\n| gateL(10*N,i2L,i2,i2R,k1L,k1,k1R)\n| signal(20*N,i2L,i2,i2R,fL,f,fR))\n\n(* 2-input 1-output seesaw AND gate *)\ndef seesawAND2I1O(i1L,i1,i1R,i2L,i2,i2R,k1L,k1,k1R) =\n( gateL(20*N,i1L,i1,i1R,i2L,i2,i2R)\n| thresholdL(12*N,i1R,i2L,i2,i2R)\n| gateL(10*N,i2L,i2,i2R,k1L,k1,k1R)\n| signal(20*N,i2L,i2,i2R,fL,f,fR))\n\n(* 1-input 1-output seesaw OR gate *)\ndef seesawOR1I1O(i1L,i1,i1R,i2L,i2,i2R,k1L,k1,k1R) =\n( gateL(10*N,i1L,i1,i1R,i2L,i2,i2R)\n| thresholdL(6*N,i1R,i2L,i2,i2R)\n| gateL(10*N,i2L,i2,i2R,k1L,k1,k1R)\n| signal(20*N,i2L,i2,i2R,fL,f,fR))\n\n(* reporter with signal restoration *)\ndef reporterREST(i1L,i1,i1R,i2L,i2,i2R,i3L,i3,i3R) =\n( gateL(10*N,i1L,i1,i1R,i2L,i2,i2R)\n| thresholdL(4*N,i1R,i2L,i2,i2R)\n| gateL(10*N,i2L,i2,i2R,i3L,i3,i3R)\n| signal(20*N,i2L,i2,i2R,fL,f,fR))\n\n( signal(OFF,S1L,S1,S1R,S4L,S4,S4R) (* input w[1,4] *)\n| signal(OFF,S2L,S2,S2R,S4L,S4,S4R) (* input w[2,4] *)\n| signal(OFF,S3L,S3,S3R,S5L,S5,S5R) (* input w[3,5] *)\n| seesawOR2I1O(S4L,S4,S4R,S7L,S7,S7R,S5L,S5,S5R)\n| seesawAND2I1O(S5L,S5,S5R,S8L,S8,S8R,S6L,S6,S6R)\n| seesawOR1I1O(S6L,S6,S6R,S9L,S9,S9R,S10L,S10,S10R)\n| reporter(15*N,S10L,S10,S10R,Fluor10)\n)\n",
+  "provenance": {
+    "url": "https://www.qianlab.caltech.edu/SeesawCompiler/SEESAWtoDNA.php",
+    "date": "Fri, 23 Oct 2026 07:50:00 GMT",
+    "netlist": "# Three levels: (A OR B) AND C, followed by a restored OR buffer\nINPUT(1) = w[1,4]\nINPUT(2) = w[2,4]\nINPUT(3) = w[3,5]\nOUTPUT(1) = Fluor[10]\nseesawOR[4,7,{1,2},{5}]\nseesawAND[5,8,{4,3},{6}]\nseesawOR[6,9,{5},{10}]\nreporter[10,6]\n",
+    "sha256": "f30095cf33635bf7bd12308dd034a3683381141d4906081cf848ae2cdbe10bb3"
+  },
+  "logic": {
+    "version": 1,
+    "config": {
+      "title": "Three-level Seesaw: (A OR B) AND C",
+      "provenance": "https://www.qianlab.caltech.edu/SeesawCompiler/SEESAWtoDNA.php | Fri, 23 Oct 2026 07:50:00 GMT | source SHA256 f30095cf33635bf7bd12308dd034a3683381141d4906081cf848ae2cdbe10bb3 | Input netlist: # Three levels: (A OR B) AND C, followed by a restored OR buffer\nINPUT(1) = w[1,4]\nINPUT(2) = w[2,4]\nINPUT(3) = w[3,5]\nOUTPUT(1) = Fluor[10]\nseesawOR[4,7,{1,2},{5}]\nseesawAND[5,8,{4,3},{6}]\nseesawOR[6,9,{5},{10}]\nreporter[10,6]\n",
+      "inputs": [
+        {
+          "name": "A",
+          "one": "<S1L^ S1 S1R^ T^ S4L^ S4 S4R^>",
+          "zero": "",
+          "off": 10,
+          "on": 90
+        },
+        {
+          "name": "B",
+          "one": "<S2L^ S2 S2R^ T^ S4L^ S4 S4R^>",
+          "zero": "",
+          "off": 10,
+          "on": 90
+        },
+        {
+          "name": "C",
+          "one": "<S3L^ S3 S3R^ T^ S5L^ S5 S5R^>",
+          "zero": "",
+          "off": 10,
+          "on": 90
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Y",
+          "one": "<S10L^ S10 S10R^ Fluor10>",
+          "zero": "",
+          "expression": "(A OR B) AND C"
+        }
+      ],
+      "low": 20,
+      "high": 80,
+      "time": 36000,
+      "final": 36000,
+      "points": 200,
+      "timeout": 30,
+      "unit": "nM",
+      "timeUnit": "s"
+    }
+  }
+}

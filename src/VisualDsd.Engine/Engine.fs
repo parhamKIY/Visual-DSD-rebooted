@@ -282,7 +282,7 @@ module private CrnExecution =
             | "cme" -> Simulator.CME | "pde" -> Simulator.PDE
             | "sundials" -> Simulator.Sundials | "cmesundials" -> Simulator.CMESundials | "mc" -> Simulator.MC | _ -> original.settings.simulator
         let crn = { original with settings = { original.settings with simulator = simulator; simulation = update original.settings.simulation; simulations = original.settings.simulations |> List.map update } }
-        let crn = crn.saturate_plots()
+        let crn = crn.saturate_plots() |> LogicCases.configure request
         let active = if crn.settings.simulations.IsEmpty then [crn.settings.simulation] else crn.settings.simulations
         for sim in active do
             if not (Double.IsFinite sim.initial && Double.IsFinite sim.final) then raise (ExecutionFailure("INVALID_TIME", "The model's time bounds must be finite."))
@@ -335,7 +335,7 @@ module private CrnExecution =
 type Engine private () =
     static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.21.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.22.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -433,7 +433,9 @@ type Engine private () =
                                 match bundle with
                                 | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = update classic.settings }
                                 | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
-                            let initialCrn = if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured
+                            if jit && not (isNull request.LogicCase) then
+                                raise (ExecutionFailure("LOGIC_OPTIONS", "Logic truth tables require a fully expanded deterministic model."))
+                            let initialCrn = (if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured) |> LogicCases.configure request
                             let crn, simulations, inference =
                                 if jit && (request.Operation = "simulate" || request.Operation = "analyze") then
                                     let mutable stateCount, edgeCount = 0, 0

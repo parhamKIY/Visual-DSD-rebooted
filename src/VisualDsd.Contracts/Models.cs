@@ -26,7 +26,14 @@ public sealed record ModelRequest
     public int PhaseTrajectories { get; init; } = 12;
     public int TimeoutSeconds { get; init; } = 30;
     public DatasetData[] Data { get; init; } = [];
+    public LogicCaseData? LogicCase { get; init; }
 }
+
+// Molecular identities are structural strings returned by expansion, never transient sp# labels.
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LogicInputData(string Structure, double Value);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LogicCaseData(LogicInputData[] Inputs, string[] Outputs);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DsdOptionsData
@@ -117,6 +124,18 @@ public static class RequestValidation
     {
         if (request is null) return [new("INVALID_REQUEST", "A model request is required.")];
         var errors = new List<Diagnostic>();
+        if (request.LogicCase is { } logic)
+        {
+            if (request.Operation != "simulate" || request.Simulator is not ("oslo" or "sundials"))
+                errors.Add(new("LOGIC_OPTIONS", "Logic cases require deterministic simulation with an explicit Oslo or Sundials solver."));
+            if (logic.Inputs is null || logic.Outputs is null || logic.Inputs.Length is < 1 or > 8 || logic.Outputs.Length is < 1 or > 8 ||
+                logic.Inputs.Any(i => i is null || string.IsNullOrWhiteSpace(i.Structure) || i.Structure.Length > 4096 || !double.IsFinite(i.Value) || i.Value < 0) ||
+                logic.Outputs.Any(s => string.IsNullOrWhiteSpace(s) || s.Length > 4096) ||
+                logic.Inputs.Select(i => i?.Structure).Distinct(StringComparer.Ordinal).Count() != logic.Inputs.Length || logic.Outputs.Distinct(StringComparer.Ordinal).Count() != logic.Outputs.Length)
+                errors.Add(new("LOGIC_MAPPING", "Map 1–8 distinct molecular inputs and outputs; input concentrations must be finite and nonnegative."));
+            if (!request.Points.HasValue || request.Points is < 1 or > 500 || !request.Initial.HasValue || !request.Final.HasValue || request.TimeoutSeconds > 120)
+                errors.Add(new("LOGIC_BUDGET", "Logic cases require explicit time bounds, 1–500 points and a time limit of at most 120 seconds."));
+        }
         if (request.Language is not ("dsd" or "crn")) errors.Add(new("INVALID_LANGUAGE", "Language must be dsd or crn."));
         if (request.NodeId?.Length > 128 || request.SystemId?.Length > 128) errors.Add(new("INVALID_SELECTION", "Node and system identifiers cannot exceed 128 characters."));
         if (request.Language == "dsd" && (request.NodeId is not null || request.SystemId is not null)) errors.Add(new("INVALID_SELECTION", "Node and system selection requires CRN input."));
