@@ -1,5 +1,6 @@
 import {readAlignmentStudy} from './alignment.js';
 import {readBlastImport} from './blast.js';
+import {readEvolution} from './evolution-state.js';
 const fail=()=>{throw new Error('Sequences: invalid saved analysis or NCBI provenance.');};
 export function readRetrieval(raw){
   if(raw==null)return null;
@@ -13,5 +14,5 @@ export function readSequenceAnalysis(raw){
   if(raw.search!=null){const s=raw.search;if(!['nuccore','protein'].includes(s.database)||typeof s.term!=='string'||s.term.length>300||!Number.isInteger(s.start)||s.start<0||s.start>1000||!Number.isSafeInteger(s.count)||s.count<0||!Number.isFinite(Date.parse(s.retrievedAt))||!Array.isArray(s.records)||s.records.length>10)fail();
     search={database:s.database,term:s.term,start:s.start,count:s.count,retrievedAt:s.retrievedAt,records:s.records.map(r=>{if(!/^\d+$/.test(r.uid)||typeof r.accessionVersion!=='string'||!/^[A-Za-z0-9_]+\.\d+$/.test(r.accessionVersion)||typeof r.title!=='string'||r.title.length>4000||!Number.isSafeInteger(r.length)||r.length<1)fail();return {uid:r.uid,accessionVersion:r.accessionVersion,title:r.title,length:r.length};})};
   }
-  return {version:1,alignments:raw.alignments.map(readAlignmentStudy),blast:readBlastImport(raw.blast),search};
+  const result={version:1,alignments:raw.alignments.map(readAlignmentStudy),blast:readBlastImport(raw.blast),search};if(raw.evolution!=null)result.evolution=readEvolution(raw.evolution);return result;
 }

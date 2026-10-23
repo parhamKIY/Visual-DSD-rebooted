@@ -4,6 +4,18 @@ using System.IO.Pipes;
 using VisualDsd.App;
 using VisualDsd.Contracts;
 
+// Authored process-adapter fixture, not a scientific alignment implementation.
+if(args.SequenceEqual(new[]{"-version"})){Console.WriteLine("muscle 5.0 authored-adapter-test-probe");return 0;}
+if(args.Contains("-align"))
+{
+    string inputPath=args[Array.IndexOf(args,"-align")+1],outputPath=args[Array.IndexOf(args,"-output")+1];
+    string text=await File.ReadAllTextAsync(inputPath);
+    if(text.Contains("CCCC")){Console.Error.Write("Authored test exit");return 7;}
+    if(text.Contains("GGGG")){Console.Error.Write(new string('x',100000));return 0;}
+    if(text.Contains("TTTT")){await Task.Delay(Timeout.Infinite);return 0;}
+    var records=text.Split('>',StringSplitOptions.RemoveEmptyEntries).Select(block=>{var lines=block.Trim().Split('\n');return(Name:lines[0],Sequence:string.Concat(lines.Skip(1)));}).ToArray();
+    int width=records.Max(r=>r.Sequence.Length);await File.WriteAllTextAsync(outputPath,string.Concat(records.Select(r=>$">{r.Name}\n{(text.Contains("ACAC")?r.Sequence.Replace('A','C'):r.Sequence).PadRight(width,'-')}\n")));return 0;
+}
 if (args.Length == 3 && args[0] == "--owner")
 {
     string pipeName = "visual-dsd-test-" + Guid.NewGuid().ToString("N");

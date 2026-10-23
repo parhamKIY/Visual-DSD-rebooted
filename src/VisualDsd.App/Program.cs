@@ -218,7 +218,7 @@ public static class Program
             }
             await next(context);
         });
-        if(!compute){WebAssets.Map(app);NcbiRecords.Map(app);}
+        if(!compute){WebAssets.Map(app);NcbiRecords.Map(app);MuscleTool.Map(app);}
         app.MapGet("/api/execution",()=>Results.Json(new{mode=remote is null?"local":"remote",persistent=store is not null,maximumTimeoutSeconds=86400}));
         app.MapGet("/health", () => Results.Ok(new { status = "ok", version = CoreEngine.Info.Version }));
         app.MapGet("/api/info", () => Results.Json(CoreEngine.Info));
