@@ -17,6 +17,8 @@ internal static class WebAssets
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8", ["layout.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
         ["msagl.worker.js"] = "text/javascript; charset=utf-8", ["msagl.runtime.js"] = "text/javascript; charset=utf-8",
+        ["logic-analysis.js"] = "text/javascript; charset=utf-8",
+        ["logic-inspector.js"] = "text/javascript; charset=utf-8",
         ["logic.js"] = "text/javascript; charset=utf-8",
         ["logic-workspace.js"] = "text/javascript; charset=utf-8",
         ["logic-workspace.css"] = "text/css; charset=utf-8",

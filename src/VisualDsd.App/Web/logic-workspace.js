@@ -1,5 +1,6 @@
-import { defaultLogicConfig, readLogicConfig, readLogicState, newLogicBatch, caseRequest, readout, collectLogicCurve, logicIsCurrent, logicCsv } from './logic.js';
+import { defaultLogicConfig, readLogicConfig, readLogicState, newLogicBatch, caseRequest, readout, collectLogicCurve, collectLogicMolecules, logicIsCurrent, logicCsv } from './logic.js';
 import { SimulationChart } from './chart.js';
+import { LogicInspector } from './logic-inspector.js';
 
 const $=id=>document.getElementById(id);
 const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
@@ -13,12 +14,13 @@ const words={
  name:['Experiment name','نام آزمایش'],origin:['Circuit origin / compiler notes','منشأ مدار و توضیح کامپایلر'],inputs:['Logical inputs','ورودی‌های منطقی'],outputs:['Expected outputs','خروجی‌های مورد انتظار'],addInput:['Add input (up to 4)','افزودن ورودی، حداکثر ۴'],addOutput:['Add output (up to 4)','افزودن خروجی، حداکثر ۴'],remove:['Remove','حذف'],symbol:['Logic name','نام منطقی'],one:['Molecule / rail 1','مولکول یا مسیر یک'],zero:['Rail 0 (optional; dual rail)','مسیر صفر، اختیاری'],none:['None · single rail','بدون مسیر مکمل'],choose:['Choose a molecule…','یک مولکول انتخاب کن…'],off:['OFF concentration','غلظت خاموش'],on:['ON concentration','غلظت روشن'],expression:['Expected Boolean function','تابع منطقی مورد انتظار'],expressionHelp:['Use input names with NOT, AND, XOR, OR and parentheses. Precedence: NOT → AND → XOR → OR.','نام ورودی‌ها و عملگرهای نقیض، و، یای انحصاری و یا را با حروف انگلیسی بنویس؛ پرانتز هم مجاز است.'],
  read:['Readout rule','قاعدهٔ خواندن نتیجه'],unit:['Concentration unit (exact source unit)','واحد غلظت، مطابق مدل'],timeUnit:['Time unit (exact source unit)','واحد زمان، مطابق مدل'],low:['0 when concentration ≤','صفر اگر غلظت کمتر یا برابر باشد با'],high:['1 when concentration ≥','یک اگر غلظت بیشتر یا برابر باشد با'],time:['Read output at time','زمان خواندن خروجی'],final:['Simulation ends at','زمان پایان شبیه‌سازی'],points:['Output intervals (1–500)','بازه‌های نمونه‌برداری، ۱ تا ۵۰۰'],timeout:['Time limit per case (seconds)','مهلت هر حالت به ثانیه'],rule:['Between thresholds = unknown. Dual rail: only (1,0) means 1 and (0,1) means 0; both ON, both OFF or an intermediate rail are unknown. Linear interpolation is used between returned samples; thresholds are never universal.','بین دو آستانه، خروجی نامعین است. در حالت دوخطی، فقط زوج یک و صفر یا صفر و یک معتبر است؛ دو مسیر هم‌زمان روشن، خاموش یا میانی نامعین‌اند. میان نمونه‌ها درون‌یابی خطی می‌شود؛ آستانه‌ها برای همهٔ مدل‌ها یکسان نیستند.'],
  results:['3 · Run & compare the truth table','۳ · اجرا و مقایسهٔ جدول درستی'],run:['Run all input cases','اجرای همهٔ حالت‌ها'],resume:['Continue unfinished cases','ادامهٔ حالت‌های ناتمام'],stop:['Stop batch','توقف آزمایش'],save:['Save project & trajectories','ذخیرهٔ پروژه و نمودارها'],csv:['Truth table CSV ↓','دریافت جدول درستی'],close:['Return to workspace','بازگشت به محیط'],stale:['Source or configuration changed. These results belong to the saved snapshot. Start a new batch to test your changes.','کد یا تنظیمات تغییر کرده است. این نتایج متعلق به نسخهٔ ثبت‌شده‌اند؛ برای تغییرات جدید آزمایش تازه‌ای اجرا کن.'],
- empty:['No cases yet. Check the source and confirm every mapping before running.','هنوز حالتی اجرا نشده؛ ابتدا کد، مولکول‌ها و قاعدهٔ تفسیر را مشخص کن.'],expected:['Expected','مورد انتظار'],observed:['Observed','مشاهده‌شده'],concentration:['Concentration','غلظت'],status:['Status','وضعیت'],correct:['Correct','درست'],incorrect:['Incorrect','نادرست'],unknown:['Unknown','نامعین'],queued:['Queued','در صف'],admitting:['Submitting','در حال ثبت'],running:['Running','در حال اجرا'],succeeded:['Completed','کامل'],failed:['Execution error','خطای اجرا'],timedOut:['Timed out','پایان مهلت'],cancelled:['Stopped','متوقف'],interrupted:['Needs attention','نیازمند بررسی'],curve:['Inspect curves','دیدن نمودارها'],select:['Selected case','حالت انتخاب‌شده'],budget:['cases · sequential deterministic runs · at most','حالت، اجرای قطعی و ترتیبی، حداکثر'],seconds:['seconds of solver time','ثانیه زمان حل'],unitsHelp:['Completed trajectories must match the confirmed source units. There is no implicit conversion. Starting concentrations are replaced structurally after expansion; reaction rates and source text stay intact.','واحدهای مدل با آزمایش تطبیق داده می‌شوند و تبدیل ضمنی وجود ندارد. غلظت اولیه بر اساس ساختار مولکول تعیین می‌شود و کد و نرخ واکنش‌ها حفظ می‌شوند.'],snapshot:['Snapshot','نسخهٔ ثبت‌شده'],downloaded:['Download started. Keep the project file to reproduce this experiment.','دریافت آغاز شد؛ فایل پروژه را برای تکرار آزمایش نگه دار.']};
+ empty:['No cases yet. Check the source and confirm every mapping before running.','هنوز حالتی اجرا نشده؛ ابتدا کد، مولکول‌ها و قاعدهٔ تفسیر را مشخص کن.'],expected:['Expected','مورد انتظار'],observed:['Observed','مشاهده‌شده'],concentration:['Concentration','غلظت'],status:['Status','وضعیت'],correct:['Correct','درست'],incorrect:['Incorrect','نادرست'],unknown:['Unknown','نامعین'],queued:['Queued','در صف'],admitting:['Submitting','در حال ثبت'],running:['Running','در حال اجرا'],succeeded:['Completed','کامل'],failed:['Execution error','خطای اجرا'],timedOut:['Timed out','پایان مهلت'],cancelled:['Stopped','متوقف'],interrupted:['Needs attention','نیازمند بررسی'],curve:['Inspect case','بررسی حالت'],select:['Selected case','حالت انتخاب‌شده'],budget:['cases · sequential deterministic runs · at most','حالت، اجرای قطعی و ترتیبی، حداکثر'],seconds:['seconds of solver time','ثانیه زمان حل'],unitsHelp:['Completed trajectories must match the confirmed source units. There is no implicit conversion. Starting concentrations are replaced structurally after expansion; reaction rates and source text stay intact.','واحدهای مدل با آزمایش تطبیق داده می‌شوند و تبدیل ضمنی وجود ندارد. غلظت اولیه بر اساس ساختار مولکول تعیین می‌شود و کد و نرخ واکنش‌ها حفظ می‌شوند.'],snapshot:['Snapshot','نسخهٔ ثبت‌شده'],downloaded:['Download started. Keep the project file to reproduce this experiment.','دریافت آغاز شد؛ فایل پروژه را برای تکرار آزمایش نگه دار.']};
 
 export class LogicWorkspace {
   constructor(dialog, hooks){
     this.dialog=dialog;this.h=hooks;this.selected=0;this.catalog=[];
-    this.chart=new SimulationChart($('logic-chart'),$('logic-legend'),$('logic-tooltip'));
+    this.chart=new SimulationChart($('logic-chart'),$('logic-legend'),$('logic-tooltip'),{onSelect:index=>this.inspector.selectTrace(index)});
+    this.inspector=new LogicInspector($('logic-inspector'),this.chart,{language:hooks.language,persist:hooks.persist,download:hooks.download});
     $('logic-open').addEventListener('click',()=>this.open());$('home-logic').addEventListener('click',()=>this.open());
     $('logic-close').addEventListener('click',()=>dialog.close());
     $('logic-import').addEventListener('click',()=>$('logic-file').click());
@@ -27,7 +29,7 @@ export class LogicWorkspace {
     $('logic-prepare').addEventListener('click',()=>this.prepare());
     $('logic-replace-yes').addEventListener('click',()=>this.run(false,true));$('logic-replace-no').addEventListener('click',()=>{$('logic-replace').hidden=true;});
     $('logic-run').addEventListener('click',()=>this.run(false));$('logic-resume').addEventListener('click',()=>this.run(true));
-    $('logic-stop').addEventListener('click',()=>this.h.stop());$('logic-save').addEventListener('click',()=>{if(this.validForm())this.h.save();});
+    $('logic-stop').addEventListener('click',()=>this.h.stop());$('logic-save').addEventListener('click',()=>{if(this.validForm()&&this.inspector.validWindow())this.h.save();});
     $('logic-csv').addEventListener('click',()=>{const b=this.model().logic?.batch;if(b)this.h.download('truth-table.csv',logicCsv(b),'text/csv;charset=utf-8');});
   }
   t(key){return words[key]?.[this.h.language()==='fa'?1:0]??key;}
@@ -43,7 +45,7 @@ export class LogicWorkspace {
   base(){return this.h.request(this.model(),'simulate');}
   fresh(){try{return logicIsCurrent(this.base(),this.model().logic.config,this.model().logic.batch);}catch{return false;}}
   error(error){$('logic-message').textContent=error.message;$('logic-message').hidden=false;}
-  validForm(){const invalid=this.dialog.querySelector('input:invalid');if(invalid){invalid.reportValidity();this.error(new Error(invalid.validationMessage));return false;}return true;}
+  validForm(){const invalid=this.dialog.querySelector('input[data-logic-field]:invalid');if(invalid){invalid.reportValidity();this.error(new Error(invalid.validationMessage));return false;}return true;}
   label(text,control){const label=node('label','',text);label.append(control);return label;}
   field(object,key,label,type='text'){
     const input=node('input');input.type=type;input.value=object[key];input.dataset.logicField=key;if(type==='number')input.step='any';else input.maxLength=key==='expression'?512:key==='provenance'?2048:120;
@@ -80,24 +82,26 @@ export class LogicWorkspace {
     this.renderResults();
   }
   renderResults(){
-    const state=this.model().logic,c=state.config,b=state.batch,fresh=this.fresh()&&!this.dialog.querySelector('input:invalid');
+    const state=this.model().logic,c=state.config,b=state.batch,fresh=this.fresh()&&!this.dialog.querySelector('input[data-logic-field]:invalid');
     $('logic-stale').hidden=!b||fresh;
     $('logic-budget').textContent=`${2**c.inputs.length} ${this.t('budget')} ${2**c.inputs.length*c.timeout} ${this.t('seconds')}`;
     const table=$('logic-table');table.replaceChildren();$('logic-empty').hidden=Boolean(b);$('logic-csv').disabled=!b||this.busy;
     $('logic-resume').hidden=!b||!fresh||!b.cases.some(r=>r.state==='queued'||r.state==='running'||r.state==='admitting'&&r.jobId);
     $('logic-snapshot').textContent=b?`${this.t('snapshot')} · ${b.createdAt} · ${this.t('engine')} ${b.engineVersion} · ${b.id}`:'';
     if(b){
+      this.selected=Math.min(this.selected,b.cases.length-1);
       const t=node('table'),head=node('tr');for(const name of [...b.config.inputs.map(i=>i.name),...b.config.outputs.flatMap(o=>[`${o.name} · ${this.t('expected')}`,`${o.name} · ${this.t('observed')}`,`${o.name} · ${this.t('concentration')} (${b.config.unit})`]),this.t('status'),''])head.append(node('th','',name));
       const thead=node('thead');thead.append(head);const body=node('tbody');t.append(thead,body);
       b.cases.forEach((row,index)=>{const tr=node('tr'),r=readout(b.config,row);tr.dataset.status=r.status;if(index===this.selected)tr.classList.add('selected');
         for(const value of row.bits)tr.append(node('td','',String(value)));
         b.config.outputs.forEach((o,i)=>{const out=r.outputs[i];tr.append(node('td','',String(row.expected[i])),node('td','',out?`${out.observed??'?'} · ${this.t(out.status)}`:'—'),node('td','',out?`${out.one.toPrecision(6)}${o.zero?' / '+out.zero.toPrecision(6):''}`:'—'));});
         const status=node('td','logic-case-state',this.t(r.status));if(row.message){const text=node('small','',row.message);text.dir='auto';status.append(text);}if(row.jobId){const id=node('small','',row.jobId.slice(0,8));id.title=row.jobId;status.append(id);}tr.append(status);
-        const cell=node('td'),button=node('button','text-button',this.t('curve'));button.type='button';button.disabled=!row.curve;button.addEventListener('click',()=>{this.selected=index;this.renderResults();$('logic-curve-heading').focus();});cell.append(button);tr.append(cell);body.append(tr);
+        const cell=node('td'),button=node('button','text-button',this.t('curve'));button.type='button';button.addEventListener('click',()=>{this.selected=index;this.renderResults();this.inspector.title.tabIndex=-1;this.inspector.title.focus();});cell.append(button);tr.append(cell);body.append(tr);
       });table.append(t);
       const row=b.cases[this.selected];$('logic-curve').hidden=!row?.curve;
-      if(row?.curve){const curve=row.curve;const names=b.config.outputs.flatMap(o=>[o.name+(o.zero?' · rail 1':''),...(o.zero?[o.name+' · rail 0']:[])]);this.chart.setRun({...curve,series:curve.series.map((s,i)=>({...s,name:names[i]}))},{simulator:'oslo',timeUnit:curve.timeUnit,concentrationUnit:curve.concentrationUnit});$('logic-curve-heading').textContent=`${this.t('select')} · ${b.config.inputs.map((i,n)=>`${i.name}=${row.bits[n]}`).join(', ')} · t=${b.config.time} ${b.config.timeUnit}`;}
-    }else $('logic-curve').hidden=true;
+      this.inspector.render(b,row,this.catalogKey===JSON.stringify(b.request)?this.catalog:[]);
+      if(row?.curve)$('logic-curve-heading').textContent=`${this.t('select')} · ${b.config.inputs.map((i,n)=>`${i.name}=${row.bits[n]}`).join(', ')} · t=${b.config.time} ${b.config.timeUnit}`;
+    }else {$('logic-curve').hidden=true;$('logic-inspector').hidden=true;}
     this.setBusy(Boolean(this.busy));
   }
   setBusy(busy){
@@ -134,7 +138,7 @@ export class LogicWorkspace {
       if(!resume&&model.logic.batch&&!replace){$('logic-replace').hidden=false;$('logic-replace-yes').focus();return;}
       $('logic-replace').hidden=true;
       if(resume&&(!this.fresh()||model.logic.batch.engineVersion!==this.h.version()))throw new Error('Source, mapping or engine version changed. Start a new batch.');
-      if(!resume)model.logic.batch=newLogicBatch(this.base(),model.logic.config,this.h.version());
+      if(!resume)model.logic.batch=newLogicBatch(this.base(),model.logic.config,this.h.version(),{traceInputs:true});
       const b=model.logic.batch;this.h.persist();this.setBusy(true);$('logic-message').hidden=true;
       await this.h.session(async(execute,task)=>{
         for(const row of b.cases){
@@ -142,12 +146,12 @@ export class LogicWorkspace {
           if(!['queued','running','admitting'].includes(row.state))continue;
           if(row.state==='admitting'&&!row.jobId){row.state='interrupted';row.message='Admission outcome is unknown. This case is not automatically resubmitted.';this.h.persist();continue;}
           try{
-            const request=caseRequest(b.request,b.config,row.bits);
+            const request=caseRequest(b.request,b.config,row.bits,{traceInputs:b.traceInputs===true});
             if(!row.jobId){row.state='admitting';this.h.persist();}this.renderResults();
             const job=await execute(request,row);
             if(job.engineVersion&&job.engineVersion!==b.engineVersion)throw new Error('The calculation engine version differs from this experiment snapshot. Start a new batch with the connected engine.');
             row.state=job.state==='succeeded'&&job.result?.success?'succeeded':['cancelled','timedOut','interrupted'].includes(job.state)?job.state:'failed';
-            if(row.state==='succeeded'){row.curve=collectLogicCurve(job.result,request,b.config);this.selected=b.cases.indexOf(row);}else row.message=(job.result?.diagnostics?.map(d=>`${d.code}: ${d.message}`).join('\n')||job.state).slice(0,4096);
+            if(row.state==='succeeded'){row.curve=collectLogicCurve(job.result,request,b.config);b.molecules??=collectLogicMolecules(job.result,request);this.selected=b.cases.indexOf(row);}else row.message=(job.result?.diagnostics?.map(d=>`${d.code}: ${d.message}`).join('\n')||job.state).slice(0,4096);
           }catch(e){row.state='interrupted';row.message=e.message.slice(0,4096);delete row.curve;task.cancelling=true;}
           this.h.persist();this.renderResults();
         }

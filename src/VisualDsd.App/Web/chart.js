@@ -52,8 +52,10 @@ function svgElement(tag, attributes = {}, text) {
 }
 
 export class SimulationChart {
-  constructor(svg, legend, tooltip) {
+  constructor(svg, legend, tooltip, {onSelect} = {}) {
     this.svg = svg; this.legend = legend; this.tooltip = tooltip; this.run = null; this.visible = new Set(); this.index = 0;
+    this.onSelect=onSelect;this.highlighted=null;
+    svg.addEventListener('click',event=>{const index=event.target.closest('[data-series]')?.getAttribute('data-series');if(index!=null)this.onSelect?.(Number(index));});
     svg.addEventListener('pointermove', event => {
       if (!this.run?.times.length) return;
       const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(svg.getScreenCTM().inverse());
@@ -76,12 +78,19 @@ export class SimulationChart {
     this.legend.replaceChildren();
     run.series.forEach((series, index) => {
       const button = document.createElement('button'); button.type = 'button'; button.setAttribute('aria-pressed', 'true'); button.title = series.name;
+      button.dataset.series=String(index);
       const swatch = svgElement('svg', { width: 16, height: 8, 'aria-hidden': 'true' }); swatch.append(svgElement('line', { x1: 0, y1: 4, x2: 16, y2: 4, stroke: colors[index % colors.length], 'stroke-width': 3 }));
       button.append(swatch, document.createTextNode(`${series.name}${series.standardDeviation ? ' · mean ± 1 SD' : ''}`));
-      button.addEventListener('click', () => { if (this.visible.has(index)) this.visible.delete(index); else this.visible.add(index); button.setAttribute('aria-pressed', String(this.visible.has(index))); this.draw(); });
+      button.addEventListener('click', () => { if(this.onSelect){this.onSelect(index);return;} if (this.visible.has(index)) this.visible.delete(index); else this.visible.add(index); button.setAttribute('aria-pressed', String(this.visible.has(index))); this.draw(); });
       this.legend.append(button);
     });
     this.draw();
+  }
+
+  highlight(indices=null){
+    this.highlighted=indices?.length?new Set(indices):null;
+    for(const path of this.svg.querySelectorAll('[data-series]')){const selected=!this.highlighted||this.highlighted.has(Number(path.getAttribute('data-series')));path.setAttribute('opacity',selected?'1':'.18');path.setAttribute('data-selected',String(Boolean(this.highlighted&&selected)));}
+    if(this.onSelect)for(const button of this.legend.querySelectorAll('button')){const selected=Boolean(this.highlighted?.has(Number(button.dataset.series)));button.setAttribute('aria-pressed',String(selected));button.classList.toggle('linked-selected',selected);}
   }
 
   draw() {
@@ -116,6 +125,7 @@ export class SimulationChart {
       if (observed) this.observations.times.forEach((time, row) => svg.append(svgElement('circle', { cx: x(time), cy: y(observed.values[row]), r: 3.5, fill: '#fff', stroke: colors[index % colors.length], 'stroke-width': 1.7, 'data-observation': index })));
     });
     this.cursor = svgElement('g', { visibility: 'hidden', 'aria-hidden': 'true' }); svg.append(this.cursor);
+    this.highlight(this.highlighted?[...this.highlighted]:null);
   }
 
   showCursor(index) {
