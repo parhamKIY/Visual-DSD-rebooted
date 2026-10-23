@@ -61,6 +61,24 @@ public class LogicTests
     }
 
     [Fact]
+    public void Sixteen_physical_rails_are_recorded_without_changing_input_concentrations()
+    {
+        var code = "directive simulation {final=2}\n" + string.Join(" | ", Enumerable.Range(1, 8).Select(i => $"0 A{i} | A{i} ->{{1}} B{i}"));
+        var request = Request(code, "crn") with
+        {
+            LogicCase = new(Enumerable.Range(1, 8).Select(i => new LogicInputData($"A{i}", i)).ToArray(), Enumerable.Range(1, 8).SelectMany(i => new[] { $"B{i}", $"A{i}" }).ToArray())
+        };
+        Assert.Empty(RequestValidation.Validate(request));
+        var result = CoreEngine.Execute(request);
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var run = Assert.Single(result.Model!.Simulations);
+        Assert.Equal(16, run.Series.Length);
+        Assert.Equal(3, run.Series.Single(s => s.Name == "A3").Values[0]);
+        Assert.InRange(run.Series.Single(s => s.Name == "B3").Values[^1], 2.59, 2.60);
+        Assert.Contains(RequestValidation.Validate(request with { LogicCase = new(request.LogicCase.Inputs, [.. request.LogicCase.Outputs, "extra"]) }), d => d.Code == "LOGIC_MAPPING");
+    }
+
+    [Fact]
     public void Real_compiler_output_executes_the_eight_cases_of_a_three_level_Seesaw_circuit()
     {
         using var example = JsonDocument.Parse(File.ReadAllText(Path.Combine(LocalHost.Root, "src/VisualDsd.App/Web/logic-example.json")));

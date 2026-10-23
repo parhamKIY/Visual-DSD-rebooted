@@ -6,7 +6,7 @@ const list = (x, max) => Array.isArray(x) && x.length <= max ? x : fail('missing
 const copy = x => JSON.parse(JSON.stringify(x));
 export const CASE_STATES = ['queued','admitting','running','succeeded','failed','timedOut','cancelled','interrupted'];
 
-export function booleanFunction(expression, names) {
+export function booleanTree(expression, names) {
   str(expression,512);
   const tokens = expression.match(/[A-Za-z_][A-Za-z_0-9]*|[01!~&|^()]|\S/g) ?? [];
   if (tokens.length > 256) fail('Boolean expression is too large.');
@@ -23,8 +23,13 @@ export function booleanFunction(expression, names) {
   const chain = (next, operators, kind) => () => { let node=next(); while(peek(...operators)){pos++;node=[kind,node,next()];} return node; };
   const and=chain(atom,['&','AND'],'and'), xor=chain(and,['^','XOR'],'xor'), or=chain(xor,['|','OR'],'or');
   const tree=or(); if(pos!==tokens.length)fail(`unexpected token ${tokens[pos]}. Use NOT, AND, XOR, OR and parentheses.`);
-  const evaluate=(node,values)=>node[0]==='literal'?node[1]:node[0]==='input'?Boolean(values[node[1]]):node[0]==='not'?!evaluate(node[1],values):node[0]==='and'?evaluate(node[1],values)&&evaluate(node[2],values):node[0]==='or'?evaluate(node[1],values)||evaluate(node[2],values):evaluate(node[1],values)!==evaluate(node[2],values);
-  return values=>Number(evaluate(tree,values));
+  return tree;
+}
+export function booleanValue(node,values){
+  return node[0]==='literal'?Number(node[1]):node[0]==='input'?Number(Boolean(values[node[1]])):node[0]==='not'?1-booleanValue(node[1],values):node[0]==='and'?Number(Boolean(booleanValue(node[1],values)&&booleanValue(node[2],values))):node[0]==='or'?Number(Boolean(booleanValue(node[1],values)||booleanValue(node[2],values))):Number(booleanValue(node[1],values)!==booleanValue(node[2],values));
+}
+export function booleanFunction(expression,names){
+  const tree=booleanTree(expression,names);return values=>booleanValue(tree,values);
 }
 
 export function defaultLogicConfig() {
@@ -56,15 +61,18 @@ export function truthCases(config) {
   });
 }
 export function readLogicCase(raw) {
-  const inputs=list(raw?.inputs,8).map(i=>({structure:str(i.structure),value:num(i.value)})),outputs=list(raw?.outputs,8).map(s=>str(s));
+  const inputs=list(raw?.inputs,8).map(i=>({structure:str(i.structure),value:num(i.value)})),outputs=list(raw?.outputs,16).map(s=>str(s));
   if(!inputs.length||!outputs.length||inputs.some(i=>!i.structure||i.value<0)||outputs.some(s=>!s)||new Set(inputs.map(i=>i.structure)).size!==inputs.length||new Set(outputs).size!==outputs.length)fail('invalid physical rail mapping.');
   return {inputs,outputs};
 }
-export function caseRequest(base, config, bits) {
+export function logicPlots(config,traceInputs=false){
+  return [...new Set([...config.outputs,...(traceInputs?config.inputs:[])].flatMap(o=>[o.one,...(o.zero?[o.zero]:[])]))];
+}
+export function caseRequest(base, config, bits, {traceInputs=false}={}) {
   const c=readLogicConfig(config,true);
   if(bits.length!==c.inputs.length||bits.some(b=>b!==0&&b!==1))fail('invalid input case.');
   const inputs=c.inputs.flatMap((i,n)=>[{structure:i.one,value:bits[n]?i.on:i.off},...(i.zero?[{structure:i.zero,value:bits[n]?i.off:i.on}]:[])]);
-  return {...copy(base),operation:'simulate',simulator:'oslo',initial:0,final:c.final,points:c.points,timeoutSeconds:c.timeout,logicCase:readLogicCase({inputs,outputs:c.outputs.flatMap(o=>[o.one,...(o.zero?[o.zero]:[])])})};
+  return {...copy(base),operation:'simulate',simulator:'oslo',initial:0,final:c.final,points:c.points,timeoutSeconds:c.timeout,logicCase:readLogicCase({inputs,outputs:logicPlots(c,traceInputs)})};
 }
 export function sampleAt(curve, time) {
   const {times,series}=curve;
@@ -73,7 +81,7 @@ export function sampleAt(curve, time) {
   // At an exact duplicate time, use the last returned sample at that time.
   while(right+1<times.length&&times[right+1]===time)right++;
   const left=right===0||times[right]===time?right:right-1,weight=left===right?0:(time-times[left])/(times[right]-times[left]);
-  return series.map(s=>s.values[left]+weight*(s.values[right]-s.values[left]));
+  return series.map(s=>left===right?s.values[left]:(1-weight)*s.values[left]+weight*s.values[right]);
 }
 export function readout(config, row) {
   if(row.state!=='succeeded'||!row.curve)return {status:row.state,outputs:[]};
@@ -104,7 +112,7 @@ export function collectLogicCurve(response, request, config) {
   sampleAt(curve,config.time);return curve;
 }
 function readCurve(raw) {
-  const times=list(raw.times,10000).map(num),series=list(raw.series,8).map(s=>({name:str(s.name),values:list(s.values,10000).map(num)}));
+  const times=list(raw.times,10000).map(num),series=list(raw.series,16).map(s=>({name:str(s.name),values:list(s.values,10000).map(num)}));
   if(times.some((t,i)=>i&&t<times[i-1])||!times.length||!series.length||series.some(s=>s.values.length!==times.length))fail('invalid trajectory.');
   return {times,series,timeUnit:str(raw.timeUnit,32),concentrationUnit:str(raw.concentrationUnit,32)};
 }
@@ -121,19 +129,40 @@ export function readLogicState(raw) {
       const row={...expected[index],state:r.state};
       if(r.jobId!=null){if(!/^[a-f0-9]{32}$/i.test(r.jobId))fail('invalid job identifier.');row.jobId=r.jobId;}
       if(r.message!=null)row.message=str(r.message,4096);
-      if(r.curve!=null){row.curve=readCurve(r.curve);const outputs=caseRequest(request,c,row.bits).logicCase.outputs;if(JSON.stringify(row.curve.series.map(s=>s.name))!==JSON.stringify(outputs)||row.curve.timeUnit!==c.timeUnit||row.curve.concentrationUnit!==c.unit)fail('trajectory mapping or units differ from the snapshot.');sampleAt(row.curve,c.time);}
+      if(r.curve!=null){row.curve=readCurve(r.curve);const outputs=logicPlots(c,b.traceInputs===true);if(JSON.stringify(row.curve.series.map(s=>s.name))!==JSON.stringify(outputs)||row.curve.timeUnit!==c.timeUnit||row.curve.concentrationUnit!==c.unit)fail('trajectory mapping or units differ from the snapshot.');sampleAt(row.curve,c.time);}
       if((row.state==='succeeded')!==Boolean(row.curve))fail('completed case must include its trajectory.');
       if(row.state==='running'&&!row.jobId)fail('running case has no admitted job.');
       return row;
     });
     if(cases.length!==expected.length||!Number.isFinite(Date.parse(b.createdAt)))fail('incomplete case list or invalid timestamp.');
     result.batch={id:str(b.id,80),createdAt:b.createdAt,engineVersion:str(b.engineVersion,64),request,config:c,cases};
+    if(b.traceInputs!==undefined){if(typeof b.traceInputs!=='boolean')fail('invalid input trace flag.');result.batch.traceInputs=b.traceInputs;}
+    if(b.molecules!=null)result.batch.molecules=readLogicMolecules(b.molecules,logicPlots(c,b.traceInputs===true));
+    if(b.analysis!=null)result.batch.analysis=readAnalysisWindow(b.analysis,c);
   }
   return result;
 }
-export function newLogicBatch(base, config, engineVersion) {
+export function newLogicBatch(base, config, engineVersion,{traceInputs=false}={}) {
   const c=readLogicConfig(config,true);
-  return {id:crypto.randomUUID(),createdAt:new Date().toISOString(),engineVersion,request:copy(base),config:c,cases:truthCases(c)};
+  return {id:crypto.randomUUID(),createdAt:new Date().toISOString(),engineVersion,request:copy(base),config:c,cases:truthCases(c),...(traceInputs?{traceInputs:true}:{})};
+}
+export function readAnalysisWindow(raw,config){
+  const start=num(raw.start),end=num(raw.end);
+  if(start<0||end<=start||end>config.final)fail('analysis window must satisfy 0 ≤ start < end ≤ simulation final time.');
+  return {start,end};
+}
+function readLogicMolecules(raw,allowed){
+  const molecules=list(raw,16).map(m=>({structure:str(m.structure),name:str(m.name,512),svg:str(m.svg,256*1024)}));
+  if(molecules.some(m=>!allowed.includes(m.structure))||new Set(molecules.map(m=>m.structure)).size!==molecules.length)fail('molecular preview differs from the recorded mapping.');
+  return molecules;
+}
+export function collectLogicMolecules(response,request){
+  const species=response.model.simulations[0]?.network?.species??response.model.species;
+  return readLogicMolecules(request.logicCase.outputs.map(structure=>{
+    const matches=species.filter(s=>!s.sourceId&&s.structure===structure);
+    if(matches.length!==1)fail('molecular preview is missing or ambiguous.');
+    return {structure,name:matches[0].name,svg:matches[0].svg??''};
+  }),request.logicCase.outputs);
 }
 export function logicIsCurrent(base, config, batch) {
   return Boolean(batch&&JSON.stringify(base)===JSON.stringify(batch.request)&&JSON.stringify(readLogicConfig(config))===JSON.stringify(batch.config));

@@ -128,11 +128,11 @@ public static class RequestValidation
         {
             if (request.Operation != "simulate" || request.Simulator is not ("oslo" or "sundials"))
                 errors.Add(new("LOGIC_OPTIONS", "Logic cases require deterministic simulation with an explicit Oslo or Sundials solver."));
-            if (logic.Inputs is null || logic.Outputs is null || logic.Inputs.Length is < 1 or > 8 || logic.Outputs.Length is < 1 or > 8 ||
+            if (logic.Inputs is null || logic.Outputs is null || logic.Inputs.Length is < 1 or > 8 || logic.Outputs.Length is < 1 or > 16 ||
                 logic.Inputs.Any(i => i is null || string.IsNullOrWhiteSpace(i.Structure) || i.Structure.Length > 4096 || !double.IsFinite(i.Value) || i.Value < 0) ||
                 logic.Outputs.Any(s => string.IsNullOrWhiteSpace(s) || s.Length > 4096) ||
                 logic.Inputs.Select(i => i?.Structure).Distinct(StringComparer.Ordinal).Count() != logic.Inputs.Length || logic.Outputs.Distinct(StringComparer.Ordinal).Count() != logic.Outputs.Length)
-                errors.Add(new("LOGIC_MAPPING", "Map 1–8 distinct molecular inputs and outputs; input concentrations must be finite and nonnegative."));
+                errors.Add(new("LOGIC_MAPPING", "Map 1–8 distinct molecular inputs and 1–16 plotted molecules; input concentrations must be finite and nonnegative."));
             if (!request.Points.HasValue || request.Points is < 1 or > 500 || !request.Initial.HasValue || !request.Final.HasValue || request.TimeoutSeconds > 120)
                 errors.Add(new("LOGIC_BUDGET", "Logic cases require explicit time bounds, 1–500 points and a time limit of at most 120 seconds."));
         }
