@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/assets/app.css">
   <link rel="stylesheet" href="/assets/learning-guide.css">
   <link rel="stylesheet" href="/assets/student-workspace.css">
+  <link rel="stylesheet" href="/assets/logic-workspace.css">
   <script type="module" src="/assets/app.js"></script>
 </head>
 <body>
@@ -18,6 +19,7 @@
     <div class="student-header student-localized"><button id="workspace-home" type="button" class="text-button" data-student-copy="home">Start</button><label class="sr-only" for="workspace-mode">Workspace mode</label><select id="workspace-mode" aria-label="Workspace mode"><option value="student" data-student-copy="student">Student</option><option value="expert" data-student-copy="expert">Full workspace</option></select><label class="sr-only" for="workspace-language">Interface language</label><select id="workspace-language" aria-label="Interface language"><option value="en">English</option><option value="fa">فارسی</option></select></div>
     <span id="connection" class="connection"><span class="status-dot"></span>Connecting</span>
     <button id="toggle-models" class="icon-button mobile-models" title="Models and examples" aria-label="Models and examples" aria-expanded="false" aria-controls="model-sidebar">☷</button>
+    <button id="logic-open" class="button secondary compact" type="button">Logic experiment</button>
     <button id="show-jobs" class="button secondary compact" type="button">Jobs</button><span id="execution-mode" class="muted"></span>
     <button id="shortcuts" class="icon-button" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
   </header>
@@ -29,6 +31,7 @@
       <section class="home-card"><span class="home-card-number" aria-hidden="true">02</span><h2 data-student-copy="importTitle">Bring your model</h2><p data-student-copy="importText"></p><button id="home-model" type="button" class="button secondary" data-student-copy="importAction">Open model file</button><button id="home-blank" type="button" class="text-button" data-student-copy="blank">Start a blank model</button></section>
       <section class="home-card"><span class="home-card-number" aria-hidden="true">03</span><h2 data-student-copy="continueTitle">Continue your work</h2><p data-student-copy="continueText"></p><span id="home-current" dir="auto"></span><button id="home-resume" type="button" class="button secondary" data-student-copy="resume">Resume workspace</button><button id="home-project" type="button" class="text-button" data-student-copy="openProject">Open project file</button></section>
     </div>
+    <section class="home-logic"><div><h2 id="home-logic-title">Test a logic circuit</h2><p id="home-logic-help">Bring Seesaw-generated Visual DSD code, set the input concentrations and compare every case with the expected truth table.</p></div><button id="home-logic" class="button primary" type="button">Open logic experiment</button></section>
     <footer class="home-footer"><p data-student-copy="local"></p><p id="home-storage" role="status" data-student-copy="storage" hidden></p><div><span id="home-connection" role="status"></span><span id="home-version" dir="ltr"></span></div></footer>
   </main>
   <div id="workspace-container" class="workspace" hidden>
@@ -219,5 +222,13 @@
   </dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <noscript>This workspace needs JavaScript. The command-line engine is also available.</noscript>
+  <dialog id="logic-dialog" class="logic-dialog" aria-labelledby="logic-title">
+    <header class="logic-heading"><h2 id="logic-title" data-logic-copy="title"></h2><button id="logic-close" type="button" class="button secondary" data-logic-copy="close"></button></header>
+    <div class="logic-body"><p data-logic-copy="intro"></p><p id="logic-message" class="logic-message" role="status" hidden></p>
+      <section class="logic-step"><h3 data-logic-copy="source"></h3><p data-logic-copy="sourceHelp"></p><strong id="logic-source-name" dir="auto"></strong><div class="logic-actions"><button id="logic-import" class="button secondary" type="button" data-logic-copy="import"></button><button id="logic-example" class="text-button" type="button" data-logic-copy="example"></button><button id="logic-prepare" class="button primary" type="button" data-logic-copy="prepare"></button></div><input id="logic-file" type="file" accept=".dsd,.vdsd,.txt" hidden></section>
+      <section class="logic-step"><h3 data-logic-copy="mapping"></h3><div id="logic-meta" class="logic-grid"></div><p data-logic-copy="mapHelp"></p><h4 data-logic-copy="inputs"></h4><div id="logic-inputs"></div><h4 data-logic-copy="outputs"></h4><p data-logic-copy="expressionHelp"></p><div id="logic-outputs"></div><h4 data-logic-copy="read"></h4><div id="logic-readout" class="logic-grid"></div><p data-logic-copy="rule"></p><p data-logic-copy="unitsHelp"></p></section>
+      <section class="logic-step"><h3 data-logic-copy="results"></h3><p id="logic-budget"></p><div class="logic-actions"><button id="logic-run" type="button" class="button primary" data-logic-copy="run"></button><button id="logic-resume" type="button" class="button secondary" data-logic-copy="resume" hidden></button><button id="logic-stop" type="button" class="button danger" data-logic-copy="stop" hidden></button><button id="logic-save" type="button" class="button secondary" data-logic-copy="save"></button><button id="logic-csv" type="button" class="button secondary compact" data-logic-copy="csv" disabled></button></div><div id="logic-replace" class="logic-message" role="group" aria-label="Replace experiment batch" hidden><p data-logic-copy="replace"></p><div class="logic-actions"><button id="logic-replace-yes" type="button" class="button danger" data-logic-copy="confirm"></button><button id="logic-replace-no" type="button" class="button secondary" data-logic-copy="keep"></button></div></div><p id="logic-stale" class="logic-message" data-logic-copy="stale" hidden></p><p id="logic-snapshot" class="logic-snapshot"></p><p id="logic-empty" data-logic-copy="empty"></p><div id="logic-table" class="data-table"></div><section id="logic-curve" class="logic-curve" hidden><h4 id="logic-curve-heading" tabindex="-1"></h4><svg id="logic-chart" role="img" tabindex="0" viewBox="0 0 800 420" aria-label="Selected truth-table case trajectories"></svg><div id="logic-legend" class="legend"></div><div id="logic-tooltip" class="chart-tooltip" hidden></div></section></section>
+    </div>
+  </dialog>
 </body>
 </html>

@@ -1,5 +1,7 @@
 import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
 import { StudentWorkspace } from './student-workspace.js';
+import { LogicWorkspace } from './logic-workspace.js';
+import { readLogicState } from './logic.js';
 import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
 import { LearningGuide, lessonFor, filterTeachingExamples, lessonMatchesDocument } from './learning-guide.js';
@@ -8,7 +10,7 @@ import { phaseSvg, dispersionSvg, jacobianSvg, synthesisCsv } from './synthesis.
 import { MAX_CODE_BYTES, MAX_DOCUMENTS, STORAGE_KEY, optionDefaults, byteLength, createDocument, restoreWorkspace, requestFor, highlightSource, positionAt, csvFor, numberLabel, rateLabel, reactionLabel, modelForRun, modelForNode, populationLabel } from './model.js';
 import { SimulationChart } from './chart.js';
 import { ReactionNetwork } from './network.js';
-import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent } from './project.js';
+import { MAX_PROJECT_BYTES, parseProject, serialiseProject, resultIsCurrent, normaliseRequest } from './project.js';
 import { readDatasets } from './observations.js';
 import { drawSpatial, spatialCsv, statesCsv, stateSummary, shortestPath } from './exploration.js';
 
@@ -38,13 +40,58 @@ const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
 const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); } });
 const studentWorkspace = new StudentWorkspace({ language: () => learningGuide.language, setLanguage: language => learningGuide.setLanguage(language), action: studentAction });
+const logicWorkspace = new LogicWorkspace($('logic-dialog'), { model: () => current(), request: requestFor, language: () => learningGuide.language, version: () => engineVersion, busy: () => Boolean(activeJob), persist, download, save: saveProject, stop: cancelJob, session: logicSession,
+  import: async file => {
+    if(activeJob)throw new Error('Stop the current calculation before importing a circuit.');
+    if(file.size>MAX_CODE_BYTES+3)throw new Error('Model files must be no larger than 256 KiB.');
+    const code=await file.text();
+    if(/^\s*(?:INPUT\s*\(|seesaw(?:AND|OR)?\s*\[)/mi.test(code))throw new Error('This is a Seesaw netlist. Compile it with “Visualize and simulate with DSD”, then import the generated DSD file.');
+    if(activeJob)throw new Error('Wait for the current calculation.');
+    addDocument(createDocument(file.name,code,/\.vdsd$/i.test(file.name)?'legacy':'auto')); studentWorkspace.show('workspace');
+  },
+  example: async () => {
+    if(activeJob)throw new Error('Wait for the current calculation.');
+    const example=await api('/assets/logic-example.json');
+    if(activeJob)throw new Error('Wait for the current calculation.');
+    const model=createDocument('Three-level-Seesaw.vdsd',example.code,'legacy');model.logic=readLogicState(example.logic);addDocument(model);studentWorkspace.show('workspace');
+  }
+});
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
 const fittedModel = () => state().response ? modelForNode(state().response.model,state().fitNodeId) : null;
 const selectedModel = () => modelForRun(fittedModel(), state().runIndex);
 
-function renderStudent() { const model = current(); studentWorkspace.update({ model, view: model ? state() : undefined, busy: activeJob, canPersist, version: engineVersion === 'unknown' ? '' : engineVersion }); }
+function renderStudent() {
+  const model = current(); studentWorkspace.update({ model, view: model ? state() : undefined, busy: activeJob, canPersist, version: engineVersion === 'unknown' ? '' : engineVersion });
+  const fa=learningGuide.language==='fa';
+  $('logic-open').textContent=fa?'آزمایش مدار منطقی':'Logic experiment';$('home-logic').textContent=fa?'شروع آزمایش مدار':'Open logic experiment';$('home-logic-title').textContent=fa?'مدار منطقی را بیازما':'Test a logic circuit';$('home-logic-help').textContent=fa?'کد تولیدشدهٔ سیساو را وارد کن، غلظت ورودی‌ها را تعیین کن و همهٔ حالت‌ها را با جدول درستی مقایسه کن.':'Bring Seesaw-generated Visual DSD code, set the input concentrations and compare every case with the expected truth table.';
+  for(const id of ['home-logic-title','home-logic-help','home-logic']){$(id).dir=fa?'rtl':'ltr';$(id).lang=fa?'fa':'en';}
+}
+
+async function logicSession(action) {
+  if(activeJob)throw new Error('Wait for the current calculation to finish.');
+  const task={logic:true,id:null,documentId:current().id,message:'Logic experiment…',cancelling:false};
+  activeJob=task;updateBusy();
+  try{
+    return await action(async(request,row)=>{
+      if(task.cancelling)throw new Error('Batch stopped before submission.');
+      let job;
+      if(row?.jobId){
+        const retained=normaliseRequest(await api(`/api/jobs/${row.jobId}/input`));
+        if(JSON.stringify(retained)!==JSON.stringify(normaliseRequest(request)))throw new Error('Retained job does not match this experiment case.');
+        task.id=row.jobId;job=readJob(await api(`/api/jobs/${task.id}`));
+      }else{
+        job=readJob(await api('/api/jobs',{method:'POST',body:JSON.stringify(request)}));task.id=job.id;
+        if(row){row.jobId=job.id;row.state='running';persist();}
+      }
+      updateBusy();
+      if(task.cancelling&&!terminalJob(job))await api(`/api/jobs/${task.id}`,{method:'DELETE'});
+      if(!terminalJob(job))job=await watchJob(task.id,update=>{task.message=progressLabel(update);updateBusy();},{onDisconnect:()=>{task.message='Reconnecting to the admitted logic case…';updateBusy();}});
+      task.id=null;return job;
+    },task);
+  }finally{if(activeJob===task)activeJob=null;updateBusy();}
+}
 function studentAction(action) {
   if (action === 'lesson') { studentWorkspace.preferences.mode = 'student'; studentWorkspace.render(); return learningGuide.open('catalytic'); }
   if (action === 'model') return $('file-input').click();
@@ -369,10 +416,11 @@ function finishJob(job, task) {
   if (model?.revision !== task.revision && !job.result?.success) view.diagnostics = view.diagnostics.map(diagnostic => ({ ...diagnostic, line: null, column: null, message: `Earlier source: ${diagnostic.message}` }));
 }
 async function cancelJob() {
-  if (!activeJob?.id || activeJob.cancelling) return;
+  if (!activeJob || activeJob.cancelling) return;
   const task = activeJob; task.cancelling = true; task.message = 'Stopping…'; updateBusy();
+  if(!task.id)return;
   try { await api(`/api/jobs/${task.id}`, { method: 'DELETE' }); }
-  catch (error) { task.cancelling = false; toast(error.message); updateBusy(); }
+  catch (error) { task.cancelling = Boolean(task.logic); if(task.logic)logicWorkspace.error(error);else toast(error.message); updateBusy(); }
 }
 
 function selectTab(tab, focus = false) {
@@ -798,7 +846,7 @@ function rememberJob(task){try{localStorage.setItem(pendingKey,JSON.stringify({i
 function forgetJob(id){try{if(JSON.parse(localStorage.getItem(pendingKey)||'null')?.id===id)localStorage.removeItem(pendingKey);}catch{}}
 function renderLive(){
   const view=documents.length?state():null,p=view?.live;
-  $('live-progress').hidden=!p;$('detach-job').hidden=!activeJob||activeJob.documentId!==activeId;
+  $('live-progress').hidden=!p;$('detach-job').hidden=!activeJob||activeJob.logic||activeJob.documentId!==activeId;
   if(!p)return;
   $('live-status').textContent=[p.message,p.run,p.time!=null?`t = ${p.time}`:'',p.completed!=null&&p.total!=null?`${p.completed} / ${p.total} chains`:''].filter(Boolean).join(' · ');
   const preview=p.preview,has=preview?.times.length&&preview.series.length;
@@ -850,5 +898,5 @@ async function renderJobs(){
 }
 $('show-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=!$('jobs-panel').hidden;if(!$('jobs-panel').hidden)renderJobs();});
 $('hide-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=true;});$('refresh-jobs').addEventListener('click',renderJobs);
-$('detach-job').addEventListener('click',()=>{const task=activeJob;if(!task)return;task.detached=true;activeJob=null;task.monitor?.abort();updateBusy();toast('Calculation continues. Open Jobs to monitor it again.');});
+$('detach-job').addEventListener('click',()=>{const task=activeJob;if(!task||task.logic)return;task.detached=true;activeJob=null;task.monitor?.abort();updateBusy();toast('Calculation continues. Open Jobs to monitor it again.');});
 $('save-preview').addEventListener('click',()=>{const preview=state().live?.preview;if(preview)download(`${stem()}-provisional-preview.csv`,csvFor(preview),'text/csv;charset=utf-8');});
