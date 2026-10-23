@@ -23,7 +23,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Workflow | Available now |
 | --- | --- |
 | Follow a student journey | Start a lesson, import a model or resume a project; Check → Simulate → Review → Download follows current completed results. Switch to Full workspace for advanced tools |
-| Test logic circuits | Import Seesaw-generated DSD, map single/dual rails by molecular structure, run up to 16 input cases, compare measured and expected truth tables, inspect curves, export CSV and save reproducible experiments |
+| Test logic circuits | Import Seesaw-generated DSD, run up to 16 input cases, follow signals between Boolean nodes, molecular drawings and curves, measure leakage, threshold margin and sustained response, export CSV and save reproducible experiments |
 | Learn with examples | 17 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
@@ -189,6 +189,18 @@ Choose **Logic experiment** on the start page or toolbar. **Try a three-level Se
 For your assignment, use the Seesaw Compiler's **Visualize and simulate with DSD** export and open that generated file. A Seesaw netlist is a different language. Check the model, then select the input/output molecular structures and enter the expected Boolean functions (`NOT`, `AND`, `XOR`, `OR`, parentheses). Configure the physical OFF/ON concentrations, exact source units, read time and low/high thresholds. No threshold is assumed to work for every circuit.
 
 Runs use Oslo deterministically and support 1–4 logical inputs, 1–4 outputs and optional complementary rails. Between thresholds is **unknown**. For dual rails, only `(1,0)` and `(0,1)` give a definite bit. Missing/failed/timed-out simulations are separate from unknown logical values. Readout uses linear interpolation between completed samples, without extrapolation. Source sweeps, named batches, JIT and scheduled/spatial inputs must be handled in the full workspace instead.
+
+Select **Inspect case**, then choose a logic input/output, molecular card, curve or curve label. The same physical signal is highlighted across the views. **Focus selected traces** rescales the chart to that selection; **Show all traces** restores the complete case. New batches record both input and output rails, up to 16 distinct molecular traces. Input bits specify starting concentrations; those molecules may be consumed. Internal Boolean nodes show the entered expected function, not inferred Seesaw compiler stages, and have no automatic molecular mapping.
+
+**Signal quality & response** uses a configurable measurement window, initially zero to the experiment read time. Changing the window recalculates from saved trajectories without resubmitting jobs. Each definition is also available beside the results:
+
+| Metric | Definition |
+| --- | --- |
+| OFF-rail peak (leakage) | Largest saved/interpolated concentration of the rail intended to remain OFF in the window. A single-rail ON case has no OFF rail, so this is not applicable; a dual-rail case measures its complementary OFF rail |
+| Threshold margin | At the experiment read time: OFF = low threshold minus concentration; ON = concentration minus high threshold. Dual rails use the smaller required margin. Zero is accepted; negative values violate a required threshold |
+| Sustained response delay | Last entry into the expected threshold region that stays valid through the window end, measured from the window start. Already valid throughout gives zero; invalid at the end gives **not reached** |
+
+The summary reports measurement coverage and the worst measured cases, excluding unavailable simulations. These calculations use linear interpolation and cannot detect transients between saved samples; response delay is a threshold settling measure rather than a 10–90% rise time. **Metrics CSV** retains full numeric precision, units, window, thresholds and job provenance. Older projects without input trajectories remain readable and explicitly show missing input traces.
 
 **Save project & trajectories** preserves the source snapshot, mappings, expected function, settings, engine version, job IDs and completed curves. **Truth table CSV** exports the comparison. Reopening a project recalculates the interpretation from saved curves; editing the source or experiment marks the earlier batch stale. Reloading pauses submission of new cases; **Continue unfinished cases** reconnects to an admitted job before proceeding. An ambiguous submission is never automatically repeated. Stop leaves unsubmitted cases available for an explicit continuation. Save before replacing an experiment batch.
 

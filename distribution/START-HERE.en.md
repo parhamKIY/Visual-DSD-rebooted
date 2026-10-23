@@ -30,3 +30,7 @@ Choose **Logic experiment**, then **Try a three-level Seesaw circuit** and **Run
 For your own circuit, open the DSD file produced by Seesaw's **Visualize and simulate with DSD** command, check the model, and map the molecular inputs and outputs. Set OFF/ON concentrations, exact source units, expected Boolean functions, read time and thresholds. Single and complementary dual rails are supported. **Unknown** means the signal cannot be interpreted confidently with your thresholds; execution errors are listed separately.
 
 After reloading, new cases wait for **Continue unfinished cases**. The admitted job is reconnected, not submitted again. Experiments and completed case curves are saved in the browser when storage is available, but download a project for a durable portable copy.
+
+Select **Inspect case** and click an input/output node, molecular drawing or curve label to follow the same signal across all views. **Focus selected traces** rescales the chart to the selection; **Show all traces** restores it. Internal Boolean gates describe your expected function and do not claim a molecular mapping.
+
+Under **Signal quality & response**, inspect the OFF-rail peak (leakage), signed threshold margin at the read time, and sustained response delay. Open **How these metrics are calculated** for the definitions. Adjust the measurement window without rerunning, then download **Metrics CSV** or save the project. Missing simulations remain unavailable; a response that is invalid at the window end is **not reached**. Saved samples may miss short transients.
