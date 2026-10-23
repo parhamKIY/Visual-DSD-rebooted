@@ -191,9 +191,7 @@ export class LearningGuide {
     this.parts = Object.fromEntries([...dialog.querySelectorAll('[data-guide]')].map(element => [element.dataset.guide, element]));
     this.parts.language.value = this.language;
     this.parts.language.addEventListener('change', () => {
-      this.language = this.parts.language.value === 'fa' ? 'fa' : 'en';
-      try { localStorage.setItem('visual-dsd.guide.language', this.language); } catch { /* The guide also works without storage. */ }
-      this.refresh(); this.onLanguageChange?.();
+      this.setLanguage(this.parts.language.value);
     });
     this.parts.search.addEventListener('input', () => { this.query = this.parts.search.value; this.parts.navigation.scrollTop = 0; this.renderNavigation(); });
     this.parts.close.addEventListener('click', () => dialog.close());
@@ -205,6 +203,11 @@ export class LearningGuide {
       finally { this.opening = false; this.parts.open.disabled = false; }
     });
     dialog.addEventListener('close', () => { if (this.returnFocus?.isConnected) this.returnFocus.focus(); else document.getElementById('open-learning-guide')?.focus(); });
+  }
+  setLanguage(language) {
+    this.language = language === 'fa' ? 'fa' : 'en'; this.parts.language.value = this.language;
+    try { localStorage.setItem('visual-dsd.guide.language', this.language); } catch { /* The guide also works without storage. */ }
+    this.refresh(); this.onLanguageChange?.();
   }
   t(fa, en) { return this.language === 'fa' ? fa : en; }
   open(id = 'catalytic') {

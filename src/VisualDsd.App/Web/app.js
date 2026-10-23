@@ -1,4 +1,5 @@
 import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
+import { StudentWorkspace } from './student-workspace.js';
 import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
 import { LearningGuide, lessonFor, filterTeachingExamples, lessonMatchesDocument } from './learning-guide.js';
@@ -35,26 +36,47 @@ let exportImageUrl, sequenceDefaults;
 const liveChart=new SimulationChart($('live-chart'),$('live-legend'),$('live-tooltip'));
 const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
-const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); } });
+const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); } });
+const studentWorkspace = new StudentWorkspace({ language: () => learningGuide.language, setLanguage: language => learningGuide.setLanguage(language), action: studentAction });
 const current = () => documents.find(model => model.id === activeId);
 const stateFor = id => { if (!views.has(id)) views.set(id, { response: null, revision: -1, diagnostics: [], tab: 'plot', runIndex: 0, speciesPage: 0, reactionPage: 0, dataPage: 0, search: '', status: 'Ready when you are.' }); return views.get(id); };
 const state = () => stateFor(activeId);
 const fittedModel = () => state().response ? modelForNode(state().response.model,state().fitNodeId) : null;
 const selectedModel = () => modelForRun(fittedModel(), state().runIndex);
 
+function renderStudent() { const model = current(); studentWorkspace.update({ model, view: model ? state() : undefined, busy: activeJob, canPersist, version: engineVersion === 'unknown' ? '' : engineVersion }); }
+function studentAction(action) {
+  if (action === 'lesson') { studentWorkspace.preferences.mode = 'student'; studentWorkspace.render(); return learningGuide.open('catalytic'); }
+  if (action === 'model') return $('file-input').click();
+  if (action === 'project') return $('project-input').click();
+  if (action === 'blank') { try { addDocument(createDocument()); studentWorkspace.show('workspace'); editor.focus(); } catch (error) { toast(error.message); } return; }
+  if (action === 'guide') return learningGuide.open(current().exampleId);
+  if (action === 'stop') return cancelJob();
+  if (action === 'source') { editor.focus(); return; }
+  if (action === 'check') return run('parse');
+  if (action === 'simulate') return run('simulate');
+  if (action === 'save') return saveProject();
+  if (action === 'network' || action === 'read' || action === 'done') {
+    selectTab(action === 'network' ? 'network' : 'plot');
+    if (action === 'network') renderNetwork();
+    if (action === 'read') state().studentReadResponse = state().response;
+    renderStudent(); $('results-content').scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+}
+
 function element(tag, className, text) { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
 function toast(message) { clearTimeout(toastTimer); $('toast').textContent = message; $('toast').hidden = false; toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500); }
-function connection(online) { $('connection').classList.toggle('offline', !online); $('connection').replaceChildren(element('span', 'status-dot'), document.createTextNode(online ? 'Local · connected' : 'Service unavailable')); }
+function connection(online) { studentWorkspace.available = online; renderStudent(); $('connection').classList.toggle('offline', !online); $('connection').replaceChildren(element('span', 'status-dot'), document.createTextNode(online ? 'Local · connected' : 'Service unavailable')); }
 function persist() {
   clearTimeout(persistTimer);
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, documents, activeId })); canPersist = true; }
   catch { if (canPersist) toast('Browser storage is unavailable. Use Save model to keep your work.'); canPersist = false; }
-  $('save-status').textContent = canPersist ? 'Saved in browser' : 'Session only · save a file';
+  $('save-status').textContent = canPersist ? 'Saved in browser' : 'Session only · save a file'; renderStudent();
 }
 function changed() {
   const model = current(); model.revision++;
   state().diagnostics = [];
-  renderDiagnostics(); updateStamp();
+  renderDiagnostics(); updateStamp(); renderStudent();
   $('save-status').textContent = 'Saving…';
   clearTimeout(persistTimer); persistTimer = setTimeout(persist, 300);
 }
@@ -66,7 +88,7 @@ function stem() { return current().name.replace(/\.[^.]+$/, '') || 'model'; }
 function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model download started.'); }
 function saveProject() {
   if (activeJob) return toast('Wait for the calculation to finish before saving the project.');
-  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion), 'application/json'); toast('Project download started, including saved results.'); }
+  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion), 'application/json'); state().studentSavedResponse = state().response; renderStudent(); toast('Project download started, including saved results.'); }
   catch (error) { toast(error.message); }
 }
 async function openProject(file) {
@@ -79,7 +101,7 @@ async function openProject(file) {
     if (!confirm('Replace the open workspace with this project? Save your current project first if you want to keep it.')) return;
     clearTimeout(persistTimer); documents = imported.documents; activeId = imported.activeId; views.clear();
     for (const [id, restored] of imported.views) Object.assign(stateFor(id), restored, { status: `Restored result · engine ${restored.snapshot.engineVersion}` });
-    selectDocument(activeId); toast('Project opened. Saved results have been restored.');
+    selectDocument(activeId); studentWorkspace.show('workspace'); toast('Project opened. Saved results have been restored.');
   } catch (error) { toast(error.message); }
   finally { $('project-input').value = ''; }
 }
@@ -157,22 +179,26 @@ function closeDocument(id) {
   if (!documents.length) documents.push(createDocument());
   selectDocument(activeId === id ? documents[0].id : activeId);
 }
+function enterExampleWorkspace(example) {
+  if (example && ['infer', 'analyze', 'synthesize', 'export'].includes(lessonFor(example).operation)) studentWorkspace.preferences.mode = 'expert';
+  studentWorkspace.show('workspace');
+}
 async function openExample(id, { lesson = false } = {}) {
   const existing = documents.find(model => model.exampleId === id);
-  if (existing && !lesson) { selectDocument(existing.id); return existing; }
+  if (existing && !lesson) { selectDocument(existing.id); enterExampleWorkspace(examples.find(example => example.id === id)); return existing; }
   const example = await api(`/api/examples/${encodeURIComponent(id)}`);
   const loaded = documents.find(model => model.exampleId === id && (!lesson || lessonMatchesDocument(model, example)));
-  if (loaded) { selectDocument(loaded.id); return loaded; }
+  if (loaded) { selectDocument(loaded.id); enterExampleWorkspace(example); return loaded; }
   const base = example.name.replace(' · legacy', ''), extension = example.language === 'crn' ? 'crn' : example.dialect === 'legacy' ? 'vdsd' : 'dsd';
   let name = `${base}.${extension}`;
   if (lesson && documents.some(model => model.exampleId === id)) { let number = 1; do { name = `${base}-lesson-${number++}.${extension}`; } while (documents.some(model => model.name === name)); }
   const document=createDocument(name, example.code, example.dialect === 'current' ? 'auto' : example.dialect, id);
-  document.data=readDatasets(example.data??[]);return addDocument(document);
+  document.data=readDatasets(example.data??[]); const result = addDocument(document); enterExampleWorkspace(example); return result;
 }
 async function openFiles(files) {
   for (const file of files) {
     if (file.size > MAX_CODE_BYTES + 3) { toast(`${file.name} exceeds the 256 KiB model limit.`); continue; }
-    try { addDocument(createDocument(file.name, await file.text(), /\.vdsd$/i.test(file.name) ? 'legacy' : 'auto')); }
+    try { addDocument(createDocument(file.name, await file.text(), /\.vdsd$/i.test(file.name) ? 'legacy' : 'auto')); studentWorkspace.show('workspace'); }
     catch (error) { toast(error.message); }
   }
   $('file-input').value = '';
@@ -246,7 +272,7 @@ function renderDiagnostics() {
     button.addEventListener('click', () => focusDiagnostic(diagnostic)); box.append(button);
   }
 }
-function showError(error) { state().diagnostics = [{ code: 'WORKSPACE_ERROR', message: error.message }]; renderDiagnostics(); renderEditor(); }
+function showError(error) { state().diagnostics = [{ code: 'WORKSPACE_ERROR', message: error.message }]; renderDiagnostics(); renderEditor(); renderStudent(); }
 
 function renderDatasets() {
   $('dataset-list').replaceChildren(...(current().data || []).map((dataset, index) => {
@@ -293,7 +319,7 @@ async function importData(files, target) {
 }
 
 function updateBusy() {
-  renderLive();
+  renderLive(); renderStudent();
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
   for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'synthesize', 'scientific-export', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
@@ -653,7 +679,7 @@ $('export-svg').addEventListener('click', () => download(`${stem()}-simulation.s
 $('export-json').addEventListener('click', () => download(`${stem()}-result.json`, JSON.stringify({ format: 'visual-dsd-result', version: 1, ...state().snapshot, result: state().response }, null, 2), 'application/json'));
 $('shortcuts').addEventListener('click', () => $('help-dialog').showModal());
 $('close-help').addEventListener('click', () => $('help-dialog').close());
-document.addEventListener('keydown', event => { if (!event.ctrlKey && !event.metaKey) return; if (event.key === 'Enter') { event.preventDefault(); run('simulate'); } else if (event.key.toLowerCase() === 's') { event.preventDefault(); saveModel(); } else if (event.key.toLowerCase() === 'o') { event.preventDefault(); $('file-input').click(); } });
+document.addEventListener('keydown', event => { if (document.querySelector('dialog[open]')) return; if (!event.ctrlKey && !event.metaKey) return; if (event.key === 'Enter') { event.preventDefault(); run('simulate'); } else if (event.key.toLowerCase() === 's') { event.preventDefault(); saveModel(); } else if (event.key.toLowerCase() === 'o') { event.preventDefault(); $('file-input').click(); } });
 window.addEventListener('pagehide', persist);
 window.addEventListener('beforeunload', event => { persist(); if (!canPersist) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('dragover', event => { if (event.dataTransfer.types.includes('Files')) event.preventDefault(); });
@@ -675,7 +701,7 @@ async function initialize() {
     engineVersion = info.version; examples = library; renderExamples(); renderDocuments(); renderLessonContext(); if ($('learning-guide').open) learningGuide.refresh(); connection(true); $('version').textContent = `Version ${info.version}`;
     $('document-description').textContent = examples.find(example => example.id === current().exampleId)?.description || 'Write a model, inspect its network, explore its dynamics.';
     if (!saved) { const example = await api('/api/examples/catalytic'); if (documents.length === 1 && current().id === initialDocumentId && current().revision === 0 && current().name === 'Untitled.dsd') { const model = createDocument('Catalytic.dsd', example.code, 'auto', example.id); documents = [model]; selectDocument(model.id); } }
-    await restorePendingJob();
+    renderStudent(); await restorePendingJob();
   } catch (error) { connection(false); toast(error.message); }
 }
 initialize().catch(error => toast(error.message));
@@ -792,6 +818,7 @@ async function inspectJob(id,binding){
   if(activeJob)return toast('Keep the current calculation in background before opening another.');
   const request=await api(`/api/jobs/${id}/input`),job=readJob(await api(`/api/jobs/${id}`));
   if(activeJob)return toast('Keep the current calculation in background before opening another.');
+  studentWorkspace.show('workspace', false);
   let model=documents.find(d=>d.id===binding?.documentId);
   if(!model){model=documentFromRequest(request,binding?.name||`Job-${id.slice(0,8)}`);addDocument(model);}else selectDocument(model.id);
   const task={id,documentId:model.id,revision:resultIsCurrent(model,{request})?model.revision:-1,operation:request.operation,request,engineVersion:job.engineVersion||'unknown',name:binding?.name||model.name,message:progressLabel(job),started:performance.now(),cancelling:false,tab:'plot'};
@@ -804,6 +831,7 @@ async function inspectJob(id,binding){
 async function restorePendingJob(){
   let binding;try{binding=JSON.parse(localStorage.getItem(pendingKey)||'null');}catch{return;}
   if(!binding||!/^[a-f0-9]{32}$/i.test(binding.id))return;
+  studentWorkspace.show('workspace', false);
   inspectJob(binding.id,binding).catch(error=>toast(error.message));
 }
 async function renderJobs(){

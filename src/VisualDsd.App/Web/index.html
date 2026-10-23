@@ -8,19 +8,30 @@
   <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
   <link rel="stylesheet" href="/assets/app.css">
   <link rel="stylesheet" href="/assets/learning-guide.css">
+  <link rel="stylesheet" href="/assets/student-workspace.css">
   <script type="module" src="/assets/app.js"></script>
 </head>
 <body>
   <header class="app-header">
     <a class="brand" href="/" aria-label="Visual DSD workspace"><img src="/assets/icon.svg" width="34" height="34" alt=""><span>Visual DSD<small>REBOOTED</small></span></a>
     <span class="header-divider"></span><span class="workspace-label">Strand displacement workspace</span>
+    <div class="student-header student-localized"><button id="workspace-home" type="button" class="text-button" data-student-copy="home">Start</button><label class="sr-only" for="workspace-mode">Workspace mode</label><select id="workspace-mode" aria-label="Workspace mode"><option value="student" data-student-copy="student">Student</option><option value="expert" data-student-copy="expert">Full workspace</option></select><label class="sr-only" for="workspace-language">Interface language</label><select id="workspace-language" aria-label="Interface language"><option value="en">English</option><option value="fa">فارسی</option></select></div>
     <span id="connection" class="connection"><span class="status-dot"></span>Connecting</span>
     <button id="toggle-models" class="icon-button mobile-models" title="Models and examples" aria-label="Models and examples" aria-expanded="false" aria-controls="model-sidebar">☷</button>
     <button id="show-jobs" class="button secondary compact" type="button">Jobs</button><span id="execution-mode" class="muted"></span>
     <button id="shortcuts" class="icon-button" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
   </header>
   <section id="jobs-panel" class="jobs-panel" aria-label="Calculation history" hidden><div class="view-toolbar"><strong>Calculations</strong><span class="muted">Closing or reloading this page does not cancel admitted jobs. Only Cancel stops a job.</span><button id="refresh-jobs" class="text-button">Refresh</button><button id="hide-jobs" class="text-button">Close</button></div><div id="job-list"></div></section>
-  <div class="workspace">
+  <main id="student-home" class="student-home student-localized" aria-labelledby="home-title">
+    <div class="home-intro"><span class="eyebrow" data-student-copy="eyebrow">YOUR MOLECULAR LAB</span><h1 id="home-title" tabindex="-1" data-student-copy="title">A clear path from strands to results.</h1><p data-student-copy="intro">Start a guided example, bring your own source, or continue a project. Calculations run on your computer.</p></div>
+    <div class="home-cards">
+      <section class="home-card home-card-featured"><span class="home-card-number" aria-hidden="true">01</span><h2 data-student-copy="lessonTitle">Start an exercise</h2><p data-student-copy="lessonText"></p><button id="home-lesson" type="button" class="button primary" data-student-copy="lessonAction" disabled>Choose a guided example</button></section>
+      <section class="home-card"><span class="home-card-number" aria-hidden="true">02</span><h2 data-student-copy="importTitle">Bring your model</h2><p data-student-copy="importText"></p><button id="home-model" type="button" class="button secondary" data-student-copy="importAction">Open model file</button><button id="home-blank" type="button" class="text-button" data-student-copy="blank">Start a blank model</button></section>
+      <section class="home-card"><span class="home-card-number" aria-hidden="true">03</span><h2 data-student-copy="continueTitle">Continue your work</h2><p data-student-copy="continueText"></p><span id="home-current" dir="auto"></span><button id="home-resume" type="button" class="button secondary" data-student-copy="resume">Resume workspace</button><button id="home-project" type="button" class="text-button" data-student-copy="openProject">Open project file</button></section>
+    </div>
+    <footer class="home-footer"><p data-student-copy="local"></p><p id="home-storage" role="status" data-student-copy="storage" hidden></p><div><span id="home-connection" role="status"></span><span id="home-version" dir="ltr"></span></div></footer>
+  </main>
+  <div id="workspace-container" class="workspace" hidden>
     <aside id="model-sidebar" class="sidebar" aria-label="Models and examples">
       <div class="section-heading"><h2>Your models</h2><button id="new-crn" class="text-button" title="New CRN model">+ CRN</button><button id="new-model" class="icon-button" title="New model" aria-label="New model">+</button></div>
       <p id="models-explainer" class="sidebar-explainer" lang="en" dir="ltr">Your open files; click a name to switch models.</p>
@@ -37,6 +48,12 @@
       <div class="sidebar-footer"><span class="status-dot"></span><span id="version">Local workspace</span></div>
     </aside>
     <main class="main">
+      <section id="student-journey" class="student-journey student-localized" aria-labelledby="student-title">
+        <div class="student-journey-heading"><span class="eyebrow" data-student-copy="guided">GUIDED WORKSPACE</span><button id="student-full" type="button" class="text-button" data-student-copy="tools">Open full workspace</button></div>
+        <ol id="student-steps" class="student-steps" aria-label="Exercise progress"><li data-student-copy="sourceStep">Source</li><li data-student-copy="checkStep">Check</li><li data-student-copy="runStep">Simulate</li><li data-student-copy="readStep">Review</li><li data-student-copy="saveStep">Download</li></ol>
+        <div class="student-instruction"><div><h2 id="student-title" tabindex="-1"></h2><p id="student-help"></p><p id="student-warning" role="status" hidden></p></div><button id="student-next" class="button primary" type="button">Check model</button><button id="student-stop" class="button danger" type="button" data-student-copy="stop" hidden>Stop calculation</button></div>
+        <div class="student-links"><button id="student-network" type="button" class="text-button" data-student-copy="network" hidden>Explore the network</button><button id="student-guide" type="button" class="text-button" data-student-copy="guide" hidden>Read the example guide</button><span data-student-copy="toolsHelp"></span></div>
+      </section>
       <div class="model-heading">
         <div class="model-title"><label class="sr-only" for="model-name">Model name</label><input id="model-name" value="Untitled.dsd" maxlength="120" spellcheck="false"><div><span id="document-description">Write a model, inspect its network, explore its dynamics.</span><span id="save-status" class="save-status">Saved in browser</span></div></div>
         <div class="model-actions"><button id="save-model" class="button secondary"><span aria-hidden="true">↓</span> Save model</button><button id="save-project" class="button secondary">Save project</button></div>

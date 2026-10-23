@@ -17,6 +17,8 @@ internal static class WebAssets
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8", ["layout.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
         ["msagl.worker.js"] = "text/javascript; charset=utf-8", ["msagl.runtime.js"] = "text/javascript; charset=utf-8",
+        ["student-workspace.js"] = "text/javascript; charset=utf-8",
+        ["student-workspace.css"] = "text/css; charset=utf-8",
         ["learning-guide.js"] = "text/javascript; charset=utf-8",
         ["learning-guide.css"] = "text/css; charset=utf-8",
         ["live-jobs.js"] = "text/javascript; charset=utf-8", ["dsd-workspace.js"] = "text/javascript; charset=utf-8", ["exports.js"] = "text/javascript; charset=utf-8", ["synthesis.js"] = "text/javascript; charset=utf-8", ["posterior.js"] = "text/javascript; charset=utf-8", ["probabilities.js"] = "text/javascript; charset=utf-8", ["exploration.js"] = "text/javascript; charset=utf-8", ["program.js"] = "text/javascript; charset=utf-8", ["project.js"] = "text/javascript; charset=utf-8", ["observations.js"] = "text/javascript; charset=utf-8", ["icon.svg"] = "image/svg+xml"
