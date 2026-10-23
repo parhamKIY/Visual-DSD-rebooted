@@ -23,6 +23,7 @@ The application ships with its web interface and runtime. Downloaded builds need
 | Workflow | Available now |
 | --- | --- |
 | Follow a student journey | Start a lesson, import a model or resume a project; Check → Simulate → Review → Download follows current completed results. Switch to Full workspace for advanced tools |
+| Test logic circuits | Import Seesaw-generated DSD, map single/dual rails by molecular structure, run up to 16 input cases, compare measured and expected truth tables, inspect curves, export CSV and save reproducible experiments |
 | Learn with examples | 17 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
@@ -181,6 +182,16 @@ $env:VISUAL_DSD_REMOTE_TOKEN = Read-Host 'Compute token' -MaskInput
 
 The header displays **Remote compute**. Only authenticated requests reach compute endpoints. The desktop accepts an HTTPS origin or a loopback HTTP origin, rejects redirects and version mismatches, and keeps the remote identifier after admission. If a submission response is lost, its outcome is reported as unknown and it is not retried. If an existing job's connection fails, **Resume connection** reconnects to that identifier without resubmission. Known remote jobs reconnect after a workspace service restart. An unconfirmed remote cancellation is reported explicitly because the remote calculation may still be running. Remove the two `VISUAL_DSD_REMOTE_*` variables before starting the workspace to return to local computation.
 
+## Test a logic circuit
+
+Choose **Logic experiment** on the start page or toolbar. **Try a three-level Seesaw circuit** loads a ready experiment for `(A OR B) AND C`, followed by a restored OR buffer. Its original generated DSD source, compiler URL, input netlist and SHA-256 are included. **Run all input cases** evaluates all eight combinations; each row opens its own concentration curves.
+
+For your assignment, use the Seesaw Compiler's **Visualize and simulate with DSD** export and open that generated file. A Seesaw netlist is a different language. Check the model, then select the input/output molecular structures and enter the expected Boolean functions (`NOT`, `AND`, `XOR`, `OR`, parentheses). Configure the physical OFF/ON concentrations, exact source units, read time and low/high thresholds. No threshold is assumed to work for every circuit.
+
+Runs use Oslo deterministically and support 1–4 logical inputs, 1–4 outputs and optional complementary rails. Between thresholds is **unknown**. For dual rails, only `(1,0)` and `(0,1)` give a definite bit. Missing/failed/timed-out simulations are separate from unknown logical values. Readout uses linear interpolation between completed samples, without extrapolation. Source sweeps, named batches, JIT and scheduled/spatial inputs must be handled in the full workspace instead.
+
+**Save project & trajectories** preserves the source snapshot, mappings, expected function, settings, engine version, job IDs and completed curves. **Truth table CSV** exports the comparison. Reopening a project recalculates the interpretation from saved curves; editing the source or experiment marks the earlier batch stale. Reloading pauses submission of new cases; **Continue unfinished cases** reconnects to an admitted job before proceeding. An ambiguous submission is never automatically repeated. Stop leaves unsubmitted cases available for an explicit continuation. Save before replacing an experiment batch.
+
 ## Command line
 
 The same executable supports structured JSON output for scripts. These examples use Linux shell notation; on Windows use `.\VisualDsd.exe`.
@@ -308,3 +319,5 @@ Current boundaries:
 Built from Microsoft's [CRN Engine / Visual DSD](https://github.com/microsoft/CRN), with the original source preserved for comparison and regression testing.
 
 Distributed under the [MIT license](LICENSE). Original copyright and third-party acknowledgements are preserved in [LICENSE](LICENSE) and [NOTICE](NOTICE). This repository is an independent modernization of that codebase.
+
+For local Windows maintenance, activate a verified package with `./eng/activate-local.ps1 -Package <zip>`. It checks the checksum, payload, source commit and executable version, installs the canonical `artifacts/publish/win-x64/VisualDsd.exe`, retains one ZIP in `artifacts/releases/current`, and removes recognized older local build/package copies. Close running local builds first. Unknown files stop cleanup; source, jobs and project files are outside its cleanup scope. GitHub release history remains available.

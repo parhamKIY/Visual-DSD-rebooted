@@ -22,3 +22,11 @@ No SDK, Node.js, account or internet connection is required for this classroom w
 **If the app cannot connect:** Keep the app process running. Close an earlier copy if port 5800 is occupied, or start `VisualDsd.exe serve --port 5801` (Linux: `./VisualDsd serve --port 5801`) and open http://127.0.0.1:5801. A different port has separate browser storage.
 
 `VERSION.json` identifies this build. The accompanying `.sha256` file verifies the ZIP download. Documentation and source: https://github.com/parhamKIY/Visual-DSD-rebooted.
+
+## Logic circuit assignment
+
+Choose **Logic experiment**, then **Try a three-level Seesaw circuit** and **Run all input cases** for a complete eight-row example. Inspect any row's curves and use **Save project & trajectories** to keep the experiment.
+
+For your own circuit, open the DSD file produced by Seesaw's **Visualize and simulate with DSD** command, check the model, and map the molecular inputs and outputs. Set OFF/ON concentrations, exact source units, expected Boolean functions, read time and thresholds. Single and complementary dual rails are supported. **Unknown** means the signal cannot be interpreted confidently with your thresholds; execution errors are listed separately.
+
+After reloading, new cases wait for **Continue unfinished cases**. The admitted job is reconnected, not submitted again. Experiments and completed case curves are saved in the browser when storage is available, but download a project for a durable portable copy.
