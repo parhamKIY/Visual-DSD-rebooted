@@ -1,0 +1,22 @@
+// Negative autoregulation: an idealized mass-action teaching model.
+// Source of the model is the four reactions below; parameters are illustrative,
+// not measured or fitted. This is a gene-regulation CRN, not a Seesaw DNA design.
+// G = free promoter, R = promoter with a bound repressor, P = free protein.
+// G + R is conserved. Bound protein is protected until unbinding.
+// Production is a coarse-grained reaction; no transcription/translation delay,
+// explicit mRNA, cell growth, resource competition or extrinsic noise is modeled.
+// feedback=0 opens the loop; feedback=1 closes the negative feedback loop.
+// Both runs use identical initial conditions and rate parameters.
+// For a separate molecular PI-control research model, inspect the bundled
+// original Yordanov et al., ACS Synth Biol 2014 - PI Controller examples.
+directive simulator deterministic
+directive simulation { final=300; points=150; plots=[P;G;R] }
+directive parameters [production=0.5; decay=0.05; binding=0.02; unbinding=0.2; feedback=1]
+directive sweeps [comparison=[feedback=[0;1]]]
+| 1 G
+| 0 R
+| 0 P
+| G ->{production} G + P
+| G + P ->{binding*feedback} R
+| R ->{unbinding} G + P
+| P ->{decay}

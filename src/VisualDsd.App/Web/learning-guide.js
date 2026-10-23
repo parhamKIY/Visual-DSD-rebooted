@@ -2,8 +2,15 @@ import { optionDefaults } from './model.js';
 import { readDatasets } from './observations.js';
 
 const pair = (fa, en) => ({ fa, en });
-export const lessonOrder = ['catalytic', 'join', 'and-gate', 'transducer', 'legacy-and', 'crn-systems', 'state-switch', 'cme-distribution', 'lna-covariance', 'moment-closure', 'jit-states', 'jit', 'diffusion', 'crn-graph', 'inference-linked', 'synthesis-bistable', 'synthesis-turing'];
+export const lessonOrder = ['catalytic', 'join', 'and-gate', 'transducer', 'legacy-and', 'feedback', 'crn-systems', 'state-switch', 'cme-distribution', 'lna-covariance', 'moment-closure', 'jit-states', 'jit', 'diffusion', 'crn-graph', 'inference-linked', 'synthesis-bistable', 'synthesis-turing'];
 export const lessons = {
+  feedback: {
+    level:'start',operation:'simulate',tab:'Simulation',terms:['CRN','Species','Reaction'],
+    topic:pair('بازخورد منفی: خروجی، تولید خودش را کاهش می‌دهد','Negative feedback: an output reduces its own production'),
+    goal:pair('مدل آموزشیِ واکنش‌های نمایش‌داده‌شده را بررسی کن: پروتئین به پروموتر متصل می‌شود و تولید را محدود می‌کند. این یک مدل تنظیم ژن است و طرح سیساو یا مدل برازش‌شدهٔ تجربی نیست.','Inspect this teaching model: protein binds a promoter and limits further production. The displayed reactions define the model; it is gene regulation, not a Seesaw design or an experimentally fitted model.'),
+    expect:pair('شبیه‌سازی دو اجرای هم‌شرایط با feedback=0 و feedback=1 می‌دهد. از انتخاب اجرای بالای نمودار، پروتئین را مقایسه کن؛ در حلقهٔ بسته، مقدار نهایی کمتر است. مجموع G و R باید ثابت بماند.','Simulate the two matched runs with feedback=0 and feedback=1. Use the run selector above the plot to compare P: the closed loop gives a lower final level. G + R should remain constant.'),
+    experiment:pair('مقدار binding را تغییر بده و هر دو اجرا را تکرار کن. آیا مقدار نهایی و زمان گذرا یکسان تغییر می‌کنند؟ پارامترها آموزشی‌اند؛ تأخیر رونویسی، رشد سلول و رقابت منابع مدل نشده‌اند. با گزینهٔ گزارش تمرین، تنظیمات و تفسیر خودت را نگه دار.','Change binding and rerun both conditions. Do the final level and transient change in the same way? Rates are illustrative; transcription delays, cell growth and resource competition are absent. Use Exercise report to preserve settings and your interpretation.')
+  },
   catalytic: {
     level: 'start', operation: 'simulate', tab: 'Simulation', terms: ['DSD', 'Species', 'Reaction'],
     topic: pair('از رشتهٔ DNA تا نمودار غلظت', 'From DNA strands to concentration curves'),

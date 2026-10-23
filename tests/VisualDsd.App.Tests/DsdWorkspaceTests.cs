@@ -111,7 +111,7 @@ public class DsdLibraryTests(LocalHost host) : IClassFixture<LocalHost>
         var originals=catalog.Where(e=>e.Source is not null).ToArray();
         string root=Path.Combine(LocalHost.Root,"upstream","crn-engine","ClassicDSD","Examples","DSDModels");
         var sources=Directory.EnumerateFiles(root,"*",SearchOption.AllDirectories).Where(f=>Path.GetExtension(f) is ".txt" or ".dna").ToArray();
-        Assert.Equal(108,originals.Length);Assert.Equal(125,catalog.Length);Assert.Equal(sources.Length,originals.Length);
+        Assert.Equal(108,originals.Length);Assert.Equal(126,catalog.Length);Assert.Equal(sources.Length,originals.Length);
         Assert.Equal(catalog.Length,catalog.Select(e=>e.Id).Distinct().Count());
         foreach(var item in originals)
         {

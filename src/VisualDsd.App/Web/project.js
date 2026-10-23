@@ -4,7 +4,7 @@ import { MAX_CODE_BYTES, MAX_DOCUMENTS, byteLength, optionDefaults, requestFor, 
 import { readDatasets, readObservations } from './observations.js';
 import { splitRHat } from './posterior.js';
 import { readSynthesis } from './synthesis.js';
-import { readLogicState, readLogicCase } from './logic.js';
+import { readLogicState, readLogicCase, readLogicReport } from './logic.js';
 
 export const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const fail = message => { throw new Error(`Invalid project: ${message}`); };
@@ -33,7 +33,8 @@ function readDocument(raw) {
   }
   const logic=readLogicState(raw.logic);
   if(logic?.batch)logic.batch.request=normaliseRequest(logic.batch.request);
-  return { id, name, code, options, databases, data: readDatasets(raw.data), ...(logic?{logic}:{}), revision: 0, exampleId: raw.exampleId == null ? null : text(raw.exampleId, 100) };
+  if(logic?.study){logic.study.request=normaliseRequest(logic.study.request);for(const batch of logic.study.batches)batch.request=normaliseRequest(batch.request);}
+  return { id, name, code, options, databases, data: readDatasets(raw.data), ...(logic?{logic}:{}), ...(raw.courseReport?{courseReport:readLogicReport(raw.courseReport)}:{}), revision: 0, exampleId: raw.exampleId == null ? null : text(raw.exampleId, 100) };
 }
 
 export function normaliseRequest(raw) {
@@ -51,7 +52,7 @@ export function normaliseRequest(raw) {
   for (const key of ['toeholds', 'specificities']) if (raw[key] !== undefined && raw[key] !== null) { const code = text(raw[key]); if (byteLength(code) > MAX_CODE_BYTES) fail('sequence database exceeds 256 KiB.'); databases[key] = { name: 'Custom database', code }; }
   const request=requestFor({ code: text(raw.code), options, databases, data: readDatasets(raw.data) }, choice(raw.operation, ['parse', 'expand', 'simulate', 'infer', 'analyze', 'synthesize', 'export']));
   if(raw.logicCase!=null){
-    if(request.operation!=='simulate'||!['oslo','sundials'].includes(request.simulator)||request.initial==null||request.final==null||request.points==null||request.points>500||request.timeoutSeconds>120)fail('invalid logic simulation budget.');
+    if(request.operation!=='simulate'||!['oslo','sundials','ssa'].includes(request.simulator)||request.simulator==='ssa'&&(request.seed==null||!Number.isInteger(request.seed)||request.seed<0)||request.initial==null||request.final==null||request.points==null||request.points>500||request.timeoutSeconds>120)fail('invalid logic simulation budget.');
     request.logicCase=readLogicCase(raw.logicCase);
   }
   return request;
@@ -366,6 +367,7 @@ export function serialiseProject(documents, activeId, views, engineVersion) {
   const raw = { format: 'visual-dsd-project', version: 1, engineVersion, savedAt: new Date().toISOString(), activeId, documents: documents.map(model => {
     const entry = { id: model.id, name: model.name, code: model.code, options: model.options, databases: model.databases, data: readDatasets(model.data), exampleId: model.exampleId };
     if(model.logic)entry.logic=readLogicState(model.logic);
+    if(model.courseReport)entry.courseReport=readLogicReport(model.courseReport);
     const view = views.get(model.id);
     if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, fitNodeId: view.fitNodeId, fitParameter: view.fitParameter, fitPair: view.fitPair, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0, probabilitySpecies: view.probabilitySpecies || 0, probabilityFrame: view.probabilityFrame || 0, probabilityLog: Boolean(view.probabilityLog) };
     return entry;

@@ -9,7 +9,7 @@ const workspace = assets.split('private static readonly ExampleInfo[] WorkspaceE
 const catalog = [...workspace.matchAll(/new\("([^"]+)", "([^"]+)", "([^"]+)", "([^"]+)"(?:, "([^"]+)")?/g)].map(([, id, name, description, dialect, language]) => ({ id, name, description, dialect, language: language || 'dsd', category: 'Workspace' }));
 
 test('every bundled teaching example has a distinct bilingual lesson, actual run action, results tab and defined glossary terms', () => {
-  assert.equal(catalog.length, 17); assert.deepEqual(new Set(lessonOrder), new Set(catalog.map(e => e.id))); assert.equal(lessonOrder.length, 17);
+  assert.equal(catalog.length, 18); assert.deepEqual(new Set(lessonOrder), new Set(catalog.map(e => e.id))); assert.equal(lessonOrder.length, 18);
   const html = readFileSync(new URL('../../src/VisualDsd.App/Web/index.html', import.meta.url), 'utf8');
   for (const example of catalog) {
     const lesson = lessonFor(example); assert.equal(lesson, lessons[example.id]);

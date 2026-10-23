@@ -209,6 +209,27 @@ module private StatisticalSolvers =
             SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, series, run.Seed, run.Settings, null)) |> List.toArray
 
 module private CrnExecution =
+    let logicSsa (crn: Crn) =
+        crn.get_instances() |> List.map (fun instance ->
+            let current = Exploration.configure crn instance
+            let observe = LiveProgress.run current instance
+            let ssa = current.to_ssa()
+            let rows = ref []
+            let output row = observe row; rows.Value <- row :: rows.Value
+            let completed = ssa.simulate_callback (ref false) output ignore None
+            let finalTime = ssa.simulator.settings.final
+            // The upstream SSA emits just before its final OutputPoint sentinel.
+            // Record the terminal population only after that sentinel was reached.
+            if completed.simulator.currenttime <> finalTime then
+                raise (ExecutionFailure("LOGIC_INCOMPLETE", "SSA did not reach the requested final time."))
+            if rows.Value.IsEmpty || rows.Value.Head.time < finalTime then
+                let values = completed.plots |> Array.map (Expression.eval (function
+                    | Inlined.Time -> finalTime
+                    | Inlined.Species index -> completed.simulator.populations.get_population index))
+                output { time = finalTime; values = values }
+            let table = Table.from_rows_reverse (ssa.simulator.settings.plots |> List.map Functional2.to_string_plot) rows.Value
+            Result<float>.create instance table)
+
     let ordinary (crn:Crn) =
         if not EngineTelemetry.Active || not (List.contains crn.settings.simulator [Simulator.Oslo;Simulator.SSA]) then crn.simulate_case() else
         crn.get_instances() |> List.map(fun instance ->
@@ -262,6 +283,8 @@ module private CrnExecution =
                         SimulationData(run.Name, run.Sweep, run.Assignment, run.Times, run.Series, run.Seed, run.Settings, null, data))
                 elif crn.settings.simulator = Simulator.LNA || crn.settings.simulator = Simulator.CME || crn.settings.simulator = Simulator.CMESundials then StatisticalSolvers.simulate crn
                 elif crn.settings.simulator = Simulator.MC then StatisticalSolvers.moments crn
+                elif crn.settings.simulator = Simulator.SSA && not (isNull request.LogicCase) then
+                    logicSsa crn |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
                 else ordinary crn |> List.map (fun result -> Conversion.simulation crn null result.instance result.table) |> List.toArray
             crn, runs, noInference
         | _ -> crn, [||], noInference
@@ -335,7 +358,7 @@ module private CrnExecution =
 type Engine private () =
     static member SequenceDatabases = DsdWorkspace.defaults
     static member Info =
-        EngineInfo("Visual DSD Rebooted", "0.23.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
+        EngineInfo("Visual DSD Rebooted", "0.24.0", [|"parse"; "expand"; "simulate"; "infer"; "analyze"; "synthesize"; "export"|],
                    [|"auto"; "current"; "legacy"|], [|"source"; "default"; "detailed"; "finite"; "infinite"|], [|"source"; "oslo"; "ssa"; "lna"; "cme"; "pde"; "sundials"; "cmesundials"; "mc"|], [|"dsd"; "crn"|])
 
     static member Execute(request: ModelRequest) : EngineResponse =
@@ -374,6 +397,13 @@ type Engine private () =
                                     dialect <- "legacy"
                                     code, parse code
                                 | None -> raise currentError
+                    let original =
+                        let overrides = LogicCases.parameterEnvironment request
+                        if overrides.IsEmpty then original else
+                        // Validate against the unmodified declarations, then reparse before
+                        // module expansion and domain-rate evaluation with the new environment.
+                        Dsd.convert_unexpanded original |> LogicCases.overrideParameters request |> ignore
+                        Dsd.parse_extended_with_options (DsdWorkspace.configure request) overrides toeholds specificities code |> fst
                     let originalOptions = Dsd.get_options original
                     let compilation =
                         match request.Compilation with
@@ -434,7 +464,7 @@ type Engine private () =
                                 | Dsd.ClassicDSD classic -> Dsd.ClassicDSD { classic with settings = update classic.settings }
                                 | Dsd.Rules rules -> Dsd.Rules { rules with settings = update rules.settings }
                             if jit && not (isNull request.LogicCase) then
-                                raise (ExecutionFailure("LOGIC_OPTIONS", "Logic truth tables require a fully expanded deterministic model."))
+                                raise (ExecutionFailure("LOGIC_OPTIONS", "Logic experiments require a fully expanded model."))
                             let initialCrn = (if request.Operation = "parse" || jit then Dsd.convert_unexpanded configured else Dsd.convert_expand configured) |> LogicCases.configure request
                             let crn, simulations, inference =
                                 if jit && (request.Operation = "simulate" || request.Operation = "analyze") then

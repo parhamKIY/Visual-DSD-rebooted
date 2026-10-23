@@ -63,16 +63,30 @@ export function truthCases(config) {
 export function readLogicCase(raw) {
   const inputs=list(raw?.inputs,8).map(i=>({structure:str(i.structure),value:num(i.value)})),outputs=list(raw?.outputs,16).map(s=>str(s));
   if(!inputs.length||!outputs.length||inputs.some(i=>!i.structure||i.value<0)||outputs.some(s=>!s)||new Set(inputs.map(i=>i.structure)).size!==inputs.length||new Set(outputs).size!==outputs.length)fail('invalid physical rail mapping.');
-  return {inputs,outputs};
+  const result={inputs,outputs};
+  if(raw.parameters!=null)result.parameters=readLogicParameters(raw.parameters);
+  return result;
+}
+export function readLogicParameters(raw){
+  const parameters=list(raw,8).map(p=>({name:str(p.name,128),value:num(p.value)}));
+  if(parameters.some(p=>!/^[A-Za-z_][A-Za-z_0-9.]*$/.test(p.name))||new Set(parameters.map(p=>p.name)).size!==parameters.length)fail('use distinct declared parameter names.');
+  return parameters;
+}
+export function readLogicExecution(raw){
+  if(!raw||!['oslo','ssa'].includes(raw.simulator))fail('choose deterministic Oslo or seeded SSA.');
+  const seed=raw.simulator==='ssa'?num(raw.seed):null;
+  if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483632))fail('SSA seed must be an integer between 0 and 2147483632.');
+  return {simulator:raw.simulator,seed,parameters:readLogicParameters(raw.parameters??[])};
 }
 export function logicPlots(config,traceInputs=false){
   return [...new Set([...config.outputs,...(traceInputs?config.inputs:[])].flatMap(o=>[o.one,...(o.zero?[o.zero]:[])]))];
 }
-export function caseRequest(base, config, bits, {traceInputs=false}={}) {
+export function caseRequest(base, config, bits, {traceInputs=false,execution=null}={}) {
   const c=readLogicConfig(config,true);
   if(bits.length!==c.inputs.length||bits.some(b=>b!==0&&b!==1))fail('invalid input case.');
   const inputs=c.inputs.flatMap((i,n)=>[{structure:i.one,value:bits[n]?i.on:i.off},...(i.zero?[{structure:i.zero,value:bits[n]?i.off:i.on}]:[])]);
-  return {...copy(base),operation:'simulate',simulator:'oslo',initial:0,final:c.final,points:c.points,timeoutSeconds:c.timeout,logicCase:readLogicCase({inputs,outputs:logicPlots(c,traceInputs)})};
+  const run=execution?readLogicExecution(execution):null,index=bits.reduce((value,bit)=>value*2+bit,0);
+  return {...copy(base),operation:'simulate',simulator:run?.simulator??'oslo',...(run?.simulator==='ssa'?{seed:run.seed+index}:{}),initial:0,final:c.final,points:c.points,timeoutSeconds:c.timeout,logicCase:readLogicCase({inputs,outputs:logicPlots(c,traceInputs),...(run?.parameters.length?{parameters:run.parameters}:{})})};
 }
 export function sampleAt(curve, time) {
   const {times,series}=curve;
@@ -81,7 +95,7 @@ export function sampleAt(curve, time) {
   // At an exact duplicate time, use the last returned sample at that time.
   while(right+1<times.length&&times[right+1]===time)right++;
   const left=right===0||times[right]===time?right:right-1,weight=left===right?0:(time-times[left])/(times[right]-times[left]);
-  return series.map(s=>left===right?s.values[left]:(1-weight)*s.values[left]+weight*s.values[right]);
+  return series.map(s=>left===right||curve.mode==='step'?s.values[left]:(1-weight)*s.values[left]+weight*s.values[right]);
 }
 export function readout(config, row) {
   if(row.state!=='succeeded'||!row.curve)return {status:row.state,outputs:[]};
@@ -108,13 +122,15 @@ export function collectLogicCurve(response, request, config) {
     if(columns.length!==1)fail(`cannot identify output curve for ${structure}.`);
     return {name:structure,values:[...columns[0].values]};
   });
-  const curve=readCurve({times:run.times,series,timeUnit:settings.timeUnit,concentrationUnit:settings.concentrationUnit});
+  if(request.simulator==='ssa'&&(settings.simulator!=='ssa'||run.seed!==request.seed))fail('SSA solver or returned seed differs from the recorded request.');
+  const curve=readCurve({times:run.times,series,timeUnit:settings.timeUnit,concentrationUnit:settings.concentrationUnit,...(request.simulator==='ssa'?{mode:'step'}:{})});
   sampleAt(curve,config.time);return curve;
 }
 function readCurve(raw) {
   const times=list(raw.times,10000).map(num),series=list(raw.series,16).map(s=>({name:str(s.name),values:list(s.values,10000).map(num)}));
   if(times.some((t,i)=>i&&t<times[i-1])||!times.length||!series.length||series.some(s=>s.values.length!==times.length))fail('invalid trajectory.');
-  return {times,series,timeUnit:str(raw.timeUnit,32),concentrationUnit:str(raw.concentrationUnit,32)};
+  if(raw.mode!==undefined&&raw.mode!=='step')fail('unknown trajectory interpolation mode.');
+  return {times,series,timeUnit:str(raw.timeUnit,32),concentrationUnit:str(raw.concentrationUnit,32),...(raw.mode?{mode:raw.mode}:{})};
 }
 export function readLogicState(raw) {
   if(raw==null)return undefined;
@@ -139,12 +155,41 @@ export function readLogicState(raw) {
     if(b.traceInputs!==undefined){if(typeof b.traceInputs!=='boolean')fail('invalid input trace flag.');result.batch.traceInputs=b.traceInputs;}
     if(b.molecules!=null)result.batch.molecules=readLogicMolecules(b.molecules,logicPlots(c,b.traceInputs===true));
     if(b.analysis!=null)result.batch.analysis=readAnalysisWindow(b.analysis,c);
+    if(b.execution!=null){result.batch.execution=readLogicExecution(b.execution);for(const row of cases)if(row.curve&&(row.curve.mode==='step')!==(b.execution.simulator==='ssa'))fail('trajectory interpolation differs from the recorded solver.');}
+    else if(cases.some(row=>row.curve?.mode==='step'))fail('stochastic trajectories require recorded execution settings.');
   }
+  if(raw.studyPlan!=null)result.studyPlan=readStudyPlan(raw.studyPlan,result.config);
+  if(raw.study!=null)result.study=readStudy(raw.study);
+  if(raw.report!=null)result.report=readLogicReport(raw.report);
   return result;
 }
-export function newLogicBatch(base, config, engineVersion,{traceInputs=false}={}) {
+export function newLogicBatch(base, config, engineVersion,{traceInputs=false,execution=null}={}) {
   const c=readLogicConfig(config,true);
-  return {id:crypto.randomUUID(),createdAt:new Date().toISOString(),engineVersion,request:copy(base),config:c,cases:truthCases(c),...(traceInputs?{traceInputs:true}:{})};
+  return {id:crypto.randomUUID(),createdAt:new Date().toISOString(),engineVersion,request:copy(base),config:c,cases:truthCases(c),...(traceInputs?{traceInputs:true}:{}),...(execution?{execution:readLogicExecution(execution)}:{})};
+}
+export function readLogicReport(raw){if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('invalid student interpretation.');return {student:str(raw.student??'',120),question:str(raw.question??'',4000),interpretation:str(raw.interpretation??'',12000),limitations:str(raw.limitations??'',4000)};}
+export function defaultStudyPlan(){return {simulator:'oslo',repeats:1,seed:1234,variants:[{label:'Reference',onFactor:1,offFactor:1,parameters:[]},{label:'Lower input',onFactor:.8,offFactor:1,parameters:[]}]};}
+export function variantConfig(config,variant){return readLogicConfig({...copy(config),inputs:config.inputs.map(i=>({...i,on:i.on*variant.onFactor,off:i.off*variant.offFactor}))},true);}
+export function readStudyPlan(raw,config){
+  if(!raw||!['oslo','ssa'].includes(raw.simulator)||!Number.isInteger(raw.repeats)||raw.repeats<1||raw.repeats>8||raw.simulator==='oslo'&&raw.repeats!==1)fail('use one deterministic run or 1–8 SSA repeats.');
+  if(!Number.isInteger(raw.seed)||raw.seed<0||raw.seed>2147483519)fail('study seed must be an integer from 0 to 2147483519.');
+  const variants=list(raw.variants,4).map(v=>({label:str(v.label,80),onFactor:num(v.onFactor),offFactor:num(v.offFactor),parameters:readLogicParameters(v.parameters??[])}));
+  if(!variants.length||new Set(variants.map(v=>v.label)).size!==variants.length||variants.some(v=>!v.label.trim()||v.onFactor<=0||v.offFactor<0))fail('use 1–4 distinct variant labels, positive ON factors and nonnegative OFF factors.');
+  if(variants.length*raw.repeats*2**config.inputs.length>64)fail('a comparison is limited to 64 case simulations; reduce variants or repeats.');
+  for(const v of variants)if(config.inputs.every(i=>i.one)&&config.outputs.every(o=>o.one))variantConfig(config,v);
+  return {simulator:raw.simulator,repeats:raw.repeats,seed:raw.seed,variants};
+}
+function readStudy(raw){
+  const config=readLogicConfig(raw.config,true),plan=readStudyPlan(raw.plan,config),request=copy(raw.request),count=plan.variants.length*plan.repeats;
+  const batches=list(raw.batches,32).map((b,index)=>{
+    const variant=plan.variants[Math.floor(index/plan.repeats)];if(!variant)fail('unexpected study batch.');
+    const c=variantConfig(config,variant),batch=readLogicState({version:1,config:c,batch:b}).batch;
+    const execution={simulator:plan.simulator,seed:plan.simulator==='ssa'?plan.seed+(index%plan.repeats)*16:null,parameters:variant.parameters};
+    if(JSON.stringify(batch.request)!==JSON.stringify(request)||JSON.stringify(batch.config)!==JSON.stringify(c)||JSON.stringify(batch.execution)!==JSON.stringify(execution)||batch.engineVersion!==raw.engineVersion||batch.traceInputs!==true)fail('comparison batch differs from its recorded plan.');
+    return batch;
+  });
+  if(batches.length!==count||!Number.isFinite(Date.parse(raw.createdAt)))fail('incomplete comparison or invalid timestamp.');
+  return {id:str(raw.id,80),createdAt:raw.createdAt,engineVersion:str(raw.engineVersion,64),request,config,plan,batches};
 }
 export function readAnalysisWindow(raw,config){
   const start=num(raw.start),end=num(raw.end);

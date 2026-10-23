@@ -17,6 +17,12 @@ internal static class WebAssets
         ["app.js"] = "text/javascript; charset=utf-8", ["model.js"] = "text/javascript; charset=utf-8", ["layout.js"] = "text/javascript; charset=utf-8",
         ["chart.js"] = "text/javascript; charset=utf-8", ["network.js"] = "text/javascript; charset=utf-8",
         ["msagl.worker.js"] = "text/javascript; charset=utf-8", ["msagl.runtime.js"] = "text/javascript; charset=utf-8",
+        ["logic-study.js"] = "text/javascript; charset=utf-8",
+        ["logic-study-workspace.js"] = "text/javascript; charset=utf-8",
+        ["course-export.js"] = "text/javascript; charset=utf-8",
+        ["course-report.js"] = "text/javascript; charset=utf-8",
+        ["adleman.js"] = "text/javascript; charset=utf-8",
+        ["adleman-workspace.js"] = "text/javascript; charset=utf-8",
         ["logic-analysis.js"] = "text/javascript; charset=utf-8",
         ["logic-inspector.js"] = "text/javascript; charset=utf-8",
         ["logic.js"] = "text/javascript; charset=utf-8",
@@ -32,6 +38,7 @@ internal static class WebAssets
 
     private static readonly ExampleInfo[] WorkspaceExamples =
     [
+        new("feedback", "CRN · negative feedback", "Compare open and closed autoregulation loops with explicitly illustrative mass-action rates.", "current", "crn"),
         new("synthesis-bistable", "CRN · bistable synthesis", "Two analytic stable equilibria, synthesized values and sampled phase trajectories.", "current", "crn"),
         new("synthesis-turing", "CRN · Turing synthesis", "Synthesize diffusion for a Brusselator and inspect its dispersion curve.", "current", "crn"),
         new("inference-linked", "CRN · linked inference", "Synthetic observations included: two chains per node and posterior transfer between fitted models.", "current", "crn"),

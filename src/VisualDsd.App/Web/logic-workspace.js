@@ -1,6 +1,7 @@
 import { defaultLogicConfig, readLogicConfig, readLogicState, newLogicBatch, caseRequest, readout, collectLogicCurve, collectLogicMolecules, logicIsCurrent, logicCsv } from './logic.js';
 import { SimulationChart } from './chart.js';
 import { LogicInspector } from './logic-inspector.js';
+import { LogicStudyWorkspace } from './logic-study-workspace.js';
 
 const $=id=>document.getElementById(id);
 const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;};
@@ -21,6 +22,8 @@ export class LogicWorkspace {
     this.dialog=dialog;this.h=hooks;this.selected=0;this.catalog=[];
     this.chart=new SimulationChart($('logic-chart'),$('logic-legend'),$('logic-tooltip'),{onSelect:index=>this.inspector.selectTrace(index)});
     this.inspector=new LogicInspector($('logic-inspector'),this.chart,{language:hooks.language,persist:hooks.persist,download:hooks.download});
+    this.study=new LogicStudyWorkspace($('logic-study'),{...hooks,base:()=>this.base(),setBusy:busy=>this.setBusy(busy)});
+    $('logic-report').addEventListener('click',()=>hooks.report(this.model()));
     $('logic-open').addEventListener('click',()=>this.open());$('home-logic').addEventListener('click',()=>this.open());
     $('logic-close').addEventListener('click',()=>dialog.close());
     $('logic-import').addEventListener('click',()=>$('logic-file').click());
@@ -102,13 +105,14 @@ export class LogicWorkspace {
       this.inspector.render(b,row,this.catalogKey===JSON.stringify(b.request)?this.catalog:[]);
       if(row?.curve)$('logic-curve-heading').textContent=`${this.t('select')} · ${b.config.inputs.map((i,n)=>`${i.name}=${row.bits[n]}`).join(', ')} · t=${b.config.time} ${b.config.timeUnit}`;
     }else {$('logic-curve').hidden=true;$('logic-inspector').hidden=true;}
-    this.setBusy(Boolean(this.busy));
+    this.study.render(this.model());this.setBusy(Boolean(this.busy));
   }
   setBusy(busy){
     this.busy=busy;
-    for(const e of this.dialog.querySelectorAll('input,select,fieldset, #logic-run, #logic-resume, #logic-import, #logic-example, #logic-prepare, #logic-save, #logic-replace-yes, #logic-replace-no'))e.disabled=busy;
+    this.study?.setBusy(busy);
+    for(const e of this.dialog.querySelectorAll('input,select,fieldset, #logic-run, #logic-resume, #logic-import, #logic-example, #logic-prepare, #logic-save, #logic-report, #logic-replace-yes, #logic-replace-no'))e.disabled=busy;
     for(const e of this.dialog.querySelectorAll('#logic-inputs > button,#logic-outputs > button'))e.disabled=busy||this.model().logic.config[e.parentElement.id==='logic-inputs'?'inputs':'outputs'].length>=4;
-    $('logic-stop').hidden=!busy;
+    $('logic-stop').hidden=!busy||this.study?.running===true;
   }
   async prepare(){
     if(this.busy||this.h.busy())return this.error(new Error('Wait for the current calculation to finish.'));

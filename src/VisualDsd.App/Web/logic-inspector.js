@@ -43,7 +43,7 @@ export class LogicInspector {
     this.drawGraph();this.drawMolecules();
     const curve=row?.curve;
     const series=curve?.series.map(s=>({...s,name:this.signalName(s.name)}))??[];
-    this.chart.setRun({times:curve?.times??[],series},{simulator:'oslo',timeUnit:batch.config.timeUnit,concentrationUnit:batch.config.unit});
+    this.chart.setRun({times:curve?.times??[],series,mode:curve?.mode},{simulator:batch.execution?.simulator??'oslo',timeUnit:batch.config.timeUnit,concentrationUnit:batch.config.unit});
     this.select(this.selectedKey,this.selectedStructure);this.renderMetrics();
   }
   signalName(structure){return this.signals.flatMap(s=>s.rails.filter(r=>r.structure===structure).map(r=>`${this.t(s.kind==='inputs'?'input':'output')} ${s.name}${s.rails.length>1?' · '+this.t('rail')+' '+r.rail:''}`)).join(' / ')||structure;}

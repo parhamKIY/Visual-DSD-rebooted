@@ -33,7 +33,9 @@ public sealed record ModelRequest
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LogicInputData(string Structure, double Value);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record LogicCaseData(LogicInputData[] Inputs, string[] Outputs);
+public sealed record LogicParameterData(string Name, double Value);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record LogicCaseData(LogicInputData[] Inputs, string[] Outputs, LogicParameterData[]? Parameters = null);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DsdOptionsData
@@ -126,8 +128,10 @@ public static class RequestValidation
         var errors = new List<Diagnostic>();
         if (request.LogicCase is { } logic)
         {
-            if (request.Operation != "simulate" || request.Simulator is not ("oslo" or "sundials"))
-                errors.Add(new("LOGIC_OPTIONS", "Logic cases require deterministic simulation with an explicit Oslo or Sundials solver."));
+            if (request.Operation != "simulate" || request.Simulator is not ("oslo" or "sundials" or "ssa") || request.Simulator == "ssa" && (!request.Seed.HasValue || request.Seed < 0))
+                errors.Add(new("LOGIC_OPTIONS", "Logic cases require Oslo, Sundials, or SSA with an explicit nonnegative seed."));
+            if (logic.Parameters is { } parameters && (parameters.Length > 8 || parameters.Any(p => p is null || p.Name is null || p.Name.Length > 128 || !System.Text.RegularExpressions.Regex.IsMatch(p.Name, "^[A-Za-z_][A-Za-z_0-9.]*$") || !double.IsFinite(p.Value)) || parameters.Select(p => p?.Name).Distinct(StringComparer.Ordinal).Count() != parameters.Length))
+                errors.Add(new("LOGIC_PARAMETERS", "Use at most eight distinct declared parameter names and finite values."));
             if (logic.Inputs is null || logic.Outputs is null || logic.Inputs.Length is < 1 or > 8 || logic.Outputs.Length is < 1 or > 16 ||
                 logic.Inputs.Any(i => i is null || string.IsNullOrWhiteSpace(i.Structure) || i.Structure.Length > 4096 || !double.IsFinite(i.Value) || i.Value < 0) ||
                 logic.Outputs.Any(s => string.IsNullOrWhiteSpace(s) || s.Length > 4096) ||

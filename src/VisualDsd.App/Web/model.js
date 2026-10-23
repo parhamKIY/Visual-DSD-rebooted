@@ -1,6 +1,6 @@
 import { dsdDefaults, dsdOverrides } from './dsd-workspace.js';
 import { readDatasets } from './observations.js';
-import { readLogicState } from './logic.js';
+import { readLogicState, readLogicReport } from './logic.js';
 
 export const MAX_CODE_BYTES = 256 * 1024;
 export const MAX_DOCUMENTS = 16;
@@ -42,7 +42,7 @@ export function restoreWorkspace(raw) {
         const entry = document.databases?.[key];
         if (typeof entry?.code === 'string' && byteLength(entry.code) <= MAX_CODE_BYTES) databases[key] = { name: String(entry.name || 'Custom database').slice(0, 120), code: entry.code };
       }
-      return { id: document.id, name: document.name.slice(0, 120), code: document.code, options, databases, data: readDatasets(document.data), ...(document.logic?{logic:readLogicState(document.logic)}:{}), exampleId: typeof document.exampleId === 'string' ? document.exampleId : null, revision: 0 };
+      return { id: document.id, name: document.name.slice(0, 120), code: document.code, options, databases, data: readDatasets(document.data), ...(document.logic?{logic:readLogicState(document.logic)}:{}), ...(document.courseReport?{courseReport:readLogicReport(document.courseReport)}:{}), exampleId: typeof document.exampleId === 'string' ? document.exampleId : null, revision: 0 };
     });
     return documents.length ? { documents, activeId: documents.some(document => document.id === saved.activeId) ? saved.activeId : documents[0].id } : null;
   } catch { return null; }

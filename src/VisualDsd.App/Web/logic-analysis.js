@@ -50,6 +50,7 @@ function sustainedResponse(curve,conditions,window){
   for(let i=points.length-2;i>=0;i--){
     const left=margins(conditions,points[i].values),right=margins(conditions,points[i+1].values);
     if(left.some(v=>v<0)){
+      if(curve.mode==='step'){const time=points[i+1].time;return {status:'reached',time,delay:time-window.start};}
       const fraction=Math.max(...left.map((v,n)=>{if(v>=0)return 0;const scale=Math.max(-v,right[n]);return (-v/scale)/(-v/scale+right[n]/scale);}));
       const time=points[i].time+fraction*(points[i+1].time-points[i].time);
       return {status:'reached',time,delay:time-window.start};

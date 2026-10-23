@@ -5,11 +5,32 @@ open Microsoft.Research.CRNEngine
 open VisualDsd.Contracts
 
 module internal LogicCases =
+    let parameterEnvironment (request: ModelRequest) =
+        if isNull request.LogicCase || isNull request.LogicCase.Parameters then Map.empty
+        else request.LogicCase.Parameters |> Array.map (fun p -> p.Name, p.Value) |> Map.ofArray
+
+    let overrideParameters (request: ModelRequest) (crn: Crn) =
+        let values = parameterEnvironment request
+        for KeyValue(name,_) in values do
+            if not (crn.settings.parameters |> List.exists (fun p -> p.name = name)) then
+                raise (ExecutionFailure("LOGIC_PARAMETERS", "Unknown declared parameter: " + name))
+        let parameters = crn.settings.parameters |> List.map (fun p ->
+            match Map.tryFind p.name values with
+            | Some value -> { p with value = value }
+            | None -> p)
+        { crn with settings = { crn.settings with parameters = parameters } }
+
     let configure (request: ModelRequest) (crn: Crn) =
         if isNull request.LogicCase then crn else
+        let crn = overrideParameters request crn
         let fail message = raise (ExecutionFailure("LOGIC_MAPPING", message))
         if not crn.settings.sweeps.IsEmpty || not crn.settings.simulations.IsEmpty then
             fail "Logic cases require one simulation without source sweeps or named batches."
+        if crn.settings.simulator = Simulator.SSA then
+            if crn.settings.stochastic.steps.IsSome || crn.settings.stochastic.trajectories <> 1 || not crn.settings.simulation.times.IsEmpty then
+                fail "SSA logic cases require one trajectory, no reaction-step limit and no explicit source output times. Repeats are managed by the comparison plan."
+            if not (Double.IsFinite crn.settings.stochastic.scale) || crn.settings.stochastic.scale <= 0.0 then
+                fail "SSA logic cases require finite positive stochastic scaling."
         if crn.initials |> List.exists (fun i -> i.time.IsSome || i.spatial.IsSome) then
             fail "Logic cases require homogeneous initial populations without scheduled inputs."
         let identity (species: Species) =

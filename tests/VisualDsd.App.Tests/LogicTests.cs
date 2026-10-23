@@ -78,6 +78,102 @@ public class LogicTests
         Assert.Contains(RequestValidation.Validate(request with { LogicCase = new(request.LogicCase.Inputs, [.. request.LogicCase.Outputs, "extra"]) }), d => d.Code == "LOGIC_MAPPING");
     }
 
+    [Theory]
+    [InlineData("directive parameters [k=1]\ndirective simulation {final=2}\n(2 * <a> | rxn <a> ->{k} <b>)", "dsd", "<a>", "<b>")]
+    [InlineData("directive parameters [k=1]\ndirective simulation {final=2}\n2 A | A ->{k} B", "crn", "A", "B")]
+    public void Comparison_parameters_change_the_run_without_rewriting_the_source(string code, string language, string input, string output)
+    {
+        var request = Request(code, language) with { LogicCase = new([new(input, 7)], [output], [new("k", 0.1)]) };
+        var result = CoreEngine.Execute(request);
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        Assert.InRange(result.Model!.Simulations[0].Series[0].Values[^1], 1.26, 1.28);
+        Assert.Equal(code, request.Code);
+        var original = CoreEngine.Execute(request with { LogicCase = new([new(input, 7)], [output]) });
+        Assert.True(original.Success);
+        Assert.InRange(original.Model!.Simulations[0].Series[0].Values[^1], 6.04, 6.07);
+        var unknown = CoreEngine.Execute(request with { LogicCase = new([new(input, 7)], [output], [new("missing", 1)]) });
+        Assert.False(unknown.Success);
+        Assert.Equal("LOGIC_PARAMETERS", Assert.Single(unknown.Diagnostics).Code);
+    }
+
+    [Theory]
+    [InlineData("directive simulation {final=2}\n(2 * <a> | rxn <a> ->{1} <b>)", "dsd", "<a>", "<b>")]
+    [InlineData("directive simulation {final=2}\n2 A | A ->{1} B", "crn", "A", "B")]
+    public void Seeded_stochastic_cases_are_reproducible_and_retain_the_actual_seed(string code, string language, string input, string output)
+    {
+        var request = Request(code, language) with { Simulator = "ssa", Seed = 1234, LogicCase = new([new(input, 30)], [output, input]) };
+        Assert.Empty(RequestValidation.Validate(request));
+        var first = CoreEngine.Execute(request);
+        var second = CoreEngine.Execute(request);
+        Assert.True(first.Success, JsonSerializer.Serialize(first));
+        Assert.True(second.Success, JsonSerializer.Serialize(second));
+        var run = Assert.Single(first.Model!.Simulations);
+        Assert.Equal("ssa", first.Model.Settings.Simulator);
+        Assert.Equal(1234, run.Seed);
+        Assert.Equal(request.Final, run.Times[^1]);
+        Assert.Equal(run.Times, second.Model!.Simulations[0].Times);
+        Assert.Equal(run.Series[0].Values, second.Model.Simulations[0].Series[0].Values);
+        Assert.All(Enumerable.Range(0, run.Times.Length), i => Assert.Equal(30, run.Series.Sum(s => s.Values[i]), 8));
+        Assert.Contains(RequestValidation.Validate(request with { Seed = null }), d => d.Code == "LOGIC_OPTIONS");
+        Assert.Contains(RequestValidation.Validate(request with { LogicCase = new([new(input, 30)], [output], [new("k", double.NaN)]) }), d => d.Code == "LOGIC_PARAMETERS");
+    }
+
+    [Fact]
+    public void Stochastic_OFF_case_records_the_actual_terminal_population_at_the_exact_final_time()
+    {
+        var request = Request("directive simulation {final=30}\n0 A | A ->{0.1} B", "crn") with
+        { Simulator = "ssa", Seed = 1234, Final = 30, LogicCase = new([new("A", 0)], ["B", "A"]) };
+        var result = CoreEngine.Execute(request);
+        Assert.True(result.Success, JsonSerializer.Serialize(result));
+        var run = Assert.Single(result.Model!.Simulations);
+        Assert.Equal(30, run.Times[^1]);
+        Assert.All(run.Series, series => Assert.All(series.Values, value => Assert.Equal(0, value)));
+    }
+
+    [Theory]
+    [InlineData("directive stochastic {steps=1}")]
+    [InlineData("directive stochastic {trajectories=2}")]
+    public void Stochastic_comparisons_reject_hidden_truncation_or_averaging(string directive)
+    {
+        var request = Request(directive + "\n0 A | A ->{1} B", "crn") with { Simulator = "ssa", Seed = 1234 };
+        var result = CoreEngine.Execute(request);
+        Assert.False(result.Success);
+        Assert.Equal("LOGIC_MAPPING", Assert.Single(result.Diagnostics).Code);
+    }
+
+    [Fact]
+    public void Feedback_teaching_model_preserves_promoters_and_distinguishes_open_and_closed_loops()
+    {
+        var code = File.ReadAllText(Path.Combine(LocalHost.Root, "src/VisualDsd.App/WebExamples/feedback.crn"));
+        var response = CoreEngine.Execute(new ModelRequest { Code = code, Language = "crn", Operation = "simulate", Simulator = "oslo" });
+        Assert.True(response.Success, JsonSerializer.Serialize(response));
+        var runs = response.Model!.Simulations;
+        Assert.Equal(2, runs.Length);
+        var openLoop = runs[0].Series.Single(s => s.Name == "P");
+        var closedLoop = runs[1].Series.Single(s => s.Name == "P");
+        Assert.InRange(openLoop.Values[^1], 9.99, 10.01);
+        Assert.InRange(closedLoop.Values[^1], 6.17, 6.20);
+        foreach (var run in runs)
+        {
+            var free = run.Series.Single(s => s.Name == "G");
+            var bound = run.Series.Single(s => s.Name == "R");
+            Assert.All(Enumerable.Range(0, run.Times.Length), i => Assert.InRange(free.Values[i] + bound.Values[i], 0.999999, 1.000001));
+        }
+    }
+
+    [Fact]
+    public void Parameter_override_reparses_domain_rates_before_generating_the_DSD_network()
+    {
+        const string code = "directive parameters [k=0.003]\ndom t = {bind=k;unbind=0.1}\n(10 * <t^ a> | 10 * {t^*}[a])";
+        var request = Request(code) with { LogicCase = new([new("<t^ a>", 10)], ["<t^ a>"], [new("k", 0)]) };
+        var stopped = CoreEngine.Execute(request);
+        Assert.True(stopped.Success, JsonSerializer.Serialize(stopped));
+        Assert.InRange(stopped.Model!.Simulations[0].Series[0].Values[^1], 9.9999, 10.0001);
+        var active = CoreEngine.Execute(request with { LogicCase = new([new("<t^ a>", 10)], ["<t^ a>"], [new("k", 1)]) });
+        Assert.True(active.Success, JsonSerializer.Serialize(active));
+        Assert.True(active.Model!.Simulations[0].Series[0].Values[^1] < 9);
+    }
+
     [Fact]
     public void Real_compiler_output_executes_the_eight_cases_of_a_three_level_Seesaw_circuit()
     {
@@ -107,6 +203,19 @@ public class LogicTests
 [Collection("Process integration")]
 public class LogicWorkerTests(LocalHost host) : IClassFixture<LocalHost>
 {
+    [Fact]
+    public async Task Isolated_stochastic_worker_retains_the_exact_final_observation()
+    {
+        var request = LogicTests.Request("0 A | A ->{1} B", "crn") with
+        { Simulator = "ssa", Seed = 1234, LogicCase = new([new("A", 0)], ["B"]) };
+        var response = await host.Client.PostAsJsonAsync("/api/jobs", request);
+        response.EnsureSuccessStatusCode();
+        var admitted = (await response.Content.ReadFromJsonAsync<JobView>())!;
+        var done = await host.FinishAsync(admitted.Id);
+        Assert.Equal("succeeded", done.State);
+        Assert.Equal(request.Final, done.Result!.Model!.Simulations[0].Times[^1]);
+    }
+
     [Fact]
     public async Task Logic_overrides_survive_job_storage_and_the_isolated_worker()
     {

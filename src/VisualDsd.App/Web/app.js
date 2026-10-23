@@ -1,6 +1,8 @@
 import {watchJob,readJob,terminalJob,documentFromRequest,progressLabel} from './live-jobs.js';
 import { StudentWorkspace } from './student-workspace.js';
 import { LogicWorkspace } from './logic-workspace.js';
+import { CourseReport } from './course-report.js';
+import { AdlemanWorkspace } from './adleman-workspace.js';
 import { readLogicState } from './logic.js';
 import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
@@ -38,9 +40,11 @@ let exportImageUrl, sequenceDefaults;
 const liveChart=new SimulationChart($('live-chart'),$('live-legend'),$('live-tooltip'));
 const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
-const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); } });
+const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); renderCourseLabels(); } });
 const studentWorkspace = new StudentWorkspace({ language: () => learningGuide.language, setLanguage: language => learningGuide.setLanguage(language), action: studentAction });
-const logicWorkspace = new LogicWorkspace($('logic-dialog'), { model: () => current(), request: requestFor, language: () => learningGuide.language, version: () => engineVersion, busy: () => Boolean(activeJob), persist, download, save: saveProject, stop: cancelJob, session: logicSession,
+const courseReport = new CourseReport($('course-report-dialog'),{model:()=>current(),view:id=>stateFor(id),project:(selectedId=activeId)=>serialiseProject(documents,selectedId,views,engineVersion),language:()=>learningGuide.language,busy:()=>Boolean(activeJob),persist,download,error:error=>toast(error.message)});
+const adlemanWorkspace = new AdlemanWorkspace($('adleman-dialog'),{language:()=>learningGuide.language,download});
+const logicWorkspace = new LogicWorkspace($('logic-dialog'), { model: () => current(), request: requestFor, language: () => learningGuide.language, version: () => engineVersion, busy: () => Boolean(activeJob), persist, download, save: saveProject, stop: cancelJob, session: logicSession, report:model=>courseReport.open(model),
   import: async file => {
     if(activeJob)throw new Error('Stop the current calculation before importing a circuit.');
     if(file.size>MAX_CODE_BYTES+3)throw new Error('Model files must be no larger than 256 KiB.');
@@ -179,6 +183,7 @@ function renderDocuments() {
   }));
 }
 function renderExamples() {
+  renderCourseLabels();
   const filtered=filterTeachingExamples(examples,$('example-search').value,$('example-category').value);
   $('example-count').textContent=filtered.length===examples.length?String(examples.length):`${filtered.length} / ${examples.length}`;
   $('examples').replaceChildren(...filtered.map(example => {
@@ -372,6 +377,7 @@ function updateBusy() {
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
   $('edit-crn').disabled = busy || current().options.language === 'crn' || !state().response?.model.crnCode || !resultIsCurrent(current(), state().snapshot);
   for (const button of document.querySelectorAll('.program-system')) button.disabled = busy;
+  $('course-report').disabled=busy;$('course-feedback').disabled=busy||!examples.some(e=>e.id==='feedback');
   $('save-project').disabled = busy; $('open-project').disabled = busy;
   $('run-state').textContent = busy && activeJob.documentId === activeId ? activeJob.message : busy ? `Running ${documents.find(model => model.id === activeJob.documentId)?.name || 'another model'}…` : state().status;
 }
@@ -900,3 +906,13 @@ $('show-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=!$('jobs-pan
 $('hide-jobs').addEventListener('click',()=>{$('jobs-panel').hidden=true;});$('refresh-jobs').addEventListener('click',renderJobs);
 $('detach-job').addEventListener('click',()=>{const task=activeJob;if(!task||task.logic)return;task.detached=true;activeJob=null;task.monitor?.abort();updateBusy();toast('Calculation continues. Open Jobs to monitor it again.');});
 $('save-preview').addEventListener('click',()=>{const preview=state().live?.preview;if(preview)download(`${stem()}-provisional-preview.csv`,csvFor(preview),'text/csv;charset=utf-8');});
+
+function renderCourseLabels(){
+  const fa=learningGuide.language==='fa';
+  for(const [id,en,per] of [['course-home-title','Explore feedback & DNA computing','کاوش بازخورد و محاسبات دی‌ان‌ای'],['course-home-help','Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.','یک مدل بازخورد پویا را مقایسه کن یا الگوریتم تولید و پالایش آدلمن را دنبال کن.'],['course-feedback','Open feedback lesson','باز کردن درس بازخورد'],['course-adleman','Open Adleman lab','باز کردن آزمایش آدلمن'],['course-report','Exercise report','گزارش تمرین'],['logic-report','Exercise report','گزارش تمرین']])$(id).textContent=fa?per:en;
+  $('course-feedback').disabled=Boolean(activeJob)||!examples.some(e=>e.id==='feedback');
+}
+$('course-report').addEventListener('click',()=>courseReport.open());
+$('course-adleman').addEventListener('click',()=>adlemanWorkspace.open());
+$('course-feedback').addEventListener('click',()=>{if(!activeJob)learningGuide.open('feedback');});
+renderCourseLabels();
