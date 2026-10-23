@@ -90,6 +90,7 @@ public sealed class NcbiRecords(HttpClient http, TimeProvider? clock = null)
         string text = await ReadAsync(url, 5 * 1024 * 1024, token);
         var version = Regex.Match(text, @"(?m)^VERSION\s+([A-Za-z0-9_]+\.\d+)\b");
         if (!text.StartsWith("LOCUS ", StringComparison.Ordinal) || !version.Success || Regex.Matches(text, @"(?m)^LOCUS\s").Count != 1) throw new NcbiFailure(404, "NCBI returned no single annotated record. Check the database and accession.");
+        if (request.Id.Contains('.') && !request.Id.Equals(version.Groups[1].Value, StringComparison.OrdinalIgnoreCase)) throw new NcbiFailure(502, "NCBI returned a different accession version; the record was not imported.");
         return new { text, retrieval = new { service = "NCBI E-utilities", database = request.Database, requested = request.Id, accessionVersion = version.Groups[1].Value, retrievedAt = time.GetUtcNow(), url, sha256 = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant() } };
     }
     public static void Map(WebApplication app)
@@ -100,7 +101,9 @@ public sealed class NcbiRecords(HttpClient http, TimeProvider? clock = null)
         var service = new NcbiRecords(client);
         async Task<IResult> Execute(HttpContext context, Func<CancellationToken, Task<object>> action)
         {
-            try { return Results.Json(await action(context.RequestAborted)); }
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+            deadline.CancelAfter(TimeSpan.FromSeconds(25));
+            try { return Results.Json(await action(deadline.Token)); }
             catch (NcbiFailure error) { if (error.RetryAfter > 0) context.Response.Headers.RetryAfter = error.RetryAfter.ToString(System.Globalization.CultureInfo.InvariantCulture); return Results.Json(new { error = error.Message }, statusCode: error.Status); }
             catch (OperationCanceledException) { return Results.Json(new { error = "NCBI request timed out or was cancelled. No automatic retry was made." }, statusCode: 504); }
             catch (Exception error) when (error is HttpRequestException or JsonException or KeyNotFoundException or FormatException or InvalidOperationException or DecoderFallbackException or OverflowException) { return Results.Json(new { error = "NCBI is unavailable or returned an unsupported response. Try later or import a saved record." }, statusCode: 502); }

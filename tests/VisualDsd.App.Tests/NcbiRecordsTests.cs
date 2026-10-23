@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using VisualDsd.App;
@@ -62,5 +63,18 @@ public class NcbiRecordsTests
         Assert.Equal(413,(await Assert.ThrowsAsync<NcbiFailure>(()=>service.FetchAsync(new("nuccore","1"),default))).Status);
         using var otherHandler=new Replies(Text("record not found"));using var otherHttp=new HttpClient(otherHandler);
         Assert.Equal(404,(await Assert.ThrowsAsync<NcbiFailure>(()=>new NcbiRecords(otherHttp).FetchAsync(new("nuccore","1"),default))).Status);
+    }
+}
+
+[Collection("Process integration")]
+public class NcbiEndpointTests(LocalHost host) : IClassFixture<LocalHost>
+{
+    [Fact]
+    public async Task Sequence_assets_are_embedded_and_validation_and_origin_guard_precede_network_access()
+    {
+        foreach(var asset in new[]{"alignment.js","blast.js","sequence-analysis-state.js","sequence-analysis-workspace.js"})Assert.Equal(HttpStatusCode.OK,(await host.Client.GetAsync("/assets/"+asset)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await host.Client.PostAsJsonAsync("/api/sequences/ncbi/fetch",new NcbiFetchRequest("unknown","x"))).StatusCode);
+        using var request=new HttpRequestMessage(HttpMethod.Post,"/api/sequences/ncbi/search"){Content=JsonContent.Create(new NcbiSearchRequest("nuccore","x"))};request.Headers.Add("Origin","https://other.example");
+        Assert.Equal(HttpStatusCode.Forbidden,(await host.Client.SendAsync(request)).StatusCode);
     }
 }

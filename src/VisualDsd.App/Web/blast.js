@@ -29,7 +29,7 @@ export function parseBlast(input,{fields=blastFields,file='',databaseVersion='',
     if(query&&row.qseqid!==query)fail(`line ${index+1}: query ID disagrees with its comment header.`);
     queries.add(row.qseqid);hits.push(row);
   }
-  if(!hits.length&&!sawComment)fail('no BLAST rows found. Use outfmt 6 or 7; XML/JSON/pairwise text are not tabular input.');
+  if(!hits.length&&(!sawComment||!program||!queries.size))fail('no recognized BLAST rows or no-hit query block found. Use outfmt 6 or 7; XML/JSON/pairwise text are not tabular input.');
   return {version:1,kind,file,databaseVersion,program,database,queries:[...queries],fields:columns.join(' '),text:input,hits};
 }
 export function readBlastImport(raw){

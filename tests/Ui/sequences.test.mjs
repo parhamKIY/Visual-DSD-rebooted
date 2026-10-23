@@ -2,10 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {validateSequence,makeSequence,parseFasta,sequenceStats,reverseComplement,translateSequence,deriveSequence,readSequenceWorkspace,addSequences,emptySequenceWorkspace,fastaFor} from '../../src/VisualDsd.App/Web/sequences.js';
-import {parseGenbank,genbankFor,featureLocation} from '../../src/VisualDsd.App/Web/genbank.js';
+import {parseGenbank,genbankFor,featureLocation,parseNcbiRecord} from '../../src/VisualDsd.App/Web/genbank.js';
 import {createDocument} from '../../src/VisualDsd.App/Web/model.js';
 import {serialiseProject,parseProject} from '../../src/VisualDsd.App/Web/project.js';
 globalThis.crypto??=webcrypto;
+test('NCBI imports preserve verbatim response bytes and reject digest/database/version mismatches',async()=>{
+ const text=gb.replaceAll('\n','\r\n')+'\r\n',sha256=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text))).toString('hex'),retrieval={service:'NCBI E-utilities',database:'nuccore',requested:'TEACHING.1',accessionVersion:'TEACHING.1',retrievedAt:'2026-10-23T00:00:00Z',url:'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=TEACHING.1',sha256};
+ const r=await parseNcbiRecord({text,retrieval});assert.equal(r.genbank.raw,text);assert.deepEqual(readSequenceWorkspace({version:1,records:[r],activeId:r.id}).records[0].retrieval,retrieval);
+ await assert.rejects(()=>parseNcbiRecord({text:text+'\n',retrieval}));await assert.rejects(()=>parseNcbiRecord({text,retrieval:{...retrieval,database:'protein'}}));await assert.rejects(()=>parseNcbiRecord({text,retrieval:{...retrieval,accessionVersion:'TEACHING.2'}}));
+});
 const dna=(sequence='ATGGCCTTTAAATGA')=>makeSequence({name:'teaching',alphabet:'DNA',sequence});
 const gb=`LOCUS       TEACHING                  15 bp    DNA     linear   SYN 01-JAN-2000
 DEFINITION  An authored teaching sequence, not an experimental record.

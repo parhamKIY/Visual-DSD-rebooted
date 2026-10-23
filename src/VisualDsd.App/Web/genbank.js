@@ -1,5 +1,15 @@
 import {makeSequence,readSequenceRecord,readSequenceWorkspace,sequenceLimits,validateSequence} from './sequences.js';
+import {readRetrieval} from './sequence-analysis-state.js';
 const fail=message=>{throw new Error(`GenBank: ${message}`);};
+export async function parseNcbiRecord(response){
+  const metadata=readRetrieval(response?.retrieval);if(!metadata||typeof response?.text!=='string'||new TextEncoder().encode(response.text).length>sequenceLimits.fileBytes)fail('invalid NCBI response.');
+  const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(response.text)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(digest!==metadata.sha256)fail('NCBI response digest mismatch.');
+  const records=parseGenbank(response.text,{file:`NCBI ${metadata.database} ${metadata.accessionVersion}`});
+  if(records.length!==1||records[0].genbank.version!==metadata.accessionVersion||(metadata.database==='protein')!==(records[0].alphabet==='protein'))fail('NCBI record, database or accession version mismatch.');
+  // Preserve the response verbatim, including CRLF and trailing blank lines.
+  records[0].genbank.raw=response.text;records[0].retrieval=metadata;return records[0];
+}
 // Coordinates are one-based, inclusive. Unsupported/remote syntax stays visible,
 // but is never guessed or used as a local feature span.
 export function featureLocation(location,length,topology='linear'){

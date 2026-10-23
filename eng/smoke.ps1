@@ -50,7 +50,7 @@ function Invoke-Standalone {
 }
 
 $version = Invoke-Standalone @('--version')
-if ($version.Trim() -ne '0.25.0') { throw "Unexpected version: $version" }
+if ($version.Trim() -ne '0.26.0') { throw "Unexpected version: $version" }
 $crnSource = Get-Content -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-graph.crn') -Raw
 $crn = Invoke-Standalone @('simulate', '-', '--language', 'crn', '--node', 'prediction', '--system', 'reversible') $crnSource | ConvertFrom-Json
 if (!$crn.success -or $crn.model.kind -ne 'crn' -or $crn.model.program.selectedNodeId -ne 'prediction' -or $crn.model.program.selectedSystemId -ne 'reversible' -or $crn.model.program.edges.Count -ne 1 -or $crn.model.simulations[0].series[0].values[0] -ne 20) { throw 'Standalone CRN selection or program mismatch.' }
@@ -239,7 +239,7 @@ try {
     $stdout = $server.StandardOutput.ReadToEndAsync()
     $page = Invoke-WebRequest "$address/" -TimeoutSec 10
     if ($page.Content -notmatch 'id="editor"' -or $page.Headers['Content-Type'] -notmatch 'text/html') { throw 'The embedded workspace is missing.' }
-    foreach ($asset in @('sequences.js','genbank.js','sequence-workspace.js','sequence-workspace.css','app.js', 'layout.js', 'live-jobs.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'learning-guide.js', 'learning-guide.css', 'logic-study.js','logic-study-workspace.js','course-export.js','course-report.js','adleman.js','adleman-workspace.js','logic-analysis.js','logic-inspector.js','logic.js','logic-workspace.js','logic-workspace.css','logic-example.json','student-workspace.js', 'student-workspace.css', 'msagl.worker.js', 'msagl.runtime.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
+    foreach ($asset in @('alignment.js','blast.js','sequence-analysis-state.js','sequence-analysis-workspace.js','sequences.js','genbank.js','sequence-workspace.js','sequence-workspace.css','app.js', 'layout.js', 'live-jobs.js', 'dsd-workspace.js', 'exports.js', 'synthesis.js', 'posterior.js', 'model.js', 'chart.js', 'network.js', 'learning-guide.js', 'learning-guide.css', 'logic-study.js','logic-study-workspace.js','course-export.js','course-report.js','adleman.js','adleman-workspace.js','logic-analysis.js','logic-inspector.js','logic.js','logic-workspace.js','logic-workspace.css','logic-example.json','student-workspace.js', 'student-workspace.css', 'msagl.worker.js', 'msagl.runtime.js', 'project.js', 'observations.js', 'exploration.js', 'app.css', 'icon.svg')) {
         if ((Invoke-WebRequest "$address/assets/$asset" -TimeoutSec 10).StatusCode -ne 200) { throw "Missing embedded asset: $asset" }
     }
     $examples = Invoke-RestMethod "$address/api/examples" -TimeoutSec 10
@@ -299,7 +299,7 @@ try {
         $remoteResult=Invoke-RestMethod "$gatewayAddress/api/jobs/$($remoteJob.id)" -TimeoutSec 10
         if([DateTime]::UtcNow -gt $expires) { throw 'The standalone remote calculation timed out.' }
     } while(!$remoteResult.finishedAt)
-    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.25.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
+    if($remoteResult.state -ne 'succeeded' -or !$remoteResult.remoteId -or $remoteResult.engineVersion -ne '0.26.0' -or $remoteResult.result.model.dsd.sequences.Count -ne 2) { throw 'Standalone remote execution failed.' }
     $events=Invoke-WebRequest "$gatewayAddress/api/jobs/$($remoteJob.id)/events" -TimeoutSec 10
     if($events.Headers['Content-Type'] -notmatch 'text/event-stream' -or $events.Content -notmatch 'event: job') { throw 'Standalone job streaming failed.' }
     $slowBody=@{code="directive simulator stochastic`n(1000 * <a> | rxn <a> ->{1.0} <a>)";operation='simulate';final=1e12;points=1;seed=42;timeoutSeconds=600} | ConvertTo-Json
