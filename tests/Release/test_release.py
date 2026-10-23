@@ -56,6 +56,21 @@ class ReleaseValidationTests(unittest.TestCase):
                 release.main()
             api.assert_not_called()
 
+    def test_rejects_checkout_mismatch_before_tag_or_download(self):
+        run = dict(status='completed', conclusion='success', event='push', head_branch='master', path='.github/workflows/engine.yml', head_repository={'full_name': 'owner/repo'}, head_sha='a' * 40)
+        with patch.dict(release.os.environ, dict(RELEASE_VERSION='0.21.0', VERIFY_RUN_ID='123', GITHUB_REPOSITORY='owner/repo')), patch.object(release, 'api', return_value=run) as api, patch.object(release.subprocess, 'check_output', return_value='b' * 40):
+            with self.assertRaisesRegex(ValueError, 'checked-out'):
+                release.main()
+            self.assertEqual(api.call_count, 1)
+
+    def test_requires_both_platform_jobs_before_any_mutation(self):
+        run = dict(status='completed', conclusion='success', event='push', head_branch='master', path='.github/workflows/engine.yml', head_repository={'full_name': 'owner/repo'}, head_sha='a' * 40)
+        jobs = dict(jobs=[dict(name='Verify (win-x64)', status='completed', conclusion='success'), dict(name='Verify (linux-x64)', status='completed', conclusion='failure')])
+        with patch.dict(release.os.environ, dict(RELEASE_VERSION='0.21.0', VERIFY_RUN_ID='123', GITHUB_REPOSITORY='owner/repo')), patch.object(release, 'api', side_effect=[run, jobs]) as api, patch.object(release.subprocess, 'check_output', return_value='a' * 40):
+            with self.assertRaisesRegex(ValueError, 'Both platform'):
+                release.main()
+            self.assertEqual(api.call_count, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

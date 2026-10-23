@@ -64,7 +64,8 @@ export class StudentWorkspace {
   t(key) { return copy[key][this.language() === 'fa' ? 1 : 0]; }
   show(screen, focus = true) {
     this.preferences.screen = screen === 'home' ? 'home' : 'workspace'; writeStudentPreferences(this.preferences); this.render();
-    if (focus) this.byId(this.preferences.screen === 'home' ? 'home-title' : this.preferences.mode === 'student' ? 'student-title' : 'model-name').focus();
+    if (focus) this.byId(this.preferences.screen === 'home' ? 'home-title' : this.preferences.mode === 'student' ? 'student-title' : 'model-name').focus({ preventScroll: this.preferences.screen === 'home' });
+    if (this.preferences.screen === 'home') window.scrollTo({ top: 0, behavior: 'instant' });
   }
   dispatch(action) {
     if (action === 'home') return this.show('home');

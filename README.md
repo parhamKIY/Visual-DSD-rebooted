@@ -251,6 +251,12 @@ pwsh ./eng/smoke.ps1 -Runtime linux-x64
 
 Executables are written to `artifacts/publish/<runtime>/`. GitHub Actions runs the same checks on Windows and Linux, then packages the verified executable with its notices and checksum. Test results are uploaded separately.
 
+### Publish a classroom release
+
+After the current `master` commit passes **Engine baseline** on both platforms, run **Publish verified classroom release** under Actions. Supply the application version and successful baseline run ID. The workflow validates the commit, both platform jobs, package hashes, archive contents and build metadata before creating a tag and draft. It publishes only after the uploaded hashes match; existing releases are not overwritten.
+
+To package a local published application, use `./eng/package.ps1 -Runtime win-x64`. Package and release validation tests run with `python -m unittest discover -s tests/Release -v`.
+
 ### Repository layout
 
 ```text
