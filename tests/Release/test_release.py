@@ -71,6 +71,13 @@ class ReleaseValidationTests(unittest.TestCase):
                 release.main()
             self.assertEqual(api.call_count, 2)
 
+    def test_draft_lookup_resolves_numeric_id_instead_of_published_tag_endpoint(self):
+        draft = dict(id=456, draft=True, assets=[])
+        with patch.object(release, 'gh', return_value='{"databaseId":456}') as gh, patch.object(release, 'api', return_value=draft) as api:
+            self.assertEqual(release.find_release('owner/repo', 'v0.21.0'), draft)
+            gh.assert_called_once_with('release', 'view', 'v0.21.0', '--repo', 'owner/repo', '--json', 'databaseId', missing=True)
+            api.assert_called_once_with('repos/owner/repo/releases/456')
+
 
 if __name__ == '__main__':
     unittest.main()

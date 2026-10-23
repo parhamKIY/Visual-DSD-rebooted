@@ -16,7 +16,7 @@ import zipfile
 def gh(*args, missing=False):
     result = subprocess.run(['gh', *args], capture_output=True, text=True, check=False)
     if result.returncode:
-        if missing and 'HTTP 404' in result.stderr:
+        if missing and ('HTTP 404' in result.stderr or result.stderr.strip().lower() == 'release not found'):
             return None
         raise RuntimeError('GitHub command failed: ' + result.stderr.strip())
     return result.stdout
@@ -25,6 +25,13 @@ def gh(*args, missing=False):
 def api(path, *args, missing=False):
     result = gh('api', path, *args, missing=missing)
     return None if result is None else json.loads(result)
+
+
+def find_release(repo, tag):
+    # The REST tag endpoint only finds published releases. CLI resolves both
+    # published and draft releases; fetch by numeric ID to verify asset digests.
+    response = gh('release', 'view', tag, '--repo', repo, '--json', 'databaseId', missing=True)
+    return None if response is None else api(f'repos/{repo}/releases/{json.loads(response)["databaseId"]}')
 
 
 def validate_package(directory, runtime, version, commit):
@@ -73,7 +80,7 @@ def main():
         if not any(j['name'] == name and j['status'] == 'completed' and j['conclusion'] == 'success' for j in jobs):
             raise ValueError('Both platform verification jobs must succeed')
     tag = 'v' + version
-    if api(f'{prefix}/releases/tags/{tag}', missing=True) is not None:
+    if find_release(repo, tag) is not None:
         raise ValueError('A release with this version already exists; it will not be overwritten')
     existing_tag = api(f'{prefix}/git/ref/tags/{tag}', missing=True)
     if existing_tag and (existing_tag['object']['type'] != 'commit' or existing_tag['object']['sha'] != commit):
@@ -88,7 +95,9 @@ def main():
             api(f'{prefix}/git/refs', '--method', 'POST', '-f', 'ref=refs/tags/' + tag, '-f', 'sha=' + commit)
         gh('release', 'create', tag, '--repo', repo, '--verify-tag', '--target', commit, '--draft', '--title', f'Visual DSD Rebooted {tag}', '--notes-file', 'distribution/RELEASE-NOTES.md')
         gh('release', 'upload', tag, *map(str, assets), '--repo', repo)
-        release = api(f'{prefix}/releases/tags/{tag}')
+        release = find_release(repo, tag)
+        if release is None or not release['draft']:
+            raise ValueError('Cannot verify the draft release')
         expected_assets = {p.name: (p.stat().st_size, 'sha256:' + hashlib.sha256(p.read_bytes()).hexdigest()) for p in assets}
         actual_assets = {a['name']: (a['size'], a.get('digest')) for a in release['assets']}
         if actual_assets != expected_assets:
