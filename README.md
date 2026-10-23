@@ -219,6 +219,21 @@ The **Sequences** workbench also provides **Pairwise alignment**, **BLAST result
 
 Import existing BLAST tabular outfmt 6/7 results (12 standard fields, optionally `qlen slen qcovhsp qcovs stitle`) to inspect and filter HSPs, identity, query coverage, E-values and bit scores. Original E-value text, including underflow-scale values, is preserved. Unknown coverage stays unknown and overlapping HSP coverages are not added. The offline example is explicitly authored teaching data. Entrez text searches and accession retrieval use a separate NCBI pathway: only the entered text/ID and database are sent, never stored sequence letters. Retrieved GenBank/GenPept records retain their accession version, timestamp, URL, original text and SHA-256. Requests are bounded, spaced and never automatically retried after failure. Live BLAST submission is not part of this reader.
 
+### Multiple alignment and evolution
+
+In **Sequences**, open **Multiple alignment** to import aligned FASTA or interleaved CLUSTAL (2–50 rows, up to 20000 columns and 500000 symbols). The paged column viewer distinguishes gaps, ambiguity and strictly conserved columns. Consensus ties remain unknown; conservation fractions include every row. Original input, column statistics and aligned FASTA can be exported.
+
+**Trees & evolution** imports one Newick tree, preserves comments, labels and branch lengths, and connects leaf IDs to alignment rows and sequence records. Explicit associations are saved; differing sequence letters produce a warning. Numeric internal labels stay labels unless the user requests reported-support display. Missing lengths, negative lengths and unknown rooting remain explicit. A scaled drawing is available only when every displayed edge has a nonnegative recorded length. SVG and Newick exports preserve the selected display and source respectively.
+
+Build educational trees from a selected alignment range using cardinality-weighted **UPGMA** or unrooted **Neighbor Joining**, p-distance or nucleotide **JC69**, and complete or pairwise deletion. The matrix includes actual compared-site counts. Undefined/saturated distances fail explicitly; negative NJ edges are retained. UPGMA assumes a molecular clock; pairwise deletion can create incompatible distances. No bootstrap support is manufactured. The last three trees retain alignment snapshots, method, settings and input digests in the project and sequence ZIP. Distances and branch paths are checked against 120 independent SciPy average-linkage/Biopython NJ reference cases.
+
+**Optional aligner** can run a separately installed native **MUSCLE 5** executable with bounded inputs, one thread, seed 0 and a two-minute timeout. It checks the major version and executable digest, validates every output ID and ungapped sequence, and saves input, arguments, original tool output and log. Failed or cancelled runs import nothing. MUSCLE is not bundled: obtain it from its [official releases](https://github.com/rcedgar/muscle/releases) and review its [GPL-3.0 license](https://github.com/rcedgar/muscle/blob/main/LICENSE). To enable it before launching the application in PowerShell:
+
+```powershell
+$env:VISUAL_DSD_MUSCLE = 'C:/Tools/muscle-win64.v5.3.exe'
+& './VisualDsd.exe'
+```
+
 ### Compare conditions and random repeats
 
 In **Compare conditions & stochastic repeats**, configure up to four conditions with ON/OFF input multipliers and optional named parameter assignments, one `name=value` per line. Named overrides must refer to declared model parameters; local `let`/`def` constants are not parameter declarations. DSD parameters are applied before module/domain expansion. The source text is preserved. Conditions retain the same units, read time and thresholds, and the earlier truth-table batch remains independent.

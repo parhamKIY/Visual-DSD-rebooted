@@ -14,7 +14,7 @@ if(args.Contains("-align"))
     if(text.Contains("GGGG")){Console.Error.Write(new string('x',100000));return 0;}
     if(text.Contains("TTTT")){await Task.Delay(Timeout.Infinite);return 0;}
     var records=text.Split('>',StringSplitOptions.RemoveEmptyEntries).Select(block=>{var lines=block.Trim().Split('\n');return(Name:lines[0],Sequence:string.Concat(lines.Skip(1)));}).ToArray();
-    int width=records.Max(r=>r.Sequence.Length);await File.WriteAllTextAsync(outputPath,string.Concat(records.Select(r=>$">{r.Name}\n{(text.Contains("ACAC")?r.Sequence.Replace('A','C'):r.Sequence).PadRight(width,'-')}\n")));return 0;
+    int width=records.Max(r=>r.Sequence.Length);await File.WriteAllTextAsync(outputPath,string.Concat(records.Reverse().Select(r=>$">{r.Name}\n{(text.Contains("ACAC")?r.Sequence.Replace('A','C'):r.Sequence).PadRight(width,'-')}\n")));return 0;
 }
 if (args.Length == 3 && args[0] == "--owner")
 {

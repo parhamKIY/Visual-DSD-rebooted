@@ -14,6 +14,7 @@ export function readMsa(raw){
   });
   if(total>msaLimits.symbols)fail('alignment exceeds 500000 symbols.');
   const source=raw.source;if(!source||!['fasta','clustal','example','muscle5'].includes(source.format))fail('invalid source format.');
+  if(source.format==='muscle5'&&raw.tool==null)fail('MUSCLE output requires tool version, input and executable provenance.');
   const result={version:1,alphabet:raw.alphabet,records,source:{format:source.format,file:text(source.file??'',240),text:text(source.text??'',msaLimits.bytes)},createdAt:text(raw.createdAt,80)};
   if(!Number.isFinite(Date.parse(result.createdAt)))fail('invalid import date.');
   if(raw.tool!=null){const t=raw.tool;if(t.name!=='MUSCLE 5'||typeof t.version!=='string'||t.version.length>500||!/^muscle\s+5[.\s]/i.test(t.version)||!/^[a-f0-9]{64}$/.test(t.executableSha256)||!/^[a-f0-9]{64}$/.test(t.inputSha256)||typeof t.inputFasta!=='string'||t.inputFasta.length>100000||!Array.isArray(t.arguments)||t.arguments.length>20||t.arguments.some(a=>typeof a!=='string'||a.length>200)||!Number.isFinite(Date.parse(t.finishedAt)))fail('invalid external-tool provenance.');result.tool={name:t.name,version:t.version,executableSha256:t.executableSha256,inputSha256:t.inputSha256,inputFasta:t.inputFasta,arguments:[...t.arguments],finishedAt:t.finishedAt,rawOutput:text(t.rawOutput??'',msaLimits.bytes),standardError:text(t.standardError??'',65536)};}

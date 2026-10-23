@@ -96,7 +96,7 @@ public sealed class NcbiRecords(HttpClient http, TimeProvider? clock = null)
     public static void Map(WebApplication app)
     {
         var client = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate }) { Timeout = TimeSpan.FromSeconds(20) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("VisualDsdRebooted/0.26.0");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("VisualDsdRebooted/"+VisualDsd.Engine.Engine.Info.Version);
         app.Lifetime.ApplicationStopped.Register(client.Dispose);
         var service = new NcbiRecords(client);
         async Task<IResult> Execute(HttpContext context, Func<CancellationToken, Task<object>> action)

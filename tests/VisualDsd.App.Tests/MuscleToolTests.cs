@@ -26,7 +26,7 @@ public class MuscleToolTests
     public async Task Real_process_adapter_retains_version_hashes_input_options_and_unchanged_letters()
     {
         var service=Probe();var status=JsonSerializer.SerializeToElement(await service.StatusAsync(default));Assert.True(status.GetProperty("available").GetBoolean());
-        var result=JsonSerializer.SerializeToElement(await service.AlignAsync(Input(),default));Assert.Contains(">second\nAC-",result.GetProperty("text").GetString());var tool=result.GetProperty("tool");Assert.Contains("authored-adapter-test-probe",tool.GetProperty("version").GetString());Assert.Equal(64,tool.GetProperty("inputSha256").GetString()!.Length);Assert.Equal(64,tool.GetProperty("executableSha256").GetString()!.Length);Assert.Contains("-threads",tool.GetProperty("arguments").EnumerateArray().Select(v=>v.GetString()));
+        var result=JsonSerializer.SerializeToElement(await service.AlignAsync(Input(),default));Assert.StartsWith(">first\n",result.GetProperty("text").GetString());Assert.Contains(">second\nAC-",result.GetProperty("text").GetString());var tool=result.GetProperty("tool");Assert.Contains("authored-adapter-test-probe",tool.GetProperty("version").GetString());Assert.Equal(64,tool.GetProperty("inputSha256").GetString()!.Length);Assert.Equal(64,tool.GetProperty("executableSha256").GetString()!.Length);Assert.Contains("-threads",tool.GetProperty("arguments").EnumerateArray().Select(v=>v.GetString()));
     }
     [Theory]
     [InlineData("CCCC")]

@@ -2,6 +2,8 @@ import {emptySequenceWorkspace,readSequenceWorkspace,addSequences,parseFasta,mak
 import {parseGenbank,genbankFor,featureLocation} from './genbank.js';
 import {zipFiles} from './course-export.js';
 import {SequenceAnalysisWorkspace} from './sequence-analysis-workspace.js';
+import {EvolutionWorkspace} from './evolution-workspace.js';
+import {msaFasta} from './msa.js';
 const storageKey='visual-dsd.sequences.v1';
 const el=(tag,value,cls)=>{const node=document.createElement(tag);if(value!=null)node.textContent=value;if(cls)node.className=cls;return node;};
 const percent=n=>n==null?'—':`${Number(n.toFixed(3))}%`;
@@ -14,11 +16,12 @@ export const sequenceExamples={
 export class SequenceWorkspace{
   constructor(dialog,hooks){
     this.dialog=dialog;this.h=hooks;this.pageStart=1;this.featureIndex=-1;
+    dialog.addEventListener('close',()=>{this.analysisView?.cancel();this.evolutionView?.cancel();});
     try{this.state=readSequenceWorkspace(JSON.parse(localStorage.getItem(storageKey)));}catch(error){this.state=emptySequenceWorkspace();this.restoreIssue=error.message;}
   }
   t(en,fa){return this.h.language()==='fa'?fa:en;}
   snapshot(){return readSequenceWorkspace(this.state);}
-  replace(raw){const state=readSequenceWorkspace(raw);for(const r of state.records)for(const f of r.genbank?.features??[])featureLocation(f.location,r.sequence.length,r.genbank.topology);this.analysisView?.cancel();this.state=state;this.persist();if(this.dialog.open)this.build();}
+  replace(raw){const state=readSequenceWorkspace(raw);for(const r of state.records)for(const f of r.genbank?.features??[])featureLocation(f.location,r.sequence.length,r.genbank.topology);this.analysisView?.cancel();this.evolutionView?.cancel();this.state=state;this.persist();if(this.dialog.open)this.build();}
   persist(){
     try{localStorage.setItem(storageKey,JSON.stringify(this.state));if(this.storageStatus)this.storageStatus.textContent=this.t('Saved in this browser','در مرورگر ذخیره شد');}
     catch{if(this.storageStatus)this.storageStatus.textContent=this.t('Session only · save the sequence workspace file','فقط این نشست؛ فایل میز کار توالی‌ها را ذخیره کن');}
@@ -33,8 +36,12 @@ export class SequenceWorkspace{
     const header=el('header',null,'logic-heading');header.append(el('h2',this.t('Sequence workbench','میز کار توالی‌ها'),'sequence-title'));this.button('sequence-close',this.t('Return to workspace','بازگشت به محیط'),()=>{this.analysisView?.cancel();this.dialog.close();},header);this.dialog.append(header);
     const body=el('div',null,'logic-body');this.dialog.append(body);
     const tabs=el('nav',null,'sequence-tabs');tabs.setAttribute('aria-label',this.t('Sequence activities','فعالیت‌های توالی'));this.page??='records';
-    for(const [page,en,fa] of [['records','Records & conversions','رکوردها و تبدیل‌ها'],['alignment','Pairwise alignment','هم‌ترازی جفتی'],['blast','BLAST results','نتایج جست‌وجوی شباهت'],['ncbi','NCBI records','رکوردهای پایگاه داده']]){const button=this.button(`sequence-tab-${page}`,this.t(en,fa),()=>{this.analysisView?.cancel();this.page=page;this.build();},tabs);button.setAttribute('aria-pressed',String(this.page===page));}body.append(tabs);
+    for(const [page,en,fa] of [['records','Records & conversions','رکوردها و تبدیل‌ها'],['alignment','Pairwise alignment','هم‌ترازی جفتی'],['blast','BLAST results','نتایج جست‌وجوی شباهت'],['ncbi','NCBI records','رکوردهای پایگاه داده'],['msa','Multiple alignment','هم‌ترازی چندگانه'],['msa-tool','Optional aligner','ابزار اختیاری هم‌ترازی'],['trees','Trees & evolution','درخت و تکامل']]){const button=this.button(`sequence-tab-${page}`,this.t(en,fa),()=>{this.analysisView?.cancel();this.evolutionView?.cancel();this.page=page;this.build();},tabs);button.setAttribute('aria-pressed',String(this.page===page));}body.append(tabs);
     const exports=el('div',null,'logic-actions');this.button('sequence-save',this.t('Save sequence workspace','ذخیرهٔ میز کار توالی‌ها'),()=>this.h.download('workspace.sequences.json',this.json(),'application/json'),exports);this.button('sequence-package',this.t('Export sequences & analysis settings','خروجی توالی‌ها و تنظیمات تحلیل'),()=>this.h.download('sequences.zip',this.package(),'application/zip'),exports);body.append(exports);
+    if(['msa','msa-tool','trees'].includes(this.page)){
+      this.evolutionView??=new EvolutionWorkspace({language:()=>this.h.language(),state:()=>this.state,save:evolution=>{const analysis={...(this.state.analysis??{version:1,alignments:[],blast:null,search:null}),evolution};this.state=readSequenceWorkspace({...this.state,analysis});this.persist();},add:records=>{this.state=addSequences(this.state,records);this.persist();},refresh:()=>this.build(),openRecord:id=>{this.state.activeId=id;this.page='records';this.persist();this.build();},download:this.h.download});
+      this.evolutionView.render(body,this.page);return;
+    }
     if(this.page!=='records'){
       this.analysisView??=new SequenceAnalysisWorkspace({language:()=>this.h.language(),state:()=>this.state,save:analysis=>{this.state=readSequenceWorkspace({...this.state,analysis});this.persist();},add:records=>{this.state=addSequences(this.state,records);this.persist();},refresh:()=>this.build(),download:this.h.download});
       this.analysisView.render(body,this.page);return;
@@ -112,6 +119,7 @@ export class SequenceWorkspace{
   package(){
     const state=this.snapshot(),files=[{name:'workspace.sequences.json',data:this.json()},{name:'conversion-settings.json',data:JSON.stringify({engineVersion:this.h.version(),records:state.records.map(r=>({id:r.id,name:r.name,alphabet:r.alphabet,source:r.source,retrieval:r.retrieval,provenance:r.provenance,statistics:sequenceStats(r)}))},null,2)}];
     if(state.analysis){files.push({name:'analyses/settings-and-inputs.json',data:JSON.stringify(state.analysis,null,2)});if(state.analysis.blast)files.push({name:'analyses/blast-original.tsv',data:state.analysis.blast.text});}
+    const evolution=state.analysis?.evolution;if(evolution){if(evolution.alignment){files.push({name:'evolution/alignment.afa',data:msaFasta(evolution.alignment)},{name:'evolution/alignment-original.txt',data:evolution.alignment.source.text});if(evolution.alignment.tool)files.push({name:'evolution/tool-original-output.afa',data:evolution.alignment.tool.rawOutput},{name:'evolution/tool-input.fasta',data:evolution.alignment.tool.inputFasta},{name:'evolution/tool-log.txt',data:evolution.alignment.tool.standardError});}evolution.trees.forEach((t,i)=>{files.push({name:`evolution/tree-${i+1}.nwk`,data:t.newick});if(t.alignment)files.push({name:`evolution/tree-${i+1}-input.afa`,data:msaFasta(t.alignment)});});}
     for(const type of ['DNA','RNA','protein']){const records=state.records.filter(r=>r.alphabet===type);if(records.length)files.push({name:`${type}.fasta`,data:fastaFor(records)});}
     state.records.forEach((r,i)=>{files.push({name:`genbank/record-${i+1}.gb`,data:genbankFor([r])});if(r.genbank)files.push({name:`original-sources/record-${i+1}.gb`,data:r.genbank.raw});});return zipFiles(files);
   }
