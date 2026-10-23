@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {validateSequence,makeSequence,parseFasta,sequenceStats,reverseComplement,translateSequence,deriveSequence,readSequenceWorkspace,addSequences,emptySequenceWorkspace,fastaFor} from '../../src/VisualDsd.App/Web/sequences.js';
 import {parseGenbank,genbankFor,featureLocation} from '../../src/VisualDsd.App/Web/genbank.js';
+import {createDocument} from '../../src/VisualDsd.App/Web/model.js';
+import {serialiseProject,parseProject} from '../../src/VisualDsd.App/Web/project.js';
 globalThis.crypto??=webcrypto;
 const dna=(sequence='ATGGCCTTTAAATGA')=>makeSequence({name:'teaching',alphabet:'DNA',sequence});
 const gb=`LOCUS       TEACHING                  15 bp    DNA     linear   SYN 01-JAN-2000
@@ -30,7 +32,7 @@ test('multi-record FASTA preserves metadata and case-insensitive IUPAC symbols, 
   const rows=parseFasta('\uFEFF>first description\r\nacgt nry\r\n;comment\r\n>second\r\nSSWW\r\n','DNA');assert.equal(rows.length,2);assert.equal(rows[0].description,'description');assert.equal(rows[0].sequence,'ACGTNRY');assert.deepEqual(parseFasta(fastaFor(rows),'DNA').map(r=>r.sequence),rows.map(r=>r.sequence));
   assert.equal(validateSequence('mkwvuo*xj','protein'),'MKWVUO*XJ');assert.equal(validateSequence('ACGU N','RNA'),'ACGUN');
   for(const raw of ['>x\nACGT\n>x\nA','ACGT','>empty\n','>x\nAC-GT','>x\nACGT1','>x\nACGU'])assert.throws(()=>parseFasta(raw,'DNA'));
-  assert.throws(()=>validateSequence('ATGC','RNA'));assert.throws(()=>validateSequence('A'.repeat(200001),'DNA'));
+  assert.throws(()=>validateSequence('ATGC','RNA'));assert.throws(()=>validateSequence('A'.repeat(200001),'DNA'));assert.throws(()=>validateSequence('ß','DNA'));assert.throws(()=>validateSequence('ſ','protein'));
 });
 test('reverse complement handles all IUPAC bases, preserves 5-to-3 convention and is involutive',()=>{
   assert.equal(reverseComplement('ACGTRYSWKMBDHVN'),'NBDHVKMWSRYACGT');
@@ -74,4 +76,12 @@ test('sequence workspace roundtrip is independent of model limits, atomic on fai
   const same=dna();assert.equal(addSequences(workspace,[same]).records[1].name,'teaching_2');assert.equal(workspace.records.length,1);
   for(const raw of [{...workspace,activeId:'missing'},{...workspace,records:[record,record]},{...workspace,version:2}])assert.throws(()=>readSequenceWorkspace(raw));
   assert.throws(()=>addSequences(workspace,[{...same,sequence:'invalid!'}]));assert.equal(workspace.records.length,1);
+});
+
+test('ordinary DSD projects retain separate sequence records and validate annotation bounds',async()=>{
+  const record=parseGenbank(gb)[0],protein=await deriveSequence(record,'translate',{cds:true}),sequences=addSequences(emptySequenceWorkspace(),[record,protein]),model=createDocument();
+  const exported=serialiseProject([model],model.id,new Map(),'0.25.0',sequences),restored=parseProject(exported);
+  assert.deepEqual(restored.sequences,sequences);assert.equal(restored.documents[0].code,model.code);assert.equal(restored.sequences.records[1].sequence,'MAFK');
+  assert.deepEqual(parseProject(serialiseProject([model],model.id,new Map(),'0.24.0')).sequences,emptySequenceWorkspace());
+  const bad=JSON.parse(exported);bad.sequences.records[0].genbank.features[0].location='1..99';assert.throws(()=>parseProject(JSON.stringify(bad)));
 });

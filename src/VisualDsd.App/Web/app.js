@@ -3,6 +3,7 @@ import { StudentWorkspace } from './student-workspace.js';
 import { LogicWorkspace } from './logic-workspace.js';
 import { CourseReport } from './course-report.js';
 import { AdlemanWorkspace } from './adleman-workspace.js';
+import { SequenceWorkspace } from './sequence-workspace.js';
 import { readLogicState } from './logic.js';
 import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
@@ -42,7 +43,8 @@ const pendingKey=STORAGE_KEY+'.pending-job';
 let documents = [], activeId, activeJob = null, examples = [], persistTimer, toastTimer, canPersist = true, engineVersion = 'unknown', importTarget = null;
 const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); renderCourseLabels(); } });
 const studentWorkspace = new StudentWorkspace({ language: () => learningGuide.language, setLanguage: language => learningGuide.setLanguage(language), action: studentAction });
-const courseReport = new CourseReport($('course-report-dialog'),{model:()=>current(),view:id=>stateFor(id),project:(selectedId=activeId)=>serialiseProject(documents,selectedId,views,engineVersion),language:()=>learningGuide.language,busy:()=>Boolean(activeJob),persist,download,error:error=>toast(error.message)});
+const sequenceWorkspace = new SequenceWorkspace($('sequence-dialog'),{language:()=>learningGuide.language,version:()=>engineVersion,download});
+const courseReport = new CourseReport($('course-report-dialog'),{model:()=>current(),view:id=>stateFor(id),project:(selectedId=activeId)=>serialiseProject(documents,selectedId,views,engineVersion,sequenceWorkspace.snapshot()),language:()=>learningGuide.language,busy:()=>Boolean(activeJob),persist,download,error:error=>toast(error.message)});
 const adlemanWorkspace = new AdlemanWorkspace($('adleman-dialog'),{language:()=>learningGuide.language,download});
 const logicWorkspace = new LogicWorkspace($('logic-dialog'), { model: () => current(), request: requestFor, language: () => learningGuide.language, version: () => engineVersion, busy: () => Boolean(activeJob), persist, download, save: saveProject, stop: cancelJob, session: logicSession, report:model=>courseReport.open(model),
   import: async file => {
@@ -139,7 +141,7 @@ function stem() { return current().name.replace(/\.[^.]+$/, '') || 'model'; }
 function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model download started.'); }
 function saveProject() {
   if (activeJob) return toast('Wait for the calculation to finish before saving the project.');
-  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion), 'application/json'); state().studentSavedResponse = state().response; renderStudent(); toast('Project download started, including saved results.'); }
+  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion,sequenceWorkspace.snapshot()), 'application/json'); state().studentSavedResponse = state().response; renderStudent(); toast('Project download started, including saved results.'); }
   catch (error) { toast(error.message); }
 }
 async function openProject(file) {
@@ -151,6 +153,7 @@ async function openProject(file) {
     if (activeJob) throw new Error('Stop the running calculation before opening a project.');
     if (!confirm('Replace the open workspace with this project? Save your current project first if you want to keep it.')) return;
     clearTimeout(persistTimer); documents = imported.documents; activeId = imported.activeId; views.clear();
+    sequenceWorkspace.replace(imported.sequences);
     for (const [id, restored] of imported.views) Object.assign(stateFor(id), restored, { status: `Restored result · engine ${restored.snapshot.engineVersion}` });
     selectDocument(activeId); studentWorkspace.show('workspace'); toast('Project opened. Saved results have been restored.');
   } catch (error) { toast(error.message); }
@@ -909,10 +912,13 @@ $('save-preview').addEventListener('click',()=>{const preview=state().live?.prev
 
 function renderCourseLabels(){
   const fa=learningGuide.language==='fa';
-  for(const [id,en,per] of [['course-home-title','Explore feedback & DNA computing','کاوش بازخورد و محاسبات دی‌ان‌ای'],['course-home-help','Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.','یک مدل بازخورد پویا را مقایسه کن یا الگوریتم تولید و پالایش آدلمن را دنبال کن.'],['course-feedback','Open feedback lesson','باز کردن درس بازخورد'],['course-adleman','Open Adleman lab','باز کردن آزمایش آدلمن'],['course-report','Exercise report','گزارش تمرین'],['logic-report','Exercise report','گزارش تمرین']])$(id).textContent=fa?per:en;
+  for(const [id,en,per] of [['sequence-open','Sequences','توالی‌ها'],['home-sequences','Open sequence workbench','باز کردن میز کار توالی‌ها'],['home-sequences-title','Explore DNA, RNA & proteins','کاوش دی‌ان‌ای، آر‌ان‌ای و پروتئین'],['home-sequences-help','Import FASTA or GenBank, inspect annotations, reverse complement, transcribe and translate with recorded settings.','فستا یا ژن‌بانک را وارد کن؛ حاشیه‌نویسی، مکمل معکوس، رونویسی و ترجمه را با تنظیمات ثبت‌شده ببین.'],['course-home-title','Explore feedback & DNA computing','کاوش بازخورد و محاسبات دی‌ان‌ای'],['course-home-help','Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.','یک مدل بازخورد پویا را مقایسه کن یا الگوریتم تولید و پالایش آدلمن را دنبال کن.'],['course-feedback','Open feedback lesson','باز کردن درس بازخورد'],['course-adleman','Open Adleman lab','باز کردن آزمایش آدلمن'],['course-report','Exercise report','گزارش تمرین'],['logic-report','Exercise report','گزارش تمرین']])$(id).textContent=fa?per:en;
   $('course-feedback').disabled=Boolean(activeJob)||!examples.some(e=>e.id==='feedback');
 }
 $('course-report').addEventListener('click',()=>courseReport.open());
 $('course-adleman').addEventListener('click',()=>adlemanWorkspace.open());
 $('course-feedback').addEventListener('click',()=>{if(!activeJob)learningGuide.open('feedback');});
 renderCourseLabels();
+
+$('sequence-open').addEventListener('click',()=>sequenceWorkspace.open());
+$('home-sequences').addEventListener('click',()=>sequenceWorkspace.open());

@@ -26,7 +26,9 @@ export function parseGenbank(input,{file=''}={}){
   if(block.length)fail('record is missing its // terminator.');if(!blocks.length||blocks.length>sequenceLimits.records)fail('use 1–100 records.');
   const records=blocks.map(rows=>{
     const locus=rows[0].match(/^LOCUS\s+(\S+)\s+(\d+)\s+(bp|aa)\b(.*)$/i);if(!locus)fail('LOCUS must include an identifier, sequence length and bp/aa units.');
-    const [,name,declared,unit,rest]=locus,alphabet=unit.toLowerCase()==='aa'?'protein':/RNA/i.test(rest)?'RNA':'DNA',topology=/\bcircular\b/i.test(rest)?'circular':'linear';
+    const [,name,declared,unit,rest]=locus;
+    if(unit.toLowerCase()==='bp'&&!/DNA|RNA/i.test(rest))fail('LOCUS must declare DNA or RNA; the molecule type is not inferred from letters.');
+    const alphabet=unit.toLowerCase()==='aa'?'protein':/RNA/i.test(rest)?'RNA':'DNA',topology=/\bcircular\b/i.test(rest)?'circular':'linear';
     const origin=rows.findIndex(l=>/^ORIGIN\b/.test(l));if(origin<0||rows.slice(origin+1,-1).some(l=>!/^[\sa-zA-Z0-9*]*$/.test(l)))fail('ORIGIN sequence is missing or contains invalid characters. CONTIG-only records are not supported.');
     const sequenceText=rows.slice(origin+1,-1).join('').replace(/[\s0-9]/g,'').toUpperCase();
     // GenBank convention uses T even for mRNA; the RNA document uses U.
@@ -59,8 +61,9 @@ const wrap=(prefix,value,width=79)=>{const lines=[];let rest=String(value);const
 export function genbankFor(records){
   return records.map(raw=>{
     const r=readSequenceRecord(raw),g=r.genbank,unit=r.alphabet==='protein'?'aa':'bp',molecule=r.alphabet==='protein'?'':r.alphabet==='DNA'?'DNA':'RNA',locus=r.name.replace(/[^A-Za-z0-9_.-]/g,'_');
-    const header=`LOCUS       ${locus.padEnd(16)} ${String(r.sequence.length).padStart(11)} ${unit}    ${molecule.padEnd(6)}  ${(g?.topology??'linear').padEnd(8)} UNK 01-JAN-2000`;
-    const lines=[header,wrap('DEFINITION  ',r.description||'.'),`ACCESSION   ${g?.accession||locus}`,`VERSION     ${g?.version||locus}`,wrap('COMMENT     ','Educational export; the LOCUS date is a placeholder, not a collection or release date. Original imported text and conversion settings are retained in the sequence workspace JSON.')];
+    const now=new Date(),date=g?.raw.split('\n')[0].match(/\b\d{2}-[A-Z]{3}-\d{4}\s*$/)?.[0].trim()??`${String(now.getUTCDate()).padStart(2,'0')}-${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][now.getUTCMonth()]}-${now.getUTCFullYear()}`;
+    const header=`LOCUS       ${locus.padEnd(16)} ${String(r.sequence.length).padStart(11)} ${unit}    ${molecule.padEnd(6)}  ${(g?.topology??'linear').padEnd(8)} UNK ${date}`;
+    const lines=[header,wrap('DEFINITION  ',r.description||'.'),`ACCESSION   ${g?.accession||locus}`,`VERSION     ${g?.version||locus}`,wrap('COMMENT     ','Educational export. LOCUS preserves the imported date when available; otherwise it uses the UTC export date. The original imported text and conversion settings are retained in the sequence workspace JSON.')];
     if(g?.organism)lines.push(wrap('  ORGANISM  ',g.organism));
     if(r.provenance)lines.push(wrap('COMMENT     ',`Derived by ${r.provenance.operation} from ${r.provenance.inputName}; input SHA256 ${r.provenance.inputSha256}. Source annotations were not copied.`));
     lines.push('FEATURES             Location/Qualifiers');

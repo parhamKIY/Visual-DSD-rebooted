@@ -207,6 +207,12 @@ The summary reports measurement coverage and the worst measured cases, excluding
 
 **Save project & trajectories** preserves the source snapshot, mappings, expected function, settings, engine version, job IDs and completed curves. **Truth table CSV** exports the comparison. Reopening a project recalculates the interpretation from saved curves; editing the source or experiment marks the earlier batch stale. Reloading pauses submission of new cases; **Continue unfinished cases** reconnects to an admitted job before proceeding. An ambiguous submission is never automatically repeated. Stop leaves unsubmitted cases available for an explicit continuation. Save before replacing an experiment batch.
 
+### Biological sequence workbench
+
+Open **Sequences** in the toolbar or **Open sequence workbench** on Start. Import multi-record FASTA with an explicit DNA/RNA/protein alphabet, or annotated GenBank records. Inspect one-based feature coordinates and a paged sequence view, calculate called-base GC and ambiguity bounds, reverse complement, transcribe the displayed coding strand, and translate any of six frames with NCBI tables 1, 2 or 11. Complete-CDS mode validates initiation and termination separately from ordinary frame translation.
+
+Conversions create independent records with the input digest and selected settings. Source annotations remain on the original record. Both the main project and a standalone sequence-workspace JSON preserve these documents; sequence ZIP exports include typed FASTA, GenBank, original imported GenBank text and conversion settings. Remote/unsupported feature locations remain labelled, and annotation exceptions and splicing are not inferred. English and Persian guidance and authored examples are built in. Limits: 100 records, 200000 symbols per record, 1000000 total symbols and 8 MiB including annotations.
+
 ### Compare conditions and random repeats
 
 In **Compare conditions & stochastic repeats**, configure up to four conditions with ON/OFF input multipliers and optional named parameter assignments, one `name=value` per line. Named overrides must refer to declared model parameters; local `let`/`def` constants are not parameter declarations. DSD parameters are applied before module/domain expansion. The source text is preserved. Conditions retain the same units, read time and thresholds, and the earlier truth-table batch remains independent.

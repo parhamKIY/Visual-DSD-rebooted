@@ -5,6 +5,8 @@ import { readDatasets, readObservations } from './observations.js';
 import { splitRHat } from './posterior.js';
 import { readSynthesis } from './synthesis.js';
 import { readLogicState, readLogicCase, readLogicReport } from './logic.js';
+import { readSequenceWorkspace } from './sequences.js';
+import { featureLocation } from './genbank.js';
 
 export const MAX_PROJECT_BYTES = 16 * 1024 * 1024;
 const fail = message => { throw new Error(`Invalid project: ${message}`); };
@@ -360,10 +362,12 @@ export function parseProject(input) {
   if (!documents.some(model => model.id === raw.activeId)) fail('active model is missing.');
   const views = new Map();
   for (let index = 0; index < documents.length; index++) if (raw.documents[index].result != null) views.set(documents[index].id, readSavedResult(raw.documents[index].result, documents[index]));
-  return { documents, activeId: raw.activeId, views };
+  const sequences=readSequenceWorkspace(raw.sequences);
+  for(const record of sequences.records)for(const feature of record.genbank?.features??[])featureLocation(feature.location,record.sequence.length,record.genbank.topology);
+  return { documents, activeId: raw.activeId, views, sequences };
 }
 
-export function serialiseProject(documents, activeId, views, engineVersion) {
+export function serialiseProject(documents, activeId, views, engineVersion, sequences) {
   const raw = { format: 'visual-dsd-project', version: 1, engineVersion, savedAt: new Date().toISOString(), activeId, documents: documents.map(model => {
     const entry = { id: model.id, name: model.name, code: model.code, options: model.options, databases: model.databases, data: readDatasets(model.data), exampleId: model.exampleId };
     if(model.logic)entry.logic=readLogicState(model.logic);
@@ -372,6 +376,7 @@ export function serialiseProject(documents, activeId, views, engineVersion) {
     if (view?.response) entry.result = { ...view.snapshot, engineVersion: view.snapshot?.engineVersion || engineVersion, response: view.response, fitNodeId: view.fitNodeId, fitParameter: view.fitParameter, fitPair: view.fitPair, runIndex: view.runIndex, tab: view.tab, networkFocus: view.networkFocus || '', spatialSeries: view.spatialSeries || 0, spatialFrame: view.spatialFrame || 0, stateIndex: view.stateIndex || 0, probabilitySpecies: view.probabilitySpecies || 0, probabilityFrame: view.probabilityFrame || 0, probabilityLog: Boolean(view.probabilityLog) };
     return entry;
   }) };
+  if(sequences!==undefined)raw.sequences=readSequenceWorkspace(sequences);
   const json = JSON.stringify(raw);
   parseProject(json);
   return json;

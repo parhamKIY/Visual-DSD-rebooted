@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/assets/learning-guide.css">
   <link rel="stylesheet" href="/assets/student-workspace.css">
   <link rel="stylesheet" href="/assets/logic-workspace.css">
+  <link rel="stylesheet" href="/assets/sequence-workspace.css">
   <script type="module" src="/assets/app.js"></script>
 </head>
 <body>
@@ -20,6 +21,7 @@
     <span id="connection" class="connection"><span class="status-dot"></span>Connecting</span>
     <button id="toggle-models" class="icon-button mobile-models" title="Models and examples" aria-label="Models and examples" aria-expanded="false" aria-controls="model-sidebar">☷</button>
     <button id="course-report" class="button secondary compact" type="button">Exercise report</button>
+    <button id="sequence-open" class="button secondary compact" type="button">Sequences</button>
     <button id="logic-open" class="button secondary compact" type="button">Logic experiment</button>
     <button id="show-jobs" class="button secondary compact" type="button">Jobs</button><span id="execution-mode" class="muted"></span>
     <button id="shortcuts" class="icon-button" title="Keyboard shortcuts" aria-label="Keyboard shortcuts">?</button>
@@ -34,6 +36,7 @@
     </div>
     <section class="home-logic"><div><h2 id="home-logic-title">Test a logic circuit</h2><p id="home-logic-help">Bring Seesaw-generated Visual DSD code, set the input concentrations and compare every case with the expected truth table.</p></div><button id="home-logic" class="button primary" type="button">Open logic experiment</button></section>
 <section class="home-course"><div><h2 id="course-home-title">Explore feedback &amp; DNA computing</h2><p id="course-home-help">Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.</p></div><div class="logic-actions"><button id="course-feedback" class="button secondary" type="button">Open feedback lesson</button><button id="course-adleman" class="button secondary" type="button">Open Adleman lab</button></div></section>
+    <section class="home-course"><div><h2 id="home-sequences-title">Explore DNA, RNA &amp; proteins</h2><p id="home-sequences-help">Import FASTA or GenBank, inspect annotations, reverse complement, transcribe and translate with recorded settings.</p></div><button id="home-sequences" type="button" class="button primary">Open sequence workbench</button></section>
     <footer class="home-footer"><p data-student-copy="local"></p><p id="home-storage" role="status" data-student-copy="storage" hidden></p><div><span id="home-connection" role="status"></span><span id="home-version" dir="ltr"></span></div></footer>
   </main>
   <div id="workspace-container" class="workspace" hidden>
@@ -234,5 +237,6 @@
   </dialog>
   <dialog id="course-report-dialog" class="logic-dialog"></dialog>
   <dialog id="adleman-dialog" class="logic-dialog"></dialog>
+  <dialog id="sequence-dialog" class="sequence-dialog"></dialog>
 </body>
 </html>

@@ -6,7 +6,9 @@ const fail=message=>{throw new Error(`Sequences: ${message}`);};
 const text=(value,max=1000)=>{if(typeof value!=='string'||value.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value))fail('invalid text field.');return value;};
 export function validateSequence(input,alphabet){
   if(!['DNA','RNA','protein'].includes(alphabet))fail('choose DNA, RNA or protein explicitly.');
-  text(input,sequenceLimits.fileBytes);const sequence=input.replace(/\s/g,'').toUpperCase();
+  text(input,sequenceLimits.fileBytes);const compact=input.replace(/\s/g,'');
+  if(/[^\x00-\x7f]/.test(compact))fail('sequence symbols must be ASCII IUPAC letters.');
+  const sequence=compact.toUpperCase();
   if(!sequence.length||sequence.length>sequenceLimits.recordBases)fail('use 1–200000 sequence symbols per record.');
   const allowed=alphabet==='protein'?'ACDEFGHIKLMNPQRSTVWYBXZJUO*':alphabet==='DNA'?'ACGTRYSWKMBDHVN':'ACGURYSWKMBDHVN';
   for(let i=0;i<sequence.length;i++)if(!allowed.includes(sequence[i]))fail(`invalid ${alphabet} symbol “${sequence[i]}” at position ${i+1}. Use ungapped IUPAC sequences; RNA uses U and DNA uses T.`);
@@ -57,7 +59,7 @@ export function translateSequence(record,{frame=1,table=1,toStop=false,cds=false
   if(record.alphabet==='protein')fail('translation requires DNA or RNA.');
   if(![1,2,3,-1,-2,-3].includes(frame)||!Object.hasOwn(geneticCodes,table)||typeof toStop!=='boolean'||typeof cds!=='boolean')fail('invalid translation options.');
   let sequence=validateSequence(record.sequence,record.alphabet);if(frame<0)sequence=reverseComplement(sequence,record.alphabet);sequence=sequence.replace(/U/g,'T').slice(Math.abs(frame)-1);
-  const tail=sequence.length%3,code=geneticCodes[table],codons=[];for(let i=0;i+2<sequence.length;i+=3)codons.push(codonInfo(sequence.slice(i,i+3),code));
+  const tail=sequence.length%3,code=geneticCodes[table],codons=[],cache=new Map();for(let i=0;i+2<sequence.length;i+=3){const triplet=sequence.slice(i,i+3);if(!cache.has(triplet))cache.set(triplet,codonInfo(triplet,code));codons.push(cache.get(triplet));}
   if(!codons.length)fail('the selected frame has no complete codon.');
   if(cds&&(tail||!codons[0].certainStart||codons.at(-1).residue!=='*'||codons.slice(1,-1).some(c=>c.mayStop)))fail('complete CDS mode requires a valid start, a final stop, no partial codon and no possible internal stop. Exceptions such as transl_except are not applied.');
   let protein='',stoppedAt=null;const ambiguousStopCodons=[];
@@ -104,7 +106,9 @@ export function readSequenceWorkspace(raw){
   const records=raw.records.map(readSequenceRecord);
   if(new Set(records.map(r=>r.id)).size!==records.length||records.reduce((sum,r)=>sum+r.sequence.length,0)>sequenceLimits.bases)fail('duplicate record IDs or workspace exceeds 1000000 symbols.');
   if(records.length?!records.some(r=>r.id===raw.activeId):raw.activeId!==null)fail('selected sequence is missing.');
-  return {version:1,records,activeId:raw.activeId};
+  const result={version:1,records,activeId:raw.activeId};
+  if(new TextEncoder().encode(JSON.stringify(result)).length>8*1024*1024)fail('sequence workspace exceeds 8 MiB including annotations.');
+  return result;
 }
 export function addSequences(workspace,added){
   const existing=new Set(workspace.records.map(r=>r.name));const records=added.map(raw=>{const r=readSequenceRecord(raw),base=r.name;let suffix=2;while(existing.has(r.name))r.name=`${base.slice(0,110)}_${suffix++}`;existing.add(r.name);return r;});
