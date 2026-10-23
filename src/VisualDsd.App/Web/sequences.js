@@ -1,3 +1,4 @@
+import {readRetrieval,readSequenceAnalysis} from './sequence-analysis-state.js';
 // Biological sequence documents are independent of DSD domain/strand mappings.
 export const sequenceLimits={records:100,bases:1000000,recordBases:200000,fileBytes:5*1024*1024};
 export const nucleotideCodes={A:'A',C:'C',G:'G',T:'T',R:'AG',Y:'CT',S:'CG',W:'AT',K:'GT',M:'AC',B:'CGT',D:'AGT',H:'ACT',V:'ACG',N:'ACGT'};
@@ -84,6 +85,7 @@ export async function deriveSequence(record,operation,options={}){
 export function readSequenceRecord(raw){
   if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('invalid sequence record.');
   const record=makeSequence(raw);record.id=text(raw.id,80);if(!/^[A-Za-z0-9_-]{1,80}$/.test(record.id))fail('invalid sequence record identifier.');
+  if(raw.retrieval!=null)record.retrieval=readRetrieval(raw.retrieval);
   if(!raw.source||!['manual','fasta','genbank','derived','example'].includes(raw.source.format))fail('invalid sequence source.');
   record.source={format:raw.source.format,file:text(raw.source.file??'',240)};
   if(raw.genbank!==null&&raw.genbank!==undefined){
@@ -107,6 +109,7 @@ export function readSequenceWorkspace(raw){
   if(new Set(records.map(r=>r.id)).size!==records.length||records.reduce((sum,r)=>sum+r.sequence.length,0)>sequenceLimits.bases)fail('duplicate record IDs or workspace exceeds 1000000 symbols.');
   if(records.length?!records.some(r=>r.id===raw.activeId):raw.activeId!==null)fail('selected sequence is missing.');
   const result={version:1,records,activeId:raw.activeId};
+  if(raw.analysis!=null)result.analysis=readSequenceAnalysis(raw.analysis);
   if(new TextEncoder().encode(JSON.stringify(result)).length>8*1024*1024)fail('sequence workspace exceeds 8 MiB including annotations.');
   return result;
 }
