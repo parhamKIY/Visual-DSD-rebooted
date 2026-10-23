@@ -24,7 +24,10 @@ The application ships with its web interface and runtime. Downloaded builds need
 | --- | --- |
 | Follow a student journey | Start a lesson, import a model or resume a project; Check → Simulate → Review → Download follows current completed results. Switch to Full workspace for advanced tools |
 | Test logic circuits | Import Seesaw-generated DSD, run up to 16 input cases, follow signals between Boolean nodes, molecular drawings and curves, measure leakage, threshold margin and sustained response, export CSV and save reproducible experiments |
-| Learn with examples | 17 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
+| Compare conditions | Vary input concentrations and declared model parameters, run seeded SSA repeats, retain every case, compare measured outcomes and export the recorded plan and results |
+| Explore molecular computing | Compare an illustrative negative-feedback CRN and walk through an independent, bounded Adleman filtering lab with explicit assumptions |
+| Submit an exercise | Write your own interpretation, download a printable report or a self-contained ZIP with project, source, settings, CSV and vector plots |
+| Learn with examples | 18 guided lessons with Persian/English explanations, click-by-click instructions, expected observations, small experiments and a glossary; teaching copies preserve your edited models |
 | Edit reaction networks | Standalone CRN source, multiple systems, selectable model nodes, and dependency graph inspection |
 | Write models | Current and legacy Visual DSD syntax, source diagnostics, built-in examples, multiple editable models |
 | Configure DSD | Source defaults or per-document overrides for reactions, kinetics, domain checking, JIT and molecular rendering |
@@ -96,7 +99,7 @@ The editor and results start at equal widths. Drag their center divider to resiz
 
 **Syntax**, beside the editor title, offers **Auto-detect**, **Current**, and **Old syntax**. Auto-detect accepts pasted legacy programs without a filename or `//old_syntax` marker: if current-syntax parsing fails, it tries the original Silverlight converter. A valid current program keeps its current interpretation; explicit syntax choices are always honored. The badge shows the resolved syntax after checking or running. The converter's original unsupported directives remain subject to the compatibility limits below.
 
-The searchable library contains 17 workspace examples and all 108 `.txt` / `.dna` sources from the frozen original DSD example collection, grouped by category. Original source text is preserved. These include research models, Rules DSD and WalkerTalk demonstrations; some need additional declarations or data, and inclusion does not establish that every example successfully simulates.
+The searchable library contains 18 workspace examples and all 108 `.txt` / `.dna` sources from the frozen original DSD example collection, grouped by category. Original source text is preserved. These include research models, Rules DSD and WalkerTalk demonstrations; some need additional declarations or data, and inclusion does not establish that every example successfully simulates.
 
 Spatial initial conditions retain their resolved field definition, with full double precision, in results and saved projects. Open **Spatial initial definition** on a species card to inspect point sources, rectangles, central cores and random initialization settings. For repeated DSD declarations of the same species, the original compiler keeps the last spatial definition; CRN input retains separate contributions. Older projects that did not save this metadata remain readable.
 
@@ -203,6 +206,26 @@ Select **Inspect case**, then choose a logic input/output, molecular card, curve
 The summary reports measurement coverage and the worst measured cases, excluding unavailable simulations. These calculations use linear interpolation and cannot detect transients between saved samples; response delay is a threshold settling measure rather than a 10–90% rise time. **Metrics CSV** retains full numeric precision, units, window, thresholds and job provenance. Older projects without input trajectories remain readable and explicitly show missing input traces.
 
 **Save project & trajectories** preserves the source snapshot, mappings, expected function, settings, engine version, job IDs and completed curves. **Truth table CSV** exports the comparison. Reopening a project recalculates the interpretation from saved curves; editing the source or experiment marks the earlier batch stale. Reloading pauses submission of new cases; **Continue unfinished cases** reconnects to an admitted job before proceeding. An ambiguous submission is never automatically repeated. Stop leaves unsubmitted cases available for an explicit continuation. Save before replacing an experiment batch.
+
+### Compare conditions and random repeats
+
+In **Compare conditions & stochastic repeats**, configure up to four conditions with ON/OFF input multipliers and optional named parameter assignments, one `name=value` per line. Named overrides must refer to declared model parameters; local `let`/`def` constants are not parameter declarations. DSD parameters are applied before module/domain expansion. The source text is preserved. Conditions retain the same units, read time and thresholds, and the earlier truth-table batch remains independent.
+
+Choose deterministic **Oslo** with one repeat, or **SSA** with 1–8 repeats and an explicit base seed. The total is limited to 64 case simulations. Each repeat adds 16 to the base seed and each input case adds its zero-based index; matching conditions share repeat seeds for paired comparisons. SSA uses the source model's stochastic scaling. Comparisons require one trajectory and no source reaction-step limit; the plan manages repeats. The terminal sample is recorded only after the solver reaches the requested final time. Saved SSA curves use the last recorded value between samples, rather than interpolating a continuous concentration. A finite sample grid can miss intervening events.
+
+Inspect individual curves and per-condition/case/output means and sample standard deviations. Sample SD uses `n−1` and is unavailable for fewer than two completed measurements. Unknown logical values, execution failures and response delays not reached by the window end are counted separately; unavailable data never become zeros. Reached-delay means exclude not-reached delays and show their measurement count. Simulation repeats are not biological replicates or evidence of wet-lab reliability. **Comparison CSV** preserves each case's seed, overrides, observed state, metrics and job provenance. Continue unfinished comparisons explicitly after a reload; an ambiguous admission is never automatically repeated.
+
+## Explore feedback and Adleman's algorithm
+
+The Start page offers **Open feedback lesson**. Its four-reaction mass-action CRN compares an open loop (`feedback=0`) and a closed negative autoregulation loop (`feedback=1`) with matched initial conditions and rates. The protein binds a promoter and reduces subsequent production; free and bound promoter populations sum to a conserved total. The reactions define an illustrative gene-regulation model, not a Seesaw DNA design or an experimentally fitted circuit. Transcription delay, cell growth and resource competition are absent. Research PI-controller examples from the original collection remain separately available.
+
+**Open Adleman lab** is an independent algorithmic lesson inspired by [Adleman's 1994 paper](https://doi.org/10.1126/science.7973651). Define a directed graph with 2–7 vertices, generate candidate walks, select endpoints and vertex-count length, and filter for every vertex. The supplied graph is our teaching example. Enumeration is exhaustive for walk lengths 1 through `n+1`, is exponential, and stops with an explicit error above 16,000 candidates; a truncated search never claims absence of a path. The model assumes perfect generation and selection and models no physical DNA sequences, chemistry, errors, yields or concentrations. It does not reproduce a laboratory protocol or claim constant-cost physical computation. Save and reopen its independent lab JSON, or export a report and ZIP containing every filter's retained walks.
+
+## Prepare an exercise report
+
+Choose **Exercise report** in the toolbar or logic dialog. Enter your name, question, interpretation and limitations; these notes persist with the project and do not invalidate scientific results. Select the workspace calculation or logic experiments/comparisons as the report scope. The application does not supply a student's conclusion.
+
+Download the self-contained HTML and use the browser's Print command to print or save as PDF. **Download exercise ZIP** includes the project, report, source snapshots, exact settings, notes, CSV data and SVG plots. Report plots may subsample dense traces; CSV retains every returned sample. Failed or absent calculations remain explicit, and a changed source is labelled as an earlier snapshot. The Adleman lab has its own report and exercise package. Reports and packages work offline and do not upload work to a service.
 
 ## Command line
 

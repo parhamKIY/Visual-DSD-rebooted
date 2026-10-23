@@ -34,3 +34,11 @@ After reloading, new cases wait for **Continue unfinished cases**. The admitted 
 Select **Inspect case** and click an input/output node, molecular drawing or curve label to follow the same signal across all views. **Focus selected traces** rescales the chart to the selection; **Show all traces** restores it. Internal Boolean gates describe your expected function and do not claim a molecular mapping.
 
 Under **Signal quality & response**, inspect the OFF-rail peak (leakage), signed threshold margin at the read time, and sustained response delay. Open **How these metrics are calculated** for the definitions. Adjust the measurement window without rerunning, then download **Metrics CSV** or save the project. Missing simulations remain unavailable; a response that is invalid at the window end is **not reached**. Saved samples may miss short transients.
+
+## Compare, explain and submit
+
+In Logic experiment, use **Compare conditions & stochastic repeats** to vary input multipliers or declared parameters (`name=value`, one per line). Choose one deterministic repeat or seeded SSA repeats, with at most 64 case simulations. Inspect means, sample SD, unknown/failed cases and individual curves. Save the project before replacing a comparison; resume unfinished cases explicitly after a reload.
+
+From Start, **Open feedback lesson** compares an illustrative open/closed gene-regulation loop. **Open Adleman lab** teaches exhaustive candidate generation and idealized filtering on a small graph; it is not a chemical or wet-lab simulation. The assumptions and model origin appear beside the activities.
+
+Choose **Exercise report** in the toolbar or logic dialog. Write your own interpretation, then download printable HTML or the exercise ZIP. Open the HTML in a browser and use Print to print or save as PDF. The ZIP includes the project, source, recorded settings, notes, CSV and vector plots; the Adleman lab has its own JSON and package. No upload is required.
