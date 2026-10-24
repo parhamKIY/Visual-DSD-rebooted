@@ -43,6 +43,7 @@ test('comparison plots and conservation checks use only retained data and the se
   const study=fixture().study;assert.equal(systemsInvariant(study.runs[1],'conversion').maxAbsoluteError,0);
   const plot=systemsComparison(study,'baseline','A');assert.equal(plot.series.length,2);assert.equal(plot.series[1].values.at(-1),2);assert.equal(plot.series[1].standardDeviation.at(-1),1);
   const individual=systemsComparison(study,'baseline',{species:'A',seed:42},'individual');assert.equal(individual.mode,'step');assert.equal(individual.series[1].values.at(-1),2);assert.equal(systemsComparison(study,'baseline',{species:'A',seed:100},'individual').times.length,0);
+  assert.equal(individual.series[0].mode,'linear');
 });
 test('collecting results verifies actual simulator, settings, seed and selected CRN',()=>{
   const state=fixture(),row=state.study.runs[1],settings={simulator:'ssa',initial:0,final:20,points:150,seed:41,timeUnit:'s',concentrationUnit:'nM'};

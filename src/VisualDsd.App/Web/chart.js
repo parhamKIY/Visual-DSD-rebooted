@@ -118,7 +118,8 @@ export class SimulationChart {
         const edge = (points, values, first) => points.map((point, position) => `${first && position === 0 ? 'M' : 'L'}${x(run.times[point]).toFixed(3)} ${y(values[point]).toFixed(3)}`).join('');
         svg.append(svgElement('path', { d: `${edge(bandIndices, upper, true)}${edge([...bandIndices].reverse(), lower, false)}Z`, fill: colors[index % colors.length], 'fill-opacity': .13, 'data-uncertainty': index }));
       }
-      const path = indices.map((point, position) => `${position ? run.mode==='step'?'H':'L' : 'M'}${x(run.times[point]).toFixed(3)}${position&&run.mode==='step'?'V':' '}${y(series.values[point]).toFixed(3)}`).join('');
+      const mode = series.mode ?? run.mode;
+      const path = indices.map((point, position) => `${position ? mode==='step'?'H':'L' : 'M'}${x(run.times[point]).toFixed(3)}${position&&mode==='step'?'V':' '}${y(series.values[point]).toFixed(3)}`).join('');
       svg.append(svgElement('path', { d: path, stroke: colors[index % colors.length], class: 'chart-series', 'data-series': index }));
       if (run.times.length === 1) svg.append(svgElement('circle', { cx: x(run.times[0]), cy: y(series.values[0]), r: 3, fill: colors[index % colors.length] }));
       const observed = this.observations?.series.find(column => column.name === series.name);

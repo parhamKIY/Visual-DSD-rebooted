@@ -98,7 +98,7 @@ export function systemsComparison(study,conditionId,name,kind='summary'){
     const selected=ssa.find(r=>r.seed===Number(name.seed)),species=name.species;
     if(!selected)return {times:[],series:[]};
     const points=[...new Set([...selected.curve.times,...times])].sort((a,b)=>a-b);
-    if(ode)series.push({name:'ODE',values:points.map(t=>systemSample(ode.curve,species,t,'oslo'))});
+    if(ode)series.push({name:'ODE',mode:'linear',values:points.map(t=>systemSample(ode.curve,species,t,'oslo'))});
     series.push({name:`SSA · seed ${selected.seed}`,values:points.map(t=>systemSample(selected.curve,species,t))});
     return {times:points,series,mode:'step'};
   }
