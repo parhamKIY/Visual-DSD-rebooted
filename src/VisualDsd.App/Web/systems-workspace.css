@@ -15,7 +15,7 @@
 .systems-plan p{flex-basis:100%;margin:0}
 .systems-selectors select{max-width:100%}
 .systems-chart{position:relative;direction:ltr;border:1px solid #d9e6df;border-radius:12px;background:white}
-.systems-chart svg{display:block;width:100%;min-height:260px}
+.systems-chart svg{display:block;width:100%;height:auto;aspect-ratio:40/21}
 .systems-chart .chart-tooltip{position:absolute}
 .systems-note{font-size:13px;line-height:1.7;color:#536e63;background:#f1f7f3;border-inline-start:3px solid #278979;padding:14px}
 .systems-notice,.systems-status{padding:14px;background:#fff7e6;border:1px solid #e4cf9c;border-radius:8px;white-space:pre-wrap}
