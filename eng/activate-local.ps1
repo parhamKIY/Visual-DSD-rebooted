@@ -9,6 +9,7 @@ $checksum = ((Get-Content -LiteralPath $checksumPath -Raw).Trim() -split '\s+')[
 if ($checksum -notmatch '^[a-f0-9]{64}$' -or (Get-FileHash -LiteralPath $packagePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $checksum) { throw 'Package checksum mismatch.' }
 $archive = [IO.Compression.ZipFile]::OpenRead($packagePath)
 $approved = @('VisualDsd.exe','LICENSE','NOTICE','START-HERE.en.md','START-HERE.fa.md','VERSION.json','examples/Catalytic.dsd','examples/State-switch.dsd','examples/Two-systems.crn')
+$approved += @('course/COURSE.en.html','course/COURSE.fa.html','course/samples/coding.fasta','course/samples/aligned.fasta','course/samples/imported.nwk','course/models/conversion-baseline.crn','course/models/expression-baseline.crn','course/models/autoregulation-open.crn','course/models/autoregulation-closed.crn','course/manifest.json')
 try {
     $actual = @($archive.Entries | Where-Object Name | ForEach-Object { $_.FullName.Replace('\','/') })
     if (Compare-Object ($approved | Sort-Object) ($actual | Sort-Object)) { throw 'Unexpected package contents.' }
