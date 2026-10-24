@@ -69,6 +69,9 @@ jobs:
         run: |
           ./eng/publish.ps1 -Runtime '${{ matrix.runtime }}'
           ./eng/smoke.ps1 -Runtime '${{ matrix.runtime }}'
+          $app = if ($IsWindows) { 'artifacts/publish/win-x64/VisualDsd.exe' } else { 'artifacts/publish/linux-x64/VisualDsd' }
+          node eng/validate-course.mjs $app
+          if ($LASTEXITCODE -ne 0) { throw 'Course solver validation failed.' }
           ./eng/test-exports.ps1 -Runtime '${{ matrix.runtime }}'
           git diff --exit-code
           if ($LASTEXITCODE -ne 0) { throw 'Build or publish changed tracked files.' }

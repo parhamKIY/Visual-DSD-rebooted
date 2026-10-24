@@ -4,6 +4,7 @@ import { LogicWorkspace } from './logic-workspace.js';
 import { CourseReport } from './course-report.js';
 import { AdlemanWorkspace } from './adleman-workspace.js';
 import { SequenceWorkspace } from './sequence-workspace.js';
+import { SystemsWorkspace } from './systems-workspace.js';
 import { readLogicState } from './logic.js';
 import { installPaneLayout } from './layout.js';
 import { dsdFields, databaseIssues, sequenceCsv, sequenceFasta } from './dsd-workspace.js';
@@ -44,7 +45,8 @@ let documents = [], activeId, activeJob = null, examples = [], persistTimer, toa
 const learningGuide = new LearningGuide($('learning-guide'), { examples: () => examples, openExample, onLanguageChange: () => { renderDocuments(); renderExamples(); renderLessonContext(); renderStudent(); renderCourseLabels(); } });
 const studentWorkspace = new StudentWorkspace({ language: () => learningGuide.language, setLanguage: language => learningGuide.setLanguage(language), action: studentAction });
 const sequenceWorkspace = new SequenceWorkspace($('sequence-dialog'),{language:()=>learningGuide.language,version:()=>engineVersion,download});
-const courseReport = new CourseReport($('course-report-dialog'),{model:()=>current(),view:id=>stateFor(id),project:(selectedId=activeId)=>serialiseProject(documents,selectedId,views,engineVersion,sequenceWorkspace.snapshot()),language:()=>learningGuide.language,busy:()=>Boolean(activeJob),persist,download,error:error=>toast(error.message)});
+const systemsWorkspace = new SystemsWorkspace($('systems-dialog'),{language:()=>learningGuide.language,version:()=>engineVersion,busy:()=>Boolean(activeJob),download,stop:cancelJob,session:action=>logicSession(action,()=>systemsWorkspace.persist(),'Systems biology comparison…'),source:(name,code)=>{addDocument(createDocument(name,code));studentWorkspace.show('workspace');},activity:courseActivity});
+const courseReport = new CourseReport($('course-report-dialog'),{model:()=>current(),view:id=>stateFor(id),project:(selectedId=activeId)=>serialiseProject(documents,selectedId,views,engineVersion,sequenceWorkspace.snapshot(),systemsWorkspace.snapshot()),language:()=>learningGuide.language,busy:()=>Boolean(activeJob),persist,download,error:error=>toast(error.message)});
 const adlemanWorkspace = new AdlemanWorkspace($('adleman-dialog'),{language:()=>learningGuide.language,download});
 const logicWorkspace = new LogicWorkspace($('logic-dialog'), { model: () => current(), request: requestFor, language: () => learningGuide.language, version: () => engineVersion, busy: () => Boolean(activeJob), persist, download, save: saveProject, stop: cancelJob, session: logicSession, report:model=>courseReport.open(model),
   import: async file => {
@@ -75,9 +77,9 @@ function renderStudent() {
   for(const id of ['home-logic-title','home-logic-help','home-logic']){$(id).dir=fa?'rtl':'ltr';$(id).lang=fa?'fa':'en';}
 }
 
-async function logicSession(action) {
+async function logicSession(action, persistProgress = persist, message = 'Logic experiment…') {
   if(activeJob)throw new Error('Wait for the current calculation to finish.');
-  const task={logic:true,id:null,documentId:current().id,message:'Logic experiment…',cancelling:false};
+  const task={logic:true,id:null,documentId:current().id,message,cancelling:false};
   activeJob=task;updateBusy();
   try{
     return await action(async(request,row)=>{
@@ -89,11 +91,11 @@ async function logicSession(action) {
         task.id=row.jobId;job=readJob(await api(`/api/jobs/${task.id}`));
       }else{
         job=readJob(await api('/api/jobs',{method:'POST',body:JSON.stringify(request)}));task.id=job.id;
-        if(row){row.jobId=job.id;row.state='running';persist();}
+        if(row){row.jobId=job.id;row.state='running';persistProgress();}
       }
       updateBusy();
       if(task.cancelling&&!terminalJob(job))await api(`/api/jobs/${task.id}`,{method:'DELETE'});
-      if(!terminalJob(job))job=await watchJob(task.id,update=>{task.message=progressLabel(update);updateBusy();},{onDisconnect:()=>{task.message='Reconnecting to the admitted logic case…';updateBusy();}});
+      if(!terminalJob(job))job=await watchJob(task.id,update=>{task.message=progressLabel(update);updateBusy();},{onDisconnect:()=>{task.message='Reconnecting to the admitted experiment run…';updateBusy();}});
       task.id=null;return job;
     },task);
   }finally{if(activeJob===task)activeJob=null;updateBusy();}
@@ -141,7 +143,7 @@ function stem() { return current().name.replace(/\.[^.]+$/, '') || 'model'; }
 function saveModel() { download(current().name || 'Untitled.dsd', current().code); persist(); toast('Model download started.'); }
 function saveProject() {
   if (activeJob) return toast('Wait for the calculation to finish before saving the project.');
-  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion,sequenceWorkspace.snapshot()), 'application/json'); state().studentSavedResponse = state().response; renderStudent(); toast('Project download started, including saved results.'); }
+  try { download(`${stem()}.dsdproj.json`, serialiseProject(documents, activeId, views, engineVersion,sequenceWorkspace.snapshot(),systemsWorkspace.snapshot()), 'application/json'); state().studentSavedResponse = state().response; renderStudent(); toast('Project download started, including saved results.'); }
   catch (error) { toast(error.message); }
 }
 async function openProject(file) {
@@ -154,6 +156,7 @@ async function openProject(file) {
     if (!confirm('Replace the open workspace with this project? Save your current project first if you want to keep it.')) return;
     clearTimeout(persistTimer); documents = imported.documents; activeId = imported.activeId; views.clear();
     sequenceWorkspace.replace(imported.sequences);
+    systemsWorkspace.replace(imported.systems);
     for (const [id, restored] of imported.views) Object.assign(stateFor(id), restored, { status: `Restored result · engine ${restored.snapshot.engineVersion}` });
     selectDocument(activeId); studentWorkspace.show('workspace'); toast('Project opened. Saved results have been restored.');
   } catch (error) { toast(error.message); }
@@ -375,6 +378,7 @@ async function importData(files, target) {
 
 function updateBusy() {
   renderLive(); renderStudent();
+  systemsWorkspace.refreshBusy();
   const busy = Boolean(activeJob); document.body.classList.toggle('busy', busy);
   for (const id of ['check', 'expand', 'simulate', 'infer', 'analyze', 'synthesize', 'scientific-export', 'empty-simulate', 'nodeId', 'systemId', 'language']) $(id).disabled = busy;
   $('cancel').hidden = !busy; $('cancel').disabled = !activeJob?.id || activeJob.cancelling;
@@ -912,7 +916,7 @@ $('save-preview').addEventListener('click',()=>{const preview=state().live?.prev
 
 function renderCourseLabels(){
   const fa=learningGuide.language==='fa';
-  for(const [id,en,per] of [['sequence-open','Sequences','توالی‌ها'],['home-sequences','Open sequence workbench','باز کردن میز کار توالی‌ها'],['home-sequences-title','Explore DNA, RNA & proteins','کاوش دی‌ان‌ای، آر‌ان‌ای و پروتئین'],['home-sequences-help','Import FASTA or GenBank, inspect annotations, reverse complement, transcribe and translate with recorded settings.','فستا یا ژن‌بانک را وارد کن؛ حاشیه‌نویسی، مکمل معکوس، رونویسی و ترجمه را با تنظیمات ثبت‌شده ببین.'],['course-home-title','Explore feedback & DNA computing','کاوش بازخورد و محاسبات دی‌ان‌ای'],['course-home-help','Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.','یک مدل بازخورد پویا را مقایسه کن یا الگوریتم تولید و پالایش آدلمن را دنبال کن.'],['course-feedback','Open feedback lesson','باز کردن درس بازخورد'],['course-adleman','Open Adleman lab','باز کردن آزمایش آدلمن'],['course-report','Exercise report','گزارش تمرین'],['logic-report','Exercise report','گزارش تمرین']])$(id).textContent=fa?per:en;
+  for(const [id,en,per] of [['course-open','Course exercises','تمرین‌های درس'],['home-course-pack','Browse course exercises','مرور تمرین‌های درس'],['course-pack-title','Your course exercise collection','مجموعهٔ تمرین‌های درس'],['course-pack-help','Eleven guided activities, three systems biology labs, seeded comparisons and a portable exercise pack.','یازده فعالیت آموزشی، سه آزمایش سامانه‌ای، مقایسه با بذر ثبت‌شده و بستهٔ قابل‌انتقال تمرین‌ها.'],['sequence-open','Sequences','توالی‌ها'],['home-sequences','Open sequence workbench','باز کردن میز کار توالی‌ها'],['home-sequences-title','Explore DNA, RNA & proteins','کاوش دی‌ان‌ای، آر‌ان‌ای و پروتئین'],['home-sequences-help','Import FASTA or GenBank, inspect annotations, reverse complement, transcribe and translate with recorded settings.','فستا یا ژن‌بانک را وارد کن؛ حاشیه‌نویسی، مکمل معکوس، رونویسی و ترجمه را با تنظیمات ثبت‌شده ببین.'],['course-home-title','Explore feedback & DNA computing','کاوش بازخورد و محاسبات دی‌ان‌ای'],['course-home-help','Compare a dynamic feedback model or follow Adleman’s generate-and-filter algorithm.','یک مدل بازخورد پویا را مقایسه کن یا الگوریتم تولید و پالایش آدلمن را دنبال کن.'],['course-feedback','Open feedback lesson','باز کردن درس بازخورد'],['course-adleman','Open Adleman lab','باز کردن آزمایش آدلمن'],['course-report','Exercise report','گزارش تمرین'],['logic-report','Exercise report','گزارش تمرین']])$(id).textContent=fa?per:en;
   $('course-feedback').disabled=Boolean(activeJob)||!examples.some(e=>e.id==='feedback');
 }
 $('course-report').addEventListener('click',()=>courseReport.open());
@@ -922,3 +926,13 @@ renderCourseLabels();
 
 $('sequence-open').addEventListener('click',()=>sequenceWorkspace.open());
 $('home-sequences').addEventListener('click',()=>sequenceWorkspace.open());
+
+function courseActivity(action){
+  if(action==='strands')return learningGuide.open('catalytic');
+  if(action==='logic')return logicWorkspace.open();
+  if(action==='feedback')return learningGuide.open('feedback');
+  if(action==='adleman')return adlemanWorkspace.open();
+  sequenceWorkspace.page=({sequences:'records',alignment:'alignment',blast:'blast',evolution:'msa'})[action]??'records';sequenceWorkspace.open();
+}
+$('course-open').addEventListener('click',()=>systemsWorkspace.open());
+$('home-course-pack').addEventListener('click',()=>systemsWorkspace.open());

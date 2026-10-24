@@ -59,7 +59,7 @@ try {
         if (!$directory) { continue }
         $target = Assert-GeneratedPath $directory
         foreach ($file in Get-ChildItem -LiteralPath $target -Recurse -File -Force) {
-            if ($file.Name -notin @('VisualDsd.exe','VisualDsd','LICENSE','NOTICE','START-HERE.en.md','START-HERE.fa.md','VERSION.json','Catalytic.dsd','State-switch.dsd','Two-systems.crn') -and $file.Name -notmatch '^visual-dsd-rebooted-(win-x64|linux-x64)(-v\d+\.\d+\.\d+)?\.zip(\.sha256)?$') { throw "Unrecognized file in generated packages: $($file.FullName)" }
+            if ($file.Name -notin @('VisualDsd.exe','VisualDsd','LICENSE','NOTICE','START-HERE.en.md','START-HERE.fa.md','VERSION.json','Catalytic.dsd','State-switch.dsd','Two-systems.crn','COURSE.en.html','COURSE.fa.html','coding.fasta','aligned.fasta','imported.nwk','conversion-baseline.crn','expression-baseline.crn','autoregulation-open.crn','autoregulation-closed.crn','manifest.json') -and $file.Name -notmatch '^visual-dsd-rebooted-(win-x64|linux-x64)(-v\d+\.\d+\.\d+)?\.zip(\.sha256)?$') { throw "Unrecognized file in generated packages: $($file.FullName)" }
         }
         if (Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -and $_.ExecutablePath.StartsWith($target + '\', [StringComparison]::OrdinalIgnoreCase) }) { throw "Old package is running: $target" }
         Remove-Item -LiteralPath $target -Recurse -Force

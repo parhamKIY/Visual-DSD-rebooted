@@ -17,6 +17,7 @@ class ReleaseValidationTests(unittest.TestCase):
         path = Path(directory) / 'visual-dsd-rebooted-win-x64-v0.21.0.zip'
         metadata = dict(version=version, runtime='win-x64', commit=commit, selfContained=True, entryPoint='VisualDsd.exe')
         files = {'VisualDsd.exe': b'executable', 'LICENSE': b'license', 'NOTICE': b'notice', 'START-HERE.en.md': b'guide', 'START-HERE.fa.md': b'guide', 'VERSION.json': json.dumps(metadata).encode(), 'examples/Catalytic.dsd': b'<a>', 'examples/State-switch.dsd': b'<b>', 'examples/Two-systems.crn': b'| 1 A'}
+        files.update({name: b'authored course fixture' for name in release.COURSE_FILES})
         if extra:
             files.update(extra)
         with zipfile.ZipFile(path, 'w') as archive:

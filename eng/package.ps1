@@ -19,6 +19,8 @@ foreach ($file in @('START-HERE.en.md','START-HERE.fa.md')) { Copy-Item -Literal
 Copy-Item -LiteralPath (Join-Path $repoRoot 'upstream/crn-engine/ClassicDSD/Examples/DSDModels/Catalytic.txt') -Destination (Join-Path $stage 'examples/Catalytic.dsd')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/state-switch.dsd') -Destination (Join-Path $stage 'examples/State-switch.dsd')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'src/VisualDsd.App/WebExamples/crn-systems.crn') -Destination (Join-Path $stage 'examples/Two-systems.crn')
+& node (Join-Path $PSScriptRoot 'write-course-package.mjs') (Join-Path $stage 'course')
+if ($LASTEXITCODE -ne 0) { throw 'Course exercise packaging failed.' }
 @{ version=$version; runtime=$Runtime; commit=$commit; selfContained=$true; entryPoint=$executable } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stage 'VERSION.json') -Encoding utf8NoBOM
 $zip = Join-Path $OutputDirectory "$name.zip"
 if (Test-Path -LiteralPath $zip) { throw "Package already exists: $zip" }
@@ -29,6 +31,7 @@ $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant
 $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
 try {
     $expected = @($executable,'LICENSE','NOTICE','START-HERE.en.md','START-HERE.fa.md','VERSION.json','examples/Catalytic.dsd','examples/State-switch.dsd','examples/Two-systems.crn')
+    $expected += @('course/COURSE.en.html','course/COURSE.fa.html','course/samples/coding.fasta','course/samples/aligned.fasta','course/samples/imported.nwk','course/models/conversion-baseline.crn','course/models/expression-baseline.crn','course/models/autoregulation-open.crn','course/models/autoregulation-closed.crn','course/manifest.json')
     $actual = @($archive.Entries | Where-Object { $_.Name } | ForEach-Object { $_.FullName.Replace('\','/') })
     if (Compare-Object ($expected | Sort-Object) ($actual | Sort-Object)) { throw 'Release archive payload differs from the approved file list.' }
 } finally { $archive.Dispose() }

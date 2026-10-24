@@ -1,0 +1,29 @@
+#systems-dialog{width:min(1260px,96vw);max-width:96vw;height:92vh;max-height:92vh;padding:0;border:1px solid #d8e5df;border-radius:16px;color:var(--ink,#173d35)}
+#systems-dialog::backdrop{background:#102e2866}
+#systems-dialog .logic-body{padding:24px;overflow:auto}
+.systems-catalog{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-block:22px}
+.systems-card,.systems-guide{padding:22px;border:1px solid #d9e6df;border-radius:12px;background:#fafdfb}
+.systems-card h3{font-size:18px;line-height:1.4;margin-block:10px}
+.systems-card p,.systems-guide p{line-height:1.7}
+.systems-card details{margin-block:16px}
+.systems-card>.button{margin-top:12px}
+.systems-guide{margin-block:20px}.systems-guide li{margin-block:10px;line-height:1.7}
+#systems-dialog pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 var(--mono,monospace);background:#eff5f1;padding:16px;border-radius:8px}
+.systems-plan,.systems-selectors{display:flex;flex-wrap:wrap;gap:18px;align-items:end;margin-block:20px}
+.systems-plan{border:1px solid #d9e6df;border-radius:10px;padding:18px}
+.systems-plan label,.systems-selectors label,.systems-answer{display:flex;flex-direction:column;gap:8px}
+.systems-plan p{flex-basis:100%;margin:0}
+.systems-selectors select{max-width:100%}
+.systems-chart{position:relative;direction:ltr;border:1px solid #d9e6df;border-radius:12px;background:white}
+.systems-chart svg{display:block;width:100%;min-height:260px}
+.systems-chart .chart-tooltip{position:absolute}
+.systems-note{font-size:13px;line-height:1.7;color:#536e63;background:#f1f7f3;border-inline-start:3px solid #278979;padding:14px}
+.systems-notice,.systems-status{padding:14px;background:#fff7e6;border:1px solid #e4cf9c;border-radius:8px;white-space:pre-wrap}
+.systems-notice .button{margin-inline-end:8px}
+.systems-answer{margin-block:18px}.systems-answer textarea{width:100%;resize:vertical}
+#systems-dialog table{direction:ltr;width:100%;border-collapse:collapse;font-size:12px}
+#systems-dialog th,#systems-dialog td{text-align:left;padding:10px;border-bottom:1px solid #e0e9e3;overflow-wrap:anywhere;max-width:340px}
+#systems-dialog th{background:#f1f6f3}
+#systems-dialog .table-wrap{overflow:auto;margin-block:16px}
+@media(max-width:900px){.systems-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.systems-catalog{grid-template-columns:1fr}#systems-dialog .logic-body{padding:15px}.systems-selectors{display:grid}.systems-card{padding:16px}}

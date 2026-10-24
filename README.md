@@ -107,6 +107,16 @@ Open **DSD settings** to override individual source options without rewriting th
 
 After checking, expanding or running a model, **DSD & Sequences** shows effective options and the compiler's domain-to-DNA assignments, with both strands written 5′ to 3′. Search the assignments or download CSV and FASTA. Missing assignments remain explicit and are excluded from FASTA. This is the classic compiler mapping, not an oligonucleotide design/ordering tool; Rules DSD does not expose that mapping, and domains generated later during JIT execution may be absent. Projects preserve overrides, databases and assignment results; model-source downloads preserve the source alone.
 
+## Course exercises and systems biology
+
+Open **Course exercises** from Start or the toolbar for eleven independent activities across molecular circuits, sequence analysis, alignment, similarity search, evolution and systems biology. Each activity states its goal, the route through the tools, and what to check and submit. **Download term exercise pack** provides an English/Persian printable workbook, authored FASTA/alignment/Newick samples and four editable reaction models. The same material is in the release ZIP under `course/`.
+
+The **Systems biology lab** has three lessons: conserved conversion, promoter switching with mRNA/protein, and open/closed negative autoregulation. Run one deterministic Oslo trajectory and 2–12 individually seeded SSA repeats per condition. Inspect an individual seed or the sampled mean ± one **sample SD**, endpoint mean/SD/CV/Fano, conservation errors, and all execution states. This band is not a confidence interval; incomplete/failed runs are counted as unavailable. The endpoint uses the last retained SSA sample within the original solver's final-output tolerance; original timestamps are never rewritten. Intermediate display curves interpolate retained ODE samples and hold retained SSA samples; they do not reconstruct every reaction event.
+
+All rates are illustrative. `scale=1` maps one numerical stochastic copy to one model concentration unit; engine axes retain nM and seconds. This does not specify an experimentally calibrated volume. Negative feedback is not assumed to reduce noise or create memory/oscillation. Model assumptions, equations and check questions appear beside each lesson. Record your own hypothesis, observations and interpretation; export JSON, original trajectory CSV, SVG, a printable report or the full lab ZIP. **Save project** also includes the current systems lab. A lab file can be restored independently. After reload, unfinished runs resume only when explicitly requested; admitted jobs reconnect rather than automatically resubmitting.
+
+Core lessons run offline. Optional NCBI retrieval requires internet; native MUSCLE remains separate. This coursework package does not implement NGS/RNA-seq pipelines, proteomics or structure prediction. Classroom usability evaluation is still pending.
+
 ## Edit a reaction network
 
 Use **+ CRN** to start a reaction network directly, or expand a strand model and select **Open expanded network as editable CRN**. The new document is independent of the strand model. `.crn` files select the CRN language automatically; use the language setting for other file extensions.

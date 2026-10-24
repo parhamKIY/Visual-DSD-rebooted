@@ -24,6 +24,7 @@ test('systems lessons define independent CRNs, paired condition seeds and bounde
 test('systems snapshots preserve original values, notes, failed runs and immutable request provenance',()=>{
   const state=fixture();state.notes.interpretation='My observation, not generated';state.study.runs[2]={...state.study.runs[2],state:'failed',message:'solver failure'};delete state.study.runs[2].curve;
   assert.deepEqual(readSystemsWorkspace(JSON.parse(JSON.stringify(state))),state);
+  const reordered=copy(state);reordered.study.runs[0].request=Object.fromEntries(Object.entries(reordered.study.runs[0].request).reverse());assert.deepEqual(readSystemsWorkspace(reordered),state);
   for(const mutate of [s=>s.study.runs[1].seed++,s=>s.study.runs[1].request.code+='\n',s=>s.study.runs[1].request.simulator='oslo',s=>s.study.runs[1].engineVersion='other',s=>s.study.runs[1].curve.times.pop(),s=>s.study.runs[1].curve.series[0].values[1]=1.5,s=>s.study.runs[1].jobId=s.study.runs[0].jobId,s=>s.study.runs[1].curve.concentrationUnit='copies',s=>s.study.runs[1].state='queued',s=>s.study.runs.reverse(),s=>s.study.runs[1].curve.times[2]=19]){const invalid=copy(state);mutate(invalid);assert.throws(()=>readSystemsWorkspace(invalid));}
   const pending=emptySystemsWorkspace();pending.study=newSystemsStudy('conversion',pending.plan,'0.28.0');pending.study.runs[0].state='admitting';assert.equal(readSystemsWorkspace(pending).study.runs[0].state,'admitting');
 });

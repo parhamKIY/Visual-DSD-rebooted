@@ -6,7 +6,7 @@ const obj=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:fail('expected an objec
 const text=(v,max=4096)=>typeof v==='string'&&v.length<=max?v:fail('invalid text.');
 const int=(v,lo,hi)=>Number.isInteger(v)&&v>=lo&&v<=hi?v:fail('integer outside its allowed range.');
 const finite=v=>typeof v==='number'&&Number.isFinite(v)?v:fail('nonfinite value.');
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const same=(a,b)=>a&&typeof a==='object'&&!Array.isArray(a)&&JSON.stringify(Object.keys(a).sort())===JSON.stringify(Object.keys(b).sort())&&Object.keys(b).every(k=>a[k]===b[k]);
 const date=v=>{text(v,40);if(!Number.isFinite(Date.parse(v)))fail('invalid date.');return v;};
 // The retained SSA core writes its final output just before the OutputPoint
 // event (rr=0.99999999 in ssa.fs). Keep that timestamp, never rewrite it.

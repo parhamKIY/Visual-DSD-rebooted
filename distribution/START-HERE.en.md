@@ -42,3 +42,13 @@ In Logic experiment, use **Compare conditions & stochastic repeats** to vary inp
 From Start, **Open feedback lesson** compares an illustrative open/closed gene-regulation loop. **Open Adleman lab** teaches exhaustive candidate generation and idealized filtering on a small graph; it is not a chemical or wet-lab simulation. The assumptions and model origin appear beside the activities.
 
 Choose **Exercise report** in the toolbar or logic dialog. Write your own interpretation, then download printable HTML or the exercise ZIP. Open the HTML in a browser and use Print to print or save as PDF. The ZIP includes the project, source, recorded settings, notes, CSV and vector plots; the Adleman lab has its own JSON and package. No upload is required.
+
+## Course exercises and systems biology
+
+Select **Course exercises** for eleven guided activities. Each card explains its goal, route and check. The `course/COURSE.en.html` and `course/COURSE.fa.html` files in this ZIP are printable workbooks; `course/samples/` and `course/models/` contain authored inputs. The same pack can be downloaded inside the app.
+
+Choose **Systems biology lab** for reaction conversion, promoter switching/gene expression, and open/closed feedback. Read the assumptions, write a hypothesis, then **Run ODE + SSA comparison**. Each condition gets a deterministic trajectory and 2–12 SSA repeats with recorded seeds. Select a species and individual seed, or compare the ensemble mean and sample SD. Inspect endpoint summaries, failed/unfinished runs and conservation checks. The SD band is not a confidence interval. Original SSA output can finish infinitesimally before the requested endpoint; original timestamps are retained. Coarse plotted samples do not identify every reaction event.
+
+Save the lab JSON or **Export lab package** before changing a lesson or replacing a comparison. **Printable report** contains your notes, provenance and endpoint tables; the ZIP includes original trajectories, requests and models. **Save project** includes the lab too. Reopen a lab through **Open lab file**. Closing the dialog does not cancel admitted work; **Stop comparison** does. After reloading, explicitly choose **Continue unfinished runs** to reconnect. Unknown admissions are never automatically resubmitted; inspect Jobs.
+
+The rates and datasets are illustrative teaching examples. Engine axes remain nM and s with scale=1 numerical populations, not a calibrated cell volume. Core exercises are offline. NCBI needs internet and MUSCLE is optional. These activities do not replace RNA-seq, NGS, proteomics or structure tools.

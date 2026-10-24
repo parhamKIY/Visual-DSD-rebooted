@@ -12,6 +12,11 @@ import subprocess
 import tempfile
 import zipfile
 
+COURSE_FILES = {'course/COURSE.en.html', 'course/COURSE.fa.html',
+               'course/samples/coding.fasta', 'course/samples/aligned.fasta', 'course/samples/imported.nwk',
+               'course/models/conversion-baseline.crn', 'course/models/expression-baseline.crn',
+               'course/models/autoregulation-open.crn', 'course/models/autoregulation-closed.crn', 'course/manifest.json'}
+
 
 def gh(*args, missing=False):
     result = subprocess.run(['gh', *args], capture_output=True, text=True, check=False)
@@ -46,6 +51,7 @@ def validate_package(directory, runtime, version, commit):
     executable = 'VisualDsd.exe' if runtime == 'win-x64' else 'VisualDsd'
     allowed = {executable, 'LICENSE', 'NOTICE', 'START-HERE.en.md', 'START-HERE.fa.md', 'VERSION.json',
                'examples/Catalytic.dsd', 'examples/State-switch.dsd', 'examples/Two-systems.crn'}
+    allowed |= COURSE_FILES
     with zipfile.ZipFile(package) as archive:
         files = [p for p in archive.infolist() if not p.is_dir()]
         if len(files) != len(allowed) or {p.filename.replace('\\', '/') for p in files} != allowed:
